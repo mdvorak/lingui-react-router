@@ -1,0 +1,48 @@
+{
+  "name": "lingui-react-router",
+  "version": "1.0.0",
+  "description": "Integration between Lingui and React Router app",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist/",
+    "src/"
+  ],
+  "scripts": {
+    "build": "unbuild",
+    "dev": "unbuild --watch",
+    "prepack": "npm run build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "lingui",
+    "react-router",
+    "i18n",
+    "internationalization"
+  ],
+  "author": "Michal Dvořák",
+  "license": "MIT",
+  "devDependencies": {
+    "@lingui/react": "^4.0.0",
+    "@types/react": "^18.0.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "react-router-dom": "^6.0.0",
+    "typescript": "^5.0.0",
+    "unbuild": "^3.6.1"
+  },
+  "peerDependencies": {
+    "@lingui/react": ">=4.0.0",
+    "react": ">=16.8.0",
+    "react-router-dom": ">=6.0.0"
+  }
+}
