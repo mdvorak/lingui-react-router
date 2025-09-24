@@ -18,26 +18,31 @@
     "src/"
   ],
   "scripts": {
-    "build": "tsup",
-    "dev": "tsup --watch",
+    "build": "unbuild",
+    "dev": "unbuild --watch",
     "prepack": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["lingui", "react-router", "i18n", "internationalization"],
+  "keywords": [
+    "lingui",
+    "react-router",
+    "i18n",
+    "internationalization"
+  ],
   "author": "Michal Dvořák",
   "license": "MIT",
   "devDependencies": {
+    "@lingui/react": "^4.0.0",
     "@types/react": "^18.0.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-router-dom": "^6.0.0",
-    "@lingui/react": "^4.0.0",
-    "tsup": "^8.0.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "unbuild": "^3.6.1"
   },
   "peerDependencies": {
+    "@lingui/react": ">=4.0.0",
     "react": ">=16.8.0",
-    "react-router-dom": ">=6.0.0",
-    "@lingui/react": ">=4.0.0"
+    "react-router-dom": ">=6.0.0"
   }
 }
