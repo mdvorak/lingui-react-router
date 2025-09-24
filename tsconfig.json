@@ -1,19 +1,16 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "lib": ["ES2020"],
-    "module": "ESNext",
-    "moduleResolution": "node",
+    "module": "commonjs",
+    "jsx": "react",
+    "noEmit": true,
+    "baseUrl": "./",
+    "pretty": true,
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
+    "stripInternal": true,
+    "noUnusedLocals": true,
+    "resolveJsonModule": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "declaration": true,
-    "declarationMap": true,
-    "outDir": "dist",
-    "rootDir": "src",
-    "jsx": "react-jsx"
+    "target": "ES2020",
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
