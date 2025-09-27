@@ -56,10 +56,10 @@ export type I18nAppConfig = Readonly<{
   locales: readonly string[]
   /** Optional pseudo locale from Lingui configuration. */
   pseudoLocale?: string
-  /** Default locale used if fallbackLocales.default is not configured. */
+  /** Default locale used. */
   defaultLocale: string
   /** Excluded path prefixes that should not be interpreted as locales. */
-  exclude: string[]
+  exclude: readonly string[]
 
   /**
    * Parse the locale and remaining pathname from a URL path (e.g. "/en/products").
@@ -107,7 +107,7 @@ class I18nAppConfigImpl implements I18nAppConfig {
   public readonly locales: readonly string[]
   public readonly pseudoLocale?: string
   public readonly defaultLocale: string
-  public readonly exclude: string[]
+  public readonly exclude: readonly string[]
 
   // private state
   readonly #catalogPaths: readonly string[]
@@ -141,10 +141,25 @@ class I18nAppConfigImpl implements I18nAppConfig {
   }
 
   /**
-   * Parse a URL path to determine locale vs excluded prefix and the remaining pathname.
+   * Parse a URL path to determine locale vs. excluded prefix and the remaining pathname.
    * Returns locale undefined when no locale is present.
    */
-  parseUrlLocale(url: string): PathLocale {
+  public readonly parseUrlLocale = this.#parseUrlLocale.bind(this)
+  /**
+   * Load and merge message catalogs for the specified locale.
+   * Will throw if the locale is not supported.
+   */
+  public readonly loadCatalog = this.#loadCatalog.bind(this)
+  /**
+   * Generate a list of RouteConfigEntry for a localized path.
+   */
+  public readonly route = this.#route.bind(this)
+  /**
+   * Generate index routes for all locale roots.
+   */
+  public readonly index = this.#index.bind(this)
+
+  #parseUrlLocale(url: string): PathLocale {
     if (url === "/") {
       return { locale: undefined, pathname: "/", excluded: false }
     }
@@ -160,27 +175,13 @@ class I18nAppConfigImpl implements I18nAppConfig {
     return { locale: undefined, pathname: url, excluded: false }
   }
 
-  /**
-   * Load and merge message catalogs for the specified locale.
-   * Will throw if the locale is not supported.
-   */
-  async loadCatalog(locale: string): Promise<Messages> {
-    return this.#loadCatalog(this.#normalizeLocale(locale))
-  }
-
-  /**
-   * Generate a list of RouteConfigEntry for a localized path.
-   */
-  route(path: string, file: string, children?: RouteConfigEntry[]): RouteConfigEntry[] {
+  #route(path: string, file: string, children?: RouteConfigEntry[]): RouteConfigEntry[] {
     return this.#routePrefixes
       .filter(p => p + path)
       .map(p => route(p + path, file, { id: p + file }, children))
   }
 
-  /**
-   * Generate index routes for all locale roots.
-   */
-  index(file: string, children?: RouteConfigEntry[]): RouteConfigEntry[] {
+  #index(file: string, children?: RouteConfigEntry[]): RouteConfigEntry[] {
     return this.locales.map(loc => route(loc, file, { id: loc + file }, children))
   }
 
@@ -195,9 +196,11 @@ class I18nAppConfigImpl implements I18nAppConfig {
 
   /** Load and merge all catalogs for the normalized locale. */
   async #loadCatalog(locale: string): Promise<Messages> {
+    const definedLocale = this.#normalizeLocale(locale)
+
     const messages = await Promise.all(
       this.#catalogPaths
-        .map(path => path.replace("{locale}", locale) + ".po")
+        .map(path => path.replace("{locale}", definedLocale) + ".po")
         .map(path => this.#resolveCatalog(path))
     )
     return Object.assign({}, ...messages) as Messages
