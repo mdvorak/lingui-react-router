@@ -1,3 +1,5 @@
+[![npm version](https://badge.fury.io/js/lingui-react-router.svg)](https://www.npmjs.com/package/lingui-react-router)
+
 # lingui-react-router
 
 Integration between [Lingui](https://lingui.dev/) and [React Router](https://reactrouter.com/).
