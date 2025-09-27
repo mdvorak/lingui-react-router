@@ -1,9 +1,9 @@
-import { Link } from "react-router"
+import { LocaleLink } from "lingui-react-router"
 
 export default function Index() {
   return (
     <div>
-      <Link to="/hello">To hello</Link>
+      <LocaleLink to="/hello">To hello</LocaleLink>
     </div>
   )
 }

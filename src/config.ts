@@ -24,6 +24,7 @@ export type I18nAppConfig = Readonly<{
   parseUrlLocale(url: string): PathLocale
   loadCatalog(locale: string): Promise<Messages>
   route(path: string, file: string, children?: RouteConfigEntry[]): RouteConfigEntry[]
+  index(file: string, children?: RouteConfigEntry[]): RouteConfigEntry[]
 }>
 
 // TODO support fallbackLocales
@@ -49,7 +50,7 @@ export function defineConfig(linguiConfig: LinguiConfig, config: I18nConfig): I1
 
   // Create a regex pattern from locales for efficient URL parsing
   const localesRegex = buildRegex(locales, exclude)
-  const urlPrefixes = [""].concat(locales.map(loc => loc + "/"))
+  const routePrefixes = [""].concat(locales.map(loc => loc + "/"))
 
   return {
     locales,
@@ -60,7 +61,10 @@ export function defineConfig(linguiConfig: LinguiConfig, config: I18nConfig): I1
     parseUrlLocale: url => parseUrlLocale(url, localesRegex),
     loadCatalog: locale => loadCatalog(locale, locales, catalogs, config.catalogModules),
     route: (path, file, children) => {
-      return urlPrefixes.filter(p => p + path).map(p => route(p + path, file, { id: p + file }, children))
+      return routePrefixes.filter(p => p + path).map(p => route(p + path, file, { id: p + file }, children))
+    },
+    index: (file, children) => {
+      return locales.map(loc => route(loc, file, { id: loc + file }, children))
     },
   }
 }

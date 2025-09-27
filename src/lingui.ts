@@ -13,7 +13,7 @@ import { getGlobalRef, initI18n } from "./globals"
  * @param defaultComponent Optional component to use as default for translation components.
  */
 export function initLingui(defaultComponent?: I18nContext["defaultComponent"]): I18n {
-  const locale = useLocale()
+  const { locale } = useLocale()
   const i18n = useMemo(() => initI18n(locale, defaultComponent), [locale])
 
   useEffect(() => {
@@ -31,8 +31,14 @@ export function useI18nConfig(): Omit<I18nAppConfig, "loadCatalog"> {
   return getGlobalRef().config
 }
 
-export function useLocale(): string {
+export function useLocale(): { locale: string; requestLocale?: string } {
   const location = useLocation()
   const { config } = getGlobalRef()
-  return useMemo(() => config.parseUrlLocale(location.pathname).locale || config.defaultLocale, [location.pathname])
+  return useMemo(() => {
+    const requestLocale = config.parseUrlLocale(location.pathname).locale
+    return {
+      requestLocale,
+      locale: requestLocale || config.defaultLocale,
+    }
+  }, [location.pathname])
 }
