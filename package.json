@@ -1,6 +1,6 @@
 {
   "name": "lingui-react-router",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Integration between Lingui and React Router app",
   "type": "module",
   "module": "./dist/index.mjs",
