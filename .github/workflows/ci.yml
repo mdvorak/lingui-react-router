@@ -3,8 +3,8 @@ name: CI
 on:
   push:
     branches: [ main ]
+    tags: [ v* ]
   pull_request:
-    branches: [ main ]
 
 jobs:
   build:
@@ -43,3 +43,26 @@ jobs:
           name: lingui-react-router
           path: lingui-react-router*.tgz
           retention-days: 7
+
+  publish:
+    runs-on: ubuntu-latest
+    environment: publish
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: lingui-react-router
+
+      - name: Verify package
+        run: |
+          tar -tzf lingui-react-router*.tgz | grep -q "package.json" || (echo "Invalid package content" && exit 1)
+
+      - name: Publish package
+        run: npm publish lingui-react-router*.tgz
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
