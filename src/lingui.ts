@@ -27,10 +27,22 @@ export function initLingui(defaultComponent?: I18nContext["defaultComponent"]): 
   return i18n
 }
 
+/**
+ * Access the immutable i18n application configuration.
+ *
+ * Useful for reading supported locales, defaultLocale, and helpers like
+ * parseUrlLocale/route/index on the client.
+ */
 export function useI18nConfig(): Omit<I18nAppConfig, "loadCatalog"> {
   return getGlobalRef().config
 }
 
+/**
+ * React hook that derives the active locale from the current URL.
+ *
+ * - `requestLocale` is the locale parsed from the pathname (e.g. "/en/..."), if present.
+ * - `locale` is the effective locale (falls back to defaultLocale when no requestLocale).
+ */
 export function useLocale(): { locale: string; requestLocale?: string } {
   const location = useLocation()
   const { config } = getGlobalRef()

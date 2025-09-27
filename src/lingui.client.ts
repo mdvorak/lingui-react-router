@@ -29,6 +29,9 @@ let i18nRef: I18n
  * @param config Imported extended lingui config
  * @param pathname A `location.pathname` value.
  */
+/**
+ * @returns The initialized I18n instance bound to the detected locale.
+ */
 export async function setupLingui(config: I18nAppConfig, pathname: string) {
   setGlobalRef(config, () => i18nRef)
 

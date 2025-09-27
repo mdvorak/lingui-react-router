@@ -31,6 +31,14 @@ export type I18nServerContext = I18nContext &
 
 const localeContextStorage = new AsyncLocalStorage<I18nRequestContext>()
 
+/**
+ * Create a server middleware that detects the locale, initializes Lingui, and
+ * sets Content-Language on the response. It also performs redirects to the
+ * user's preferred locale when appropriate.
+ *
+ * The middleware eagerly loads catalogs for all configured locales on first use
+ * and caches initialized I18n instances for fast requests.
+ */
 export function createLocaleMiddleware(config: I18nAppConfig): typeof localeMiddleware {
   // Lazy-initialized reference
   let loadedLocales: Record<string, I18n>
@@ -50,6 +58,11 @@ export function createLocaleMiddleware(config: I18nAppConfig): typeof localeMidd
   }
 }
 
+/**
+ * Internal middleware implementation. Determines the locale from the URL or the
+ * Accept-Language header, initializes i18n, and runs the request within an
+ * AsyncLocalStorage context containing i18n and request metadata.
+ */
 async function localeMiddleware(
   { request }: { request: Request },
   next: () => Promise<Response>
@@ -90,6 +103,10 @@ async function localeMiddleware(
   )
 }
 
+/**
+ * Parse the Accept-Language header and return the best language match
+ * normalized to a base language (e.g., "en-US" -> "en").
+ */
 function getPreferredLocale(request: Request): string | undefined {
   const acceptLanguage = request.headers.get("Accept-Language")
   if (!acceptLanguage) return
@@ -98,6 +115,10 @@ function getPreferredLocale(request: Request): string | undefined {
   return negotiator.language()?.split("-", 2)[0]
 }
 
+/**
+ * Preload and initialize Lingui I18n objects for every configured locale.
+ * Returns a map of locale -> I18n.
+ */
 async function loadAllLocales(config: I18nAppConfig): Promise<Record<string, I18n>> {
   const locales = config.locales
   const catalogs = await Promise.all(locales.map(loc => config.loadCatalog(loc)))

@@ -1,32 +1,93 @@
+/**
+ * I18n-aware routing configuration utilities for React Router + Lingui.
+ *
+ * This module exposes helpers to:
+ * - Parse a locale from an incoming URL while respecting excluded paths.
+ * - Generate localized route entries for React Router file-based routing.
+ * - Lazily load Lingui message catalogs for a given locale.
+ *
+ * All public types and functions are documented with TSDoc to facilitate API docs generation.
+ */
+
 import type { LinguiConfig } from "@lingui/conf"
 import type { Messages } from "@lingui/core"
 import { route, type RouteConfigEntry } from "@react-router/dev/routes"
 
+/**
+ * Configuration passed from the consumer to wire up catalog loading and path exclusions.
+ */
 export type I18nConfig = {
+  /**
+   * Must be imported modules, otherwise vite build will fail.
+   *
+   * @example
+   * import { defineConfig } from "lingui-react-router"
+   * import linguiConfig from "./lingui.config"
+   *
+   * export default defineConfig(linguiConfig, {
+   *   catalogModules: import.meta.glob("./app/**\/*.po"),
+   * })
+   */
   catalogModules: Record<string, any>
+  /**
+   * One or more root-level path prefixes that should NOT be treated as locales.
+   * For example, ["api"].
+   */
   exclude?: string | string[]
 }
 
+/**
+ * Result of parsing locale information from a URL path.
+ */
 export type PathLocale = {
+  /** The path portion after the locale or excluded prefix. */
   pathname: string
+  /** The detected locale, if any. */
   locale?: string
+  /** True if the path matched an excluded prefix rather than a locale. */
   excluded: boolean
 }
 
+/**
+ * Public application configuration produced by defineConfig.
+ */
 export type I18nAppConfig = Readonly<{
+  /** All supported locales, in order of preference. */
   locales: readonly string[]
+  /** Optional pseudo locale from Lingui configuration. */
   pseudoLocale?: string
+  /** Default locale used if fallbackLocales.default is not configured. */
   defaultLocale: string
+  /** Excluded path prefixes that should not be interpreted as locales. */
   exclude: string[]
 
+  /**
+   * Parse the locale and remaining pathname from a URL path (e.g. "/en/products").
+   */
   parseUrlLocale(url: string): PathLocale
+  /**
+   * Load and merge all Lingui message catalogs for the given locale.
+   */
   loadCatalog(locale: string): Promise<Messages>
+  /**
+   * Create localized route entries for a given path and file.
+   * For example, `route("products", "routes/products.tsx")` will generate entries
+   * for each locale as `["en/products", "pseudo/products", ...]`
+   */
   route(path: string, file: string, children?: RouteConfigEntry[]): RouteConfigEntry[]
+  /**
+   * Create index routes for every locale root ("/en", "/fr", etc.).
+   */
   index(file: string, children?: RouteConfigEntry[]): RouteConfigEntry[]
 }>
 
 // TODO support fallbackLocales
 
+/**
+ * Create an I18nAppConfig from Lingui and user configuration.
+ *
+ * Throws if required Lingui settings are missing.
+ */
 export function defineConfig(linguiConfig: LinguiConfig, config: I18nConfig): I18nAppConfig {
   if (linguiConfig.locales.length === 0) {
     throw new Error("No locale found. Please configure locales in Lingui config")
@@ -39,6 +100,9 @@ export function defineConfig(linguiConfig: LinguiConfig, config: I18nConfig): I1
   return new I18nAppConfigImpl(linguiConfig, config)
 }
 
+/**
+ * Internal implementation of I18nAppConfig.
+ */
 class I18nAppConfigImpl implements I18nAppConfig {
   public readonly locales: readonly string[]
   public readonly pseudoLocale?: string
@@ -51,6 +115,9 @@ class I18nAppConfigImpl implements I18nAppConfig {
   readonly #localesRegex: RegExp
   readonly #routePrefixes: readonly string[]
 
+  /**
+   * Build the app config using Lingui project settings and user options.
+   */
   constructor(lingui: LinguiConfig, cfg: I18nConfig) {
     const locales = lingui.locales.slice()
 
@@ -73,6 +140,10 @@ class I18nAppConfigImpl implements I18nAppConfig {
     this.#routePrefixes = [""].concat(locales.map(loc => loc + "/"))
   }
 
+  /**
+   * Parse a URL path to determine locale vs excluded prefix and the remaining pathname.
+   * Returns locale undefined when no locale is present.
+   */
   parseUrlLocale(url: string): PathLocale {
     if (url === "/") {
       return { locale: undefined, pathname: "/", excluded: false }
@@ -89,21 +160,32 @@ class I18nAppConfigImpl implements I18nAppConfig {
     return { locale: undefined, pathname: url, excluded: false }
   }
 
+  /**
+   * Load and merge message catalogs for the specified locale.
+   * Will throw if the locale is not supported.
+   */
   async loadCatalog(locale: string): Promise<Messages> {
     return this.#loadCatalog(this.#normalizeLocale(locale))
   }
 
+  /**
+   * Generate a list of RouteConfigEntry for a localized path.
+   */
   route(path: string, file: string, children?: RouteConfigEntry[]): RouteConfigEntry[] {
     return this.#routePrefixes
       .filter(p => p + path)
       .map(p => route(p + path, file, { id: p + file }, children))
   }
 
+  /**
+   * Generate index routes for all locale roots.
+   */
   index(file: string, children?: RouteConfigEntry[]): RouteConfigEntry[] {
     return this.locales.map(loc => route(loc, file, { id: loc + file }, children))
   }
 
   // private helpers
+  /** Ensure the locale is supported. */
   #normalizeLocale(locale: string) {
     if (!this.locales.includes(locale)) {
       throw new Error(`Unsupported locale: ${locale}`)
@@ -111,6 +193,7 @@ class I18nAppConfigImpl implements I18nAppConfig {
     return locale
   }
 
+  /** Load and merge all catalogs for the normalized locale. */
   async #loadCatalog(locale: string): Promise<Messages> {
     const messages = await Promise.all(
       this.#catalogPaths
@@ -120,6 +203,7 @@ class I18nAppConfigImpl implements I18nAppConfig {
     return Object.assign({}, ...messages) as Messages
   }
 
+  /** Resolve and import a single catalog file/module. */
   async #resolveCatalog(path: string) {
     const catalog = this.#catalogModules[path]
     if (!catalog) throw new Error(`Catalog module not found: ${path}`)
@@ -127,11 +211,13 @@ class I18nAppConfigImpl implements I18nAppConfig {
     return messages.messages ?? messages.default
   }
 
+  /** Convert a string list into a single regex group pattern. */
   static #toGroupPattern(list: readonly string[]): string {
     if (list.length === 0) return ""
     return "(" + list.map(v => v.replace(/[^a-zA-Z0-9\/_-]/g, "\\$&")).join("|") + ")"
   }
 
+  /** Build the main regex used to parse locales and excluded prefixes from paths. */
   static #buildRegex(locales: readonly string[], exclude: readonly string[]): RegExp {
     return new RegExp(
       `^/(?:${this.#toGroupPattern(locales)}|${this.#toGroupPattern(exclude)})(/.*)?$`
