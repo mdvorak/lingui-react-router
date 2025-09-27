@@ -12,31 +12,34 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x, 20.x, 22.x, 24.x, lts/*]
+        node-version: [ 18.x, 20.x, 22.x, 24.x, lts/* ]
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'pnpm'
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
 
-    - name: Install dependencies
-      run: pnpm ci
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
 
-    - name: Test package
-      run: pnpm test
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
-    - name: Package
-      run: pnpm pack
+      - name: Test package
+        run: pnpm test
 
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
-      if: matrix.node-version == 'lts/*'
-      with:
-        name: lingui-react-router
-        path: lingui-react-router*.tgz
-        retention-days: 7
+      - name: Package
+        run: pnpm pack
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        if: matrix.node-version == 'lts/*'
+        with:
+          name: lingui-react-router
+          path: lingui-react-router*.tgz
+          retention-days: 7
