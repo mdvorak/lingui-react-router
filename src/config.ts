@@ -76,7 +76,7 @@ export type I18nAppConfig = Readonly<{
    */
   route(path: string, file: string, children?: RouteConfigEntry[]): RouteConfigEntry[]
   /**
-   * Create index routes for every locale root ("/en", "/fr", etc.).
+   * Create index routes for every locale root ("/en", "/cs", etc.).
    */
   index(file: string, children?: RouteConfigEntry[]): RouteConfigEntry[]
 }>
@@ -140,23 +140,9 @@ class I18nAppConfigImpl implements I18nAppConfig {
     this.#routePrefixes = [""].concat(locales.map(loc => loc + "/"))
   }
 
-  /**
-   * Parse a URL path to determine locale vs. excluded prefix and the remaining pathname.
-   * Returns locale undefined when no locale is present.
-   */
   public readonly parseUrlLocale = this.#parseUrlLocale.bind(this)
-  /**
-   * Load and merge message catalogs for the specified locale.
-   * Will throw if the locale is not supported.
-   */
   public readonly loadCatalog = this.#loadCatalog.bind(this)
-  /**
-   * Generate a list of RouteConfigEntry for a localized path.
-   */
   public readonly route = this.#route.bind(this)
-  /**
-   * Generate index routes for all locale roots.
-   */
   public readonly index = this.#index.bind(this)
 
   #parseUrlLocale(url: string): PathLocale {
