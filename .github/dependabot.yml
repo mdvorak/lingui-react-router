@@ -1,0 +1,31 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directories:
+      - "/"
+      - "/test/"
+    schedule:
+      interval: "weekly"
+    versioning-strategy: increase-if-necessary
+    groups:
+      prod-deps:
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "@types/*"
+          - "*eslint*"
+          - "*prettier*"
+          - "*jest*"
+          - "*vitest*"
+          - "*playwright*"
+      dev-types:
+        patterns:
+          - "@types/*"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
