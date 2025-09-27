@@ -27,7 +27,7 @@ import { defineConfig } from "lingui-react-router"
 import linguiConfig from "./lingui.config"
 
 export default defineConfig(linguiConfig, {
-  // Optionally exclude top-level paths that are not locales (e.g. /api)
+  // Optionally exclude top-level paths that are not locales (e.g., /api)
   exclude: "api",
   // IMPORTANT: use imported modules so the bundler can include catalogs
   catalogModules: import.meta.glob("./app/**/*.po"),
@@ -85,12 +85,12 @@ Use the helpers from your i18n config in app/routes.ts:
 
 ```ts
 import { index, type RouteConfig } from "@react-router/dev/routes"
-import i18n from "../i18n.config"
+import i18nConfig from "../i18n.config"
 
 export default [
   index("./routes/_index.tsx"),         // default root ("/")
-  ...i18n.index("./routes/_index.tsx"), // "/en", "/fr", ...
-  ...i18n.route("hello", "./routes/hello.tsx"), // "/en/hello", ...
+  ...i18nConfig.index("./routes/_index.tsx"), // "/en", "/fr", ...
+  ...i18nConfig.route("hello", "./routes/hello.tsx"), // "/en/hello", ...
 ] satisfies RouteConfig
 ```
 
@@ -109,6 +109,33 @@ function Header() {
       <span>Supported: {config.locales.join(", ")}</span>
     </nav>
   )
+}
+```
+
+6) Use `useLinguiServer()` in loaders/actions
+
+You can access the server-side i18n context inside route loaders and actions.
+The redirect helper will automatically prefix paths with the current locale.
+
+```ts
+import { useLinguiServer } from "lingui-react-router/server"
+import { msg } from "@lingui/core/macro"
+
+export async function loader() {
+    const {i18n, _, url, requestLocale, pathnamePrefix, redirect} = useLinguiServer()
+
+    // Read locale info
+    console.log("active:", i18n.locale, "from URL:", requestLocale)
+
+    // Locale-aware redirect: this will become "/en/login" when locale is "en"
+    if (url.searchParams.get("login") === "1") {
+        throw redirect("/login")
+    }
+
+    // Translate on the server
+    const title = _(msg`Welcome`)
+
+    return Response.json({title, locale: i18n.locale, prefix: pathnamePrefix})
 }
 ```
 

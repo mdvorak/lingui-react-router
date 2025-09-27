@@ -32,6 +32,33 @@ export type I18nServerContext = I18nContext &
 const localeContextStorage = new AsyncLocalStorage<I18nRequestContext>()
 
 /**
+ * Hook to access the server-side i18n context. Use only in loaders and actions.
+ *
+ * @throws {Error} If used outside a localeMiddleware context
+ * @returns {I18nServerContext} The server-side i18n context object containing:
+ * - i18n: The internationalization processing object
+ * - url: The URL object for the current request
+ * - requestLocale: The locale explicitly requested by the client, if any
+ * - requestPathname: The pathname of the current request
+ * - pathnamePrefix: The pathname prefix for the current locale (e.g. "/en")
+ * - _: The translation function bound to the current i18n instance
+ * - redirect: Function to redirect to a different locale while preserving the current locale prefix
+ */
+export function useLinguiServer(): I18nServerContext {
+  const serverContext = localeContextStorage.getStore()
+  if (!serverContext) throw new Error("useLinguiServer must be used within a localeMiddleware")
+
+  const pathnamePrefix = serverContext.requestLocale ? `/${serverContext.requestLocale}` : ""
+
+  return {
+    ...serverContext,
+    _: serverContext.i18n._.bind(serverContext.i18n),
+    pathnamePrefix,
+    redirect: (to, init) => redirect(`${pathnamePrefix}${to}`, init),
+  }
+}
+
+/**
  * Create a server middleware that detects the locale, initializes Lingui, and
  * sets Content-Language on the response. It also performs redirects to the
  * user's preferred locale when appropriate.
