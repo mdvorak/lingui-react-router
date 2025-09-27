@@ -5,7 +5,7 @@ import { useLocation, useNavigate } from "react-router"
 export default function SelectLanguage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { locale, pathname } = useLocale()
+  const { locale, pathname } = useLocale(location)
   const { locales, pseudoLocale } = useI18nConfig()
 
   const onChange = (e: ChangeEvent<HTMLSelectElement>) => {

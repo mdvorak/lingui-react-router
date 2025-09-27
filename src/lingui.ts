@@ -58,13 +58,12 @@ export function useI18nConfig(): Omit<I18nAppConfig, "loadCatalog"> {
  *
  * @see {@link I18nAppConfig['parseUrlLocale']} for the underlying URL parsing logic
  */
-export function useLocale(): {
+export function useLocale(location = useLocation()): {
   locale: string
   requestLocale?: string
   pathname: string
   excluded: boolean
 } {
-  const location = useLocation()
   const { config } = getGlobalRef()
   return useMemo(() => {
     const { locale: requestLocale, pathname, excluded } = config.parseUrlLocale(location.pathname)
