@@ -6,6 +6,7 @@ import { useLingui } from "@lingui/react/macro"
 import { initLingui } from "lingui-react-router"
 import { createLocaleMiddleware } from "lingui-react-router/server"
 import { type ReactNode } from "react"
+import SelectLanguage from "~/components/SelectLanguage"
 import i18nConfig from "../i18n.config"
 import type { Route } from "./+types/root"
 import "./app.css"
@@ -34,7 +35,12 @@ export function Layout({ children }: { children: ReactNode }) {
         <Links />
       </head>
       <body>
-        <I18nProvider i18n={i18n}>{children}</I18nProvider>
+        <I18nProvider i18n={i18n}>
+          <div className="w-full">
+            <SelectLanguage />
+          </div>
+          {children}
+        </I18nProvider>
         <ScrollRestoration />
         <Scripts />
       </body>

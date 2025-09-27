@@ -13,11 +13,11 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
-#: app/root.tsx:52
+#: app/root.tsx:58
 msgid "\"Oops!"
 msgstr ""
 
-#: app/root.tsx:53
+#: app/root.tsx:59
 msgid "An unexpected error occurred."
 msgstr ""
 
@@ -25,10 +25,10 @@ msgstr ""
 msgid "Hello, World!"
 msgstr "Ahoj světe!"
 
-#: app/root.tsx:32
+#: app/root.tsx:33
 msgid "Lingui React Router App"
 msgstr ""
 
-#: app/root.tsx:59
+#: app/root.tsx:65
 msgid "The requested page could not be found."
 msgstr ""
