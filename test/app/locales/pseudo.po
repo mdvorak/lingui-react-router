@@ -29,6 +29,6 @@ msgstr ""
 msgid "Lingui React Router App"
 msgstr ""
 
-#: app/root.tsx:58
+#: app/root.tsx:59
 msgid "The requested page could not be found."
 msgstr ""

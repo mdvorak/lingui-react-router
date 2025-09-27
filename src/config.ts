@@ -28,99 +28,113 @@ export type I18nAppConfig = Readonly<{
 // TODO support fallbackLocales
 
 export function defineConfig(linguiConfig: LinguiConfig, config: I18nConfig): I18nAppConfig {
-  const locales = linguiConfig.locales.slice()
-  const exclude = typeof config.exclude === "string" ? [config.exclude] : config.exclude || []
-  const rootDir = `${linguiConfig.rootDir || "."}/`.replace(/\/+/g, "/")
-
-  if (locales.length === 0) {
+  if (linguiConfig.locales.length === 0) {
     throw new Error("No locale found. Please configure locales in Lingui config")
   }
 
-  const catalogPaths = [...new Set(linguiConfig.catalogs?.map(c => rootDir + c.path))]
-  if (catalogPaths.length === 0) {
-    throw new Error("No catalog path found. Please configure catalogs in Lingui config")
+  if (!linguiConfig.catalogs?.length) {
+    throw new Error("No catalogs found. Please configure catalogs in Lingui config")
   }
 
-  const defaultFallbackLocale =
-    typeof linguiConfig.fallbackLocales === "object"
-      ? linguiConfig.fallbackLocales?.default
-      : undefined
-
-  // Create a regex pattern from locales for efficient URL parsing
-  const localesRegex = buildRegex(locales, exclude)
-  const routePrefixes = [""].concat(locales.map(loc => loc + "/"))
-
-  return {
-    locales,
-    pseudoLocale: linguiConfig.pseudoLocale,
-    defaultLocale: defaultFallbackLocale || locales[0],
-    exclude,
-    parseUrlLocale: url => parseUrlLocale(url, localesRegex),
-    loadCatalog: locale =>
-      loadCatalog(normalizeLocale(locale, locales), catalogPaths, config.catalogModules),
-    route: (path, file, children) => {
-      return routePrefixes
-        .filter(p => p + path)
-        .map(p => route(p + path, file, { id: p + file }, children))
-    },
-    index: (file, children) => {
-      return locales.map(loc => route(loc, file, { id: loc + file }, children))
-    },
-  }
+  return new I18nAppConfigImpl(linguiConfig, config)
 }
 
-function toGroupPattern(list: readonly string[]): string {
-  if (list.length === 0) return ""
-  return "(" + list.map(v => v.replace(/[^a-zA-Z0-9\/_-]/g, "\\$&")).join("|") + ")"
-}
+class I18nAppConfigImpl implements I18nAppConfig {
+  public readonly locales: readonly string[]
+  public readonly pseudoLocale?: string
+  public readonly defaultLocale: string
+  public readonly exclude: string[]
 
-function buildRegex(locales: readonly string[], apiPath: readonly string[]): RegExp {
-  return new RegExp(`^/(?:${toGroupPattern(locales)}|${toGroupPattern(apiPath)})(/.*)?$`)
-}
+  // private state
+  readonly #catalogPaths: readonly string[]
+  readonly #catalogModules: Readonly<Record<string, any>>
+  readonly #localesRegex: RegExp
+  readonly #routePrefixes: readonly string[]
 
-function parseUrlLocale(url: string, localesRegex: RegExp): PathLocale {
-  if (url === "/") {
-    return { locale: undefined, pathname: "/", excluded: false }
+  constructor(lingui: LinguiConfig, cfg: I18nConfig) {
+    const locales = lingui.locales.slice()
+
+    const exclude = typeof cfg.exclude === "string" ? [cfg.exclude] : cfg.exclude || []
+    const rootDir = `${lingui.rootDir || "."}/`.replace(/\/+/g, "/")
+
+    const catalogPaths = [...new Set(lingui.catalogs?.map(c => rootDir + c.path))]
+
+    const defaultFallbackLocale =
+      typeof lingui.fallbackLocales === "object" ? lingui.fallbackLocales?.default : undefined
+
+    this.locales = locales
+    this.pseudoLocale = lingui.pseudoLocale
+    this.defaultLocale = defaultFallbackLocale || locales[0]
+    this.exclude = exclude
+
+    this.#catalogPaths = catalogPaths
+    this.#catalogModules = cfg.catalogModules
+    this.#localesRegex = I18nAppConfigImpl.#buildRegex(locales, exclude)
+    this.#routePrefixes = [""].concat(locales.map(loc => loc + "/"))
   }
 
-  const match = localesRegex.exec(url)
-  if (match) {
-    const [, locale, excluded, pathname] = match
-    if (locale) {
-      return { locale, pathname, excluded: false }
-    } else if (excluded) {
-      return { locale: undefined, pathname: url, excluded: true }
+  parseUrlLocale(url: string): PathLocale {
+    if (url === "/") {
+      return { locale: undefined, pathname: "/", excluded: false }
     }
+    const match = this.#localesRegex.exec(url)
+    if (match) {
+      const [, locale, excluded, pathname] = match
+      if (locale) {
+        return { locale, pathname, excluded: false }
+      } else if (excluded) {
+        return { locale: undefined, pathname: url, excluded: true }
+      }
+    }
+    return { locale: undefined, pathname: url, excluded: false }
   }
 
-  return { locale: undefined, pathname: url, excluded: false }
-}
-
-function normalizeLocale(locale: string, locales: readonly string[]) {
-  if (!locales.includes(locale)) {
-    throw new Error(`Unsupported locale: ${locale}`)
+  async loadCatalog(locale: string): Promise<Messages> {
+    return this.#loadCatalog(this.#normalizeLocale(locale))
   }
-  return locale
-}
 
-async function loadCatalog(
-  locale: string,
-  catalogPaths: readonly string[],
-  catalogModules: Readonly<Record<string, any>>
-): Promise<Messages> {
-  const messages = await Promise.all(
-    catalogPaths
-      .map(path => path.replace("{locale}", locale) + ".po")
-      .map(path => resolveCatalog(path, catalogModules))
-  )
+  route(path: string, file: string, children?: RouteConfigEntry[]): RouteConfigEntry[] {
+    return this.#routePrefixes
+      .filter(p => p + path)
+      .map(p => route(p + path, file, { id: p + file }, children))
+  }
 
-  return Object.assign({}, ...messages) as Messages
-}
+  index(file: string, children?: RouteConfigEntry[]): RouteConfigEntry[] {
+    return this.locales.map(loc => route(loc, file, { id: loc + file }, children))
+  }
 
-async function resolveCatalog(path: string, catalogModules: Readonly<Record<string, any>>) {
-  const catalog = catalogModules[path]
-  if (!catalog) throw new Error(`Catalog module not found: ${path}`)
+  // private helpers
+  #normalizeLocale(locale: string) {
+    if (!this.locales.includes(locale)) {
+      throw new Error(`Unsupported locale: ${locale}`)
+    }
+    return locale
+  }
 
-  const messages = typeof catalog === "function" ? await catalog() : catalog
-  return messages.messages ?? messages.default
+  async #loadCatalog(locale: string): Promise<Messages> {
+    const messages = await Promise.all(
+      this.#catalogPaths
+        .map(path => path.replace("{locale}", locale) + ".po")
+        .map(path => this.#resolveCatalog(path))
+    )
+    return Object.assign({}, ...messages) as Messages
+  }
+
+  async #resolveCatalog(path: string) {
+    const catalog = this.#catalogModules[path]
+    if (!catalog) throw new Error(`Catalog module not found: ${path}`)
+    const messages = typeof catalog === "function" ? await catalog() : catalog
+    return messages.messages ?? messages.default
+  }
+
+  static #toGroupPattern(list: readonly string[]): string {
+    if (list.length === 0) return ""
+    return "(" + list.map(v => v.replace(/[^a-zA-Z0-9\/_-]/g, "\\$&")).join("|") + ")"
+  }
+
+  static #buildRegex(locales: readonly string[], exclude: readonly string[]): RegExp {
+    return new RegExp(
+      `^/(?:${this.#toGroupPattern(locales)}|${this.#toGroupPattern(exclude)})(/.*)?$`
+    )
+  }
 }
