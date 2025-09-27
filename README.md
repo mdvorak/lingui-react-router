@@ -1,8 +1,14 @@
 # lingui-react-router
 
-Integration between Lingui and React Router app
+Integration between [Lingui](https://lingui.dev/) and [React Router](https://reactrouter.com/).
 
-This TypeScript library provides utilities for integrating Lingui internationalization with React Router, compiled for both CommonJS and ESM environments.
+This library provides a small set of helpers to make Lingui work seamlessly with React Router apps:
+- i18n-aware route config helpers (generate routes for each locale)
+- server middleware that detects/redirects locale and initializes Lingui
+- clients bootstrap to preload the correct catalog
+- runtime hooks and a locale-aware Link component
+
+It ships ESM and CJS builds with TypeScript types.
 
 ## Installation
 
@@ -10,77 +16,112 @@ This TypeScript library provides utilities for integrating Lingui internationali
 npm install lingui-react-router
 ```
 
-## Usage
+## Quick start
 
-### Hooks
+1) Define your i18n app config (wrapping your Lingui config)
 
-#### `useLocalizedNavigate()`
+Create `i18n.config.ts`:
 
-A hook that provides localized navigation functionality, combining React Router's navigation with Lingui's current locale.
+```ts
+import { defineConfig } from "lingui-react-router"
+import linguiConfig from "./lingui.config"
+
+export default defineConfig(linguiConfig, {
+  // Optionally exclude top-level paths that are not locales (e.g. /api)
+  exclude: "api",
+  // IMPORTANT: use imported modules so the bundler can include catalogs
+  catalogModules: import.meta.glob("./app/**/*.po"),
+})
+```
+
+2) Add the server middleware
+
+In your root route module (e.g. app/root.tsx):
 
 ```tsx
-import { useLocalizedNavigate } from 'lingui-react-router'
+import { initLingui } from "lingui-react-router"
+import { createLocaleMiddleware } from "lingui-react-router/server"
+import { I18nProvider } from "@lingui/react"
+import i18nConfig from "../i18n.config"
 
-function MyComponent() {
-  const navigate = useLocalizedNavigate()
-  
-  const handleClick = () => {
-    navigate('/about') // Navigates to /en/about if current locale is 'en'
-  }
-  
-  return <button onClick={handleClick}>Go to About</button>
+export const middleware = [createLocaleMiddleware(i18nConfig)]
+
+export function Layout({ children }: { children: React.ReactNode }) {
+  const i18n = initLingui()
+  return (
+    <html lang={i18n.locale}>
+      <body>
+        <I18nProvider i18n={i18n}>{children}</I18nProvider>
+      </body>
+    </html>
+  )
 }
 ```
 
-#### `useRouteLocale()`
+3) Bootstrap the client
 
-A hook that returns the current locale from URL parameters.
-
-```tsx
-import { useRouteLocale } from 'lingui-react-router'
-
-function MyComponent() {
-  const locale = useRouteLocale()
-  
-  return <p>Current locale: {locale}</p>
-}
-```
-
-### Components
-
-#### `LocalizedRedirect`
-
-A component that redirects to a localized version of a route, automatically prepending the current locale to the target path.
+Create or edit app/entry.client.tsx:
 
 ```tsx
-import { LocalizedRedirect } from 'lingui-react-router'
+import { setupLingui } from "lingui-react-router/client"
+import { startTransition, StrictMode } from "react"
+import { hydrateRoot } from "react-dom/client"
+import { HydratedRouter } from "react-router/dom"
+import i18nConfig from "../i18n.config"
 
-function MyComponent() {
-  return <LocalizedRedirect to="/home" replace />
-}
+startTransition(async () => {
+  await setupLingui(i18nConfig, location.pathname)
+  hydrateRoot(document, (
+    <StrictMode>
+      <HydratedRouter />
+    </StrictMode>
+  ))
+})
 ```
 
-## Package Structure
+4) Generate localized routes
 
-This package provides:
-- **CommonJS**: `dist/index.cjs` - Compatible with Node.js `require()`
-- **ESM**: `dist/index.mjs` - Compatible with modern `import` statements
-- **TypeScript declarations**: `dist/index.d.ts` - Full TypeScript support
-- **Source maps**: For debugging support
-- **Source files**: Original TypeScript files included in `src/` directory
+Use the helpers from your i18n config in app/routes.ts:
+
+```ts
+import { index, type RouteConfig } from "@react-router/dev/routes"
+import i18n from "../i18n.config"
+
+export default [
+  index("./routes/_index.tsx"),         // default root ("/")
+  ...i18n.index("./routes/_index.tsx"), // "/en", "/fr", ...
+  ...i18n.route("hello", "./routes/hello.tsx"), // "/en/hello", ...
+] satisfies RouteConfig
+```
+
+5) Use locale-aware links and hooks
+
+```tsx
+import { LocaleLink, useLocale, useI18nConfig } from "lingui-react-router"
+
+function Header() {
+  const { locale, requestLocale } = useLocale()
+  const config = useI18nConfig()
+  return (
+    <nav>
+      <LocaleLink to="/hello">Hello</LocaleLink>
+      <span>Active: {locale} (from URL: {requestLocale || "-"})</span>
+      <span>Supported: {config.locales.join(", ")}</span>
+    </nav>
+  )
+}
+```
 
 ## Development
 
 ```bash
-# Build the library
-npm run build
-
-# Watch mode for development
-npm run dev
+pnpm build
+pnpm test
 ```
 
 ## Requirements
 
-- React >= 16.8.0
-- React Router DOM >= 6.0.0
-- Lingui React >= 4.0.0
+- [React](https://react.dev/) ^19
+- [React Router](https://reactrouter.com/) ^7
+- [Lingui](https://lingui.dev/) ^5
+- [Node.js](https://nodejs.org/) >= 20
