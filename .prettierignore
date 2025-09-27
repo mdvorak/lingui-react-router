@@ -1,0 +1,11 @@
+node_modules/
+build/
+dist/
+.next/
+coverage/
+*.log
+.idea/
+.vscode/
+.DS_Store
+*.iml
+next-env.d.ts

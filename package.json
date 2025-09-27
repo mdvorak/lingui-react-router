@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "Integration between Lingui and React Router app",
   "type": "module",
-  "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -11,17 +10,27 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs"
+    },
+    "./client": {
+      "types": "./dist/lingui.client.d.ts",
+      "import": "./dist/lingui.client.mjs",
+      "require": "./dist/lingui.client.cjs"
+    },
+    "./server": {
+      "types": "./dist/lingui.server.d.ts",
+      "import": "./dist/lingui.server.mjs",
+      "require": "./dist/lingui.server.cjs"
     }
   },
   "files": [
-    "dist/",
-    "src/"
+    "dist/"
   ],
   "scripts": {
     "build": "unbuild",
     "dev": "unbuild --watch",
-    "prepack": "npm run build",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "prepack": "pnpm run build",
+    "pretest": "pnpm run build",
+    "test": "pnpm -F ./test build"
   },
   "keywords": [
     "lingui",
@@ -32,17 +41,22 @@
   "author": "Michal Dvořák",
   "license": "MIT",
   "devDependencies": {
-    "@lingui/react": "^4.0.0",
-    "@types/react": "^18.0.0",
-    "react": "^18.0.0",
-    "react-dom": "^18.0.0",
-    "react-router-dom": "^6.0.0",
-    "typescript": "^5.0.0",
+    "@types/negotiator": "^0.6.4",
+    "@types/node": "^24.5.2",
+    "@types/react": "^19.1.13",
+    "jiti": "^2.6.0",
+    "prettier": "^3.6.2",
+    "prettier-plugin-organize-imports": "^4.3.0",
+    "typescript": "^5.9.2",
     "unbuild": "^3.6.1"
   },
-  "peerDependencies": {
-    "@lingui/react": ">=4.0.0",
-    "react": ">=16.8.0",
-    "react-router-dom": ">=6.0.0"
+  "dependencies": {
+    "@lingui/conf": "^5.5.0",
+    "@lingui/core": "^5.5.0",
+    "@lingui/react": "^5.5.0",
+    "@react-router/dev": "^7.9.1",
+    "negotiator": "^1.0.0",
+    "react": "^19.1.1",
+    "react-router": "^7.9.1"
   }
 }

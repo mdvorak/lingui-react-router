@@ -1,0 +1,7 @@
+packages:
+  - test
+
+onlyBuiltDependencies:
+  - '@swc/core'
+  - '@tailwindcss/oxide'
+  - esbuild
