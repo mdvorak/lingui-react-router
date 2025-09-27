@@ -7,7 +7,4 @@ import tsconfigPaths from "vite-tsconfig-paths"
 
 export default defineConfig(env => ({
   plugins: [tailwindcss(), reactRouter(), macrosPlugin(), lingui(), tsconfigPaths()],
-  build: {
-    // target: env.isSsrBuild ? "ES2022" : undefined,
-  },
 }))
