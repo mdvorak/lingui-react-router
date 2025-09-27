@@ -50,13 +50,18 @@ export function createLocaleMiddleware(config: I18nAppConfig): typeof localeMidd
   }
 }
 
-async function localeMiddleware({ request }: { request: Request }, next: () => Promise<Response>): Promise<Response> {
+async function localeMiddleware(
+  { request }: { request: Request },
+  next: () => Promise<Response>
+): Promise<Response> {
   const { config } = getGlobalRef()
 
   const url = new URL(request.url)
   const location = config.parseUrlLocale(url.pathname)
   const { pathname, excluded } = location
   let locale = location.locale
+
+  // TODO have redirect and use of headers optional
 
   if (!locale) {
     // Get locale from Accept-Encoding header
@@ -75,11 +80,14 @@ async function localeMiddleware({ request }: { request: Request }, next: () => P
   const i18n = initI18n(locale || config.defaultLocale)
 
   // Run the handler in the storage context
-  return localeContextStorage.run({ i18n, url, requestLocale: locale, requestPathname: pathname }, async () => {
-    const response = await next()
-    response.headers.set("Content-Language", i18n.locale)
-    return response
-  })
+  return localeContextStorage.run(
+    { i18n, url, requestLocale: locale, requestPathname: pathname },
+    async () => {
+      const response = await next()
+      response.headers.set("Content-Language", i18n.locale)
+      return response
+    }
+  )
 }
 
 function getPreferredLocale(request: Request): string | undefined {

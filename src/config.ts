@@ -19,8 +19,6 @@ export type I18nAppConfig = Readonly<{
   defaultLocale: string
   exclude: string[]
 
-  // TODO refactor catalogs
-  catalogs: readonly string[]
   parseUrlLocale(url: string): PathLocale
   loadCatalog(locale: string): Promise<Messages>
   route(path: string, file: string, children?: RouteConfigEntry[]): RouteConfigEntry[]
@@ -29,24 +27,24 @@ export type I18nAppConfig = Readonly<{
 
 // TODO support fallbackLocales
 
-export type I18nCatalogsGlob = Record<string, any>
-
 export function defineConfig(linguiConfig: LinguiConfig, config: I18nConfig): I18nAppConfig {
   const locales = linguiConfig.locales.slice()
   const exclude = typeof config.exclude === "string" ? [config.exclude] : config.exclude || []
   const rootDir = `${linguiConfig.rootDir || "."}/`.replace(/\/+/g, "/")
 
   if (locales.length === 0) {
-    throw new Error("No locale found. Please configure locales in lingui.config.{ts,js} file")
+    throw new Error("No locale found. Please configure locales in Lingui config")
   }
 
-  const catalogs = [...new Set(linguiConfig.catalogs?.map(c => rootDir + c.path))]
-  if (catalogs.length === 0) {
-    throw new Error("No catalog found. Please configure catalogs in lingui.config.{ts,js} file")
+  const catalogPaths = [...new Set(linguiConfig.catalogs?.map(c => rootDir + c.path))]
+  if (catalogPaths.length === 0) {
+    throw new Error("No catalog path found. Please configure catalogs in Lingui config")
   }
 
   const defaultFallbackLocale =
-    typeof linguiConfig.fallbackLocales === "object" ? linguiConfig.fallbackLocales?.default : undefined
+    typeof linguiConfig.fallbackLocales === "object"
+      ? linguiConfig.fallbackLocales?.default
+      : undefined
 
   // Create a regex pattern from locales for efficient URL parsing
   const localesRegex = buildRegex(locales, exclude)
@@ -57,11 +55,13 @@ export function defineConfig(linguiConfig: LinguiConfig, config: I18nConfig): I1
     pseudoLocale: linguiConfig.pseudoLocale,
     defaultLocale: defaultFallbackLocale || locales[0],
     exclude,
-    catalogs,
     parseUrlLocale: url => parseUrlLocale(url, localesRegex),
-    loadCatalog: locale => loadCatalog(locale, locales, catalogs, config.catalogModules),
+    loadCatalog: locale =>
+      loadCatalog(normalizeLocale(locale, locales), catalogPaths, config.catalogModules),
     route: (path, file, children) => {
-      return routePrefixes.filter(p => p + path).map(p => route(p + path, file, { id: p + file }, children))
+      return routePrefixes
+        .filter(p => p + path)
+        .map(p => route(p + path, file, { id: p + file }, children))
     },
     index: (file, children) => {
       return locales.map(loc => route(loc, file, { id: loc + file }, children))
@@ -96,27 +96,31 @@ function parseUrlLocale(url: string, localesRegex: RegExp): PathLocale {
   return { locale: undefined, pathname: url, excluded: false }
 }
 
-async function loadCatalog(
-  locale: string,
-  locales: readonly string[],
-  catalogs: readonly string[],
-  catalogModules: I18nCatalogsGlob
-): Promise<Messages> {
+function normalizeLocale(locale: string, locales: readonly string[]) {
   if (!locales.includes(locale)) {
     throw new Error(`Unsupported locale: ${locale}`)
   }
+  return locale
+}
 
+async function loadCatalog(
+  locale: string,
+  catalogPaths: readonly string[],
+  catalogModules: Readonly<Record<string, any>>
+): Promise<Messages> {
   const messages = await Promise.all(
-    catalogs
+    catalogPaths
       .map(path => path.replace("{locale}", locale) + ".po")
-      .map(async path => {
-        const catalog = catalogModules[path]
-        if (!catalog) throw new Error(`Catalog module not found: ${path}`)
-
-        const messages = typeof catalog === "function" ? await catalog() : catalog
-        return messages.messages ?? messages.default
-      })
+      .map(path => resolveCatalog(path, catalogModules))
   )
 
   return Object.assign({}, ...messages) as Messages
+}
+
+async function resolveCatalog(path: string, catalogModules: Readonly<Record<string, any>>) {
+  const catalog = catalogModules[path]
+  if (!catalog) throw new Error(`Catalog module not found: ${path}`)
+
+  const messages = typeof catalog === "function" ? await catalog() : catalog
+  return messages.messages ?? messages.default
 }

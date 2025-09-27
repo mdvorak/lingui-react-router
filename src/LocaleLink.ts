@@ -2,7 +2,9 @@ import React from "react"
 import { Link, type LinkProps, type To } from "react-router"
 import { useLocale } from "./lingui"
 
-export function LocaleLink(props: LinkProps & React.RefAttributes<HTMLAnchorElement>): React.ReactNode {
+export function LocaleLink(
+  props: LinkProps & React.RefAttributes<HTMLAnchorElement>
+): React.ReactNode {
   const { requestLocale } = useLocale()
   if (!requestLocale) return React.createElement(Link, props)
 
