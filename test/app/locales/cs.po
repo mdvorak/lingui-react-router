@@ -15,11 +15,11 @@ msgstr ""
 
 #: app/root.tsx:53
 msgid "\"Oops!"
-msgstr ""
+msgstr "Jejda!"
 
 #: app/root.tsx:54
 msgid "An unexpected error occurred."
-msgstr ""
+msgstr "Nastala neočekávaná chyba."
 
 #: app/routes/_index.tsx:8
 msgid "Continue"
@@ -31,4 +31,4 @@ msgstr "Ahoj světe!"
 
 #: app/root.tsx:60
 msgid "The requested page could not be found."
-msgstr ""
+msgstr "Požadovaná stránka nebyla nalezena."

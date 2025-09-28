@@ -6,6 +6,8 @@ if (typeof window === "undefined") {
   throw new Error("lingui.client.ts must be imported only on client")
 }
 
+_initGetI18nRef(() => i18n)
+
 /**
  * Setup lingui for client-side rendering.
  *
@@ -40,5 +42,3 @@ export async function loadInitialLocale(config: I18nAppConfig, pathname: string)
 
   i18n.loadAndActivate({ locale, messages })
 }
-
-_initGetI18nRef(() => i18n)
