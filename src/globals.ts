@@ -1,6 +1,5 @@
 import type { I18n } from "@lingui/core"
 import type { I18nContext } from "@lingui/react"
-import { setI18n } from "@lingui/react/server"
 import { I18nAppConfig } from "./config"
 
 type InitLinguiFn = (locale: string) => I18n
@@ -25,6 +24,5 @@ export function initI18n(locale: string, defaultComponent?: I18nContext["default
     throw new Error(`Unsupported locale: ${locale}`)
   }
 
-  setI18n(i18n, defaultComponent)
   return i18n
 }

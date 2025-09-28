@@ -5,6 +5,7 @@ import { AsyncLocalStorage } from "node:async_hooks"
 import { MiddlewareFunction, redirect, type RedirectFunction } from "react-router"
 import { I18nAppConfig } from "./config"
 import { initI18n, setGlobalRef } from "./globals"
+import { setI18n } from "@lingui/react/server"
 
 const HTTP_ACCEPT_LANGUAGE = "accept-language"
 
@@ -125,6 +126,7 @@ async function localeMiddleware(
   return localeContextStorage.run(
     { i18n, url, requestLocale: selectedLocale, requestPathname: pathname },
     async () => {
+      setI18n(i18n)
       const response = await next()
       response.headers.set("Content-Language", i18n.locale)
       return response
