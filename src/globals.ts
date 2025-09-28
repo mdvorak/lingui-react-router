@@ -1,5 +1,4 @@
 import type { I18n } from "@lingui/core"
-import type { I18nContext } from "@lingui/react"
 import { I18nAppConfig } from "./config"
 
 type InitLinguiFn = (locale: string) => I18n
@@ -17,7 +16,7 @@ export function setGlobalRef(config: I18nAppConfig, initLinguiFn: InitLinguiFn) 
   }
 }
 
-export function initI18n(locale: string, defaultComponent?: I18nContext["defaultComponent"]) {
+export function initI18n(locale: string) {
   const i18n = getGlobalRef().initLingui(locale)
 
   if (!i18n) {
