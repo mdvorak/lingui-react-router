@@ -7,7 +7,6 @@ type InitLinguiFn = (locale: string) => I18n
 
 let globalRef: { initLingui: InitLinguiFn; config: I18nAppConfig }
 
-/*@__INLINE__*/
 export function getGlobalRef(): Readonly<typeof globalRef> {
   return globalRef
 }
