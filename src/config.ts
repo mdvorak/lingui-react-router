@@ -102,6 +102,7 @@ class I18nAppConfigImpl implements I18nAppConfig {
   readonly #catalogPaths: readonly string[]
   readonly #catalogModules: Readonly<Record<string, any>>
   readonly #localesRegex: RegExp
+  readonly #catalogCache = new Map<string, Promise<Messages>>()
 
   /**
    * Build the app config using Lingui project settings and user options.
@@ -154,19 +155,32 @@ class I18nAppConfigImpl implements I18nAppConfig {
   }
 
   /** Load and merge all catalogs for the normalized locale. */
-  async #loadCatalog(locale: string): Promise<Messages> {
+  #loadCatalog(locale: string): Promise<Messages> {
     const definedLocale = this.#normalizeLocale(locale)
 
-    const messages = await Promise.all(
+    const cachedLocale = this.#catalogCache.get(locale)
+    if (cachedLocale) {
+      return cachedLocale
+    }
+
+    // This uses the fact, that async function returns on first promise,
+    // therefore, we can cache it synchronously
+    const messages = this.#loadLocaleCatalogs(definedLocale)
+    this.#catalogCache.set(locale, messages)
+    return messages
+  }
+
+  async #loadLocaleCatalogs(locale: string): Promise<Messages> {
+    const allMessages = await Promise.all(
       this.#catalogPaths
-        .map(path => path.replace("{locale}", definedLocale) + ".po")
+        .map(path => path.replace("{locale}", locale) + ".po")
         .map(path => this.#resolveCatalog(path))
     )
-    return Object.assign({}, ...messages) as Messages
+    return Object.assign({}, ...allMessages) as Messages
   }
 
   /** Resolve and import a single catalog file/module. */
-  async #resolveCatalog(path: string) {
+  async #resolveCatalog(path: string): Promise<Messages> {
     const catalog = this.#catalogModules[path]
     if (!catalog) throw new Error(`Catalog module not found: ${path}`)
     const messages = typeof catalog === "function" ? await catalog() : catalog

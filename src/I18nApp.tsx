@@ -21,7 +21,11 @@ export function I18nApp({
     // This is executed only client-side
     const localeDidChange = locale !== i18n.locale
     if (localeDidChange) {
-      config.loadCatalog(locale).then(messages => i18n.loadAndActivate({ locale, messages }))
+      if (locale in i18n.messages) {
+        i18n.activate(locale)
+      } else {
+        config.loadCatalog(locale).then(messages => i18n.loadAndActivate({ locale, messages }))
+      }
     }
   }, [locale])
 
