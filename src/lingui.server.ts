@@ -26,8 +26,6 @@ type I18nRequestContext = {
   requestLocale?: string
   /** The pathname of the current request, used to determine or generate locale-specific responses. */
   requestPathname: string
-  config: I18nAppConfig
-  _i18nInstances: Record<string, I18n>
 }
 
 /**
@@ -37,15 +35,19 @@ export type I18nRouterContext = I18nContext &
   I18nRequestContext & {
     pathnamePrefix: string
     redirect: RedirectFunction
+    config: I18nAppConfig
   }
 
 const localeContextStorage = new AsyncLocalStorage<I18nRequestContext>()
+const globalContext: {
+  config?: I18nAppConfig
+  i18nInstances?: Record<string, I18n>
+  init?: Promise<Record<string, I18n>>
+} = {}
 
 _initGetI18nRef(locale => {
-  const serverContext = localeContextStorage.getStore()
-  if (!serverContext)
-    throw new Error("_getI18n must be on the server used within a localeMiddleware")
-  return serverContext._i18nInstances[locale]
+  if (!globalContext.i18nInstances) throw new Error("createLocaleMiddleware must be called")
+  return globalContext.i18nInstances[locale]
 })
 
 /**
@@ -71,6 +73,7 @@ export function useLinguiServer(): I18nRouterContext {
     ...serverContext,
     _: serverContext.i18n._.bind(serverContext.i18n),
     pathnamePrefix,
+    config: globalContext.config!,
     redirect: (to, init) => redirect(`${pathnamePrefix}${to}`, init),
   }
 }
@@ -84,9 +87,16 @@ export function useLinguiServer(): I18nRouterContext {
  * and caches initialized I18n instances for fast requests.
  */
 export function createLocaleMiddleware(config: I18nAppConfig): MiddlewareFunction<Response> {
+  if (globalContext.config && globalContext.config !== config) {
+    throw new Error("Only one global configuration can be used")
+  }
+
   // Load eagerly - middleware will wait for the promise to resolve.
   // This pattern allows for createLocaleMiddleware to be synchronous.
-  const localesPromise = loadAllLocales(config)
+  const localesPromise =
+    globalContext.init ??
+    loadAllLocales(config).then(i18nInstances => (globalContext.i18nInstances = i18nInstances))
+  globalContext.init = localesPromise
 
   // Return middleware
   return async (args: { request: Request }, next: () => Promise<Response>) => {
@@ -140,8 +150,6 @@ async function localeMiddleware(
       url,
       requestLocale: selectedLocale,
       requestPathname: pathname,
-      config,
-      _i18nInstances: i18nInstances,
     },
     async () => {
       setI18n(i18n)
