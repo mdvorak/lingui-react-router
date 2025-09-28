@@ -11,7 +11,6 @@
 
 import type { LinguiConfig } from "@lingui/conf"
 import type { Messages } from "@lingui/core"
-import { route, type RouteConfigEntry } from "@react-router/dev/routes"
 
 /**
  * Configuration passed from the consumer to wire up catalog loading and path exclusions.
@@ -69,16 +68,6 @@ export type I18nAppConfig = Readonly<{
    * Load and merge all Lingui message catalogs for the given locale.
    */
   loadCatalog(locale: string): Promise<Messages>
-  /**
-   * Create localized route entries for a given path and file.
-   * For example, `route("products", "routes/products.tsx")` will generate entries
-   * for each locale as `["en/products", "pseudo/products", ...]`
-   */
-  route(path: string, file: string, children?: RouteConfigEntry[]): RouteConfigEntry[]
-  /**
-   * Create index routes for every locale root ("/en", "/cs", etc.).
-   */
-  index(file: string, children?: RouteConfigEntry[]): RouteConfigEntry[]
 }>
 
 // TODO support fallbackLocales
@@ -113,7 +102,6 @@ class I18nAppConfigImpl implements I18nAppConfig {
   readonly #catalogPaths: readonly string[]
   readonly #catalogModules: Readonly<Record<string, any>>
   readonly #localesRegex: RegExp
-  readonly #routePrefixes: readonly string[]
 
   /**
    * Build the app config using Lingui project settings and user options.
@@ -135,13 +123,10 @@ class I18nAppConfigImpl implements I18nAppConfig {
     this.#catalogPaths = catalogPaths
     this.#catalogModules = cfg.catalogModules
     this.#localesRegex = I18nAppConfigImpl.#buildRegex(locales, exclude)
-    this.#routePrefixes = [""].concat(locales.map(loc => loc + "/"))
   }
 
   public readonly parseUrlLocale = this.#parseUrlLocale.bind(this)
   public readonly loadCatalog = this.#loadCatalog.bind(this)
-  public readonly route = this.#route.bind(this)
-  public readonly index = this.#index.bind(this)
 
   #parseUrlLocale(url: string): PathLocale {
     if (url === "/") {
@@ -157,16 +142,6 @@ class I18nAppConfigImpl implements I18nAppConfig {
       }
     }
     return { locale: undefined, pathname: url, excluded: false }
-  }
-
-  #route(path: string, file: string, children?: RouteConfigEntry[]): RouteConfigEntry[] {
-    return this.#routePrefixes
-      .filter(p => p + path)
-      .map(p => route(p + path, file, { id: p + file }, children))
-  }
-
-  #index(file: string, children?: RouteConfigEntry[]): RouteConfigEntry[] {
-    return this.locales.map(loc => route(loc, file, { id: loc + file }, children))
   }
 
   // private helpers

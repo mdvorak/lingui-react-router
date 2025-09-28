@@ -20,6 +20,11 @@
       "types": "./dist/lingui.server.d.ts",
       "import": "./dist/lingui.server.mjs",
       "require": "./dist/lingui.server.cjs"
+    },
+    "./routes": {
+      "types": "./dist/routes.d.ts",
+      "import": "./dist/routes.mjs",
+      "require": "./dist/routes.cjs"
     }
   },
   "files": [

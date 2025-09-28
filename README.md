@@ -83,16 +83,19 @@ startTransition(async () => {
 
 4) Generate localized routes
 
-Use the helpers from your i18n config in app/routes.ts:
+Create localized route helpers using your i18n config in app/routes.ts:
 
 ```ts
 import { index, type RouteConfig } from "@react-router/dev/routes"
+import { localeRoutes } from "lingui-react-router/routes"
 import i18nConfig from "../i18n.config"
 
+const locale = localeRoutes(i18nConfig)
+
 export default [
-  index("./routes/_index.tsx"),         // default root ("/")
-  ...i18nConfig.index("./routes/_index.tsx"), // "/en", "/fr", ...
-  ...i18nConfig.route("hello", "./routes/hello.tsx"), // "/en/hello", ...
+  index("./routes/_index.tsx"), // default root ("/")
+  ...locale.index("./routes/_index.tsx"), // "/en", "/fr", ...
+  ...locale.route("hello", "./routes/hello.tsx"), // "/en/hello", ...
 ] satisfies RouteConfig
 ```
 
