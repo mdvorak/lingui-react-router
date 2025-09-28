@@ -21,7 +21,7 @@ export const middleware: Route.MiddlewareFunction[] = [createLocaleMiddleware(i1
 
 export function Layout({ children }: { children: ReactNode }) {
   return (
-    <I18nApp>
+    <I18nApp config={i18nConfig}>
       <html lang={"en"}>
         <head>
           <meta charSet="utf-8" />

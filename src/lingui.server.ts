@@ -1,13 +1,18 @@
 import { type I18n, setupI18n } from "@lingui/core"
 import { type I18nContext } from "@lingui/react"
+import { setI18n } from "@lingui/react/server"
 import Negotiator from "negotiator"
 import { AsyncLocalStorage } from "node:async_hooks"
 import { MiddlewareFunction, redirect, type RedirectFunction } from "react-router"
 import { I18nAppConfig } from "./config"
-import { initI18n, setGlobalRef } from "./globals"
-import { setI18n } from "@lingui/react/server"
+import { _initGetI18nRef } from "./globals"
 
 const HTTP_ACCEPT_LANGUAGE = "accept-language"
+
+// Assert this is included only on server
+if (typeof window !== "undefined") {
+  throw new Error("lingui.server.ts must be imported only on server")
+}
 
 /**
  * A utility type for server-side i18n context.
@@ -21,12 +26,14 @@ type I18nRequestContext = {
   requestLocale?: string
   /** The pathname of the current request, used to determine or generate locale-specific responses. */
   requestPathname: string
+  config: I18nAppConfig
+  _i18nInstances: Record<string, I18n>
 }
 
 /**
  * Server-side i18n context with additional properties.
  */
-export type I18nServerContext = I18nContext &
+export type I18nRouterContext = I18nContext &
   I18nRequestContext & {
     pathnamePrefix: string
     redirect: RedirectFunction
@@ -34,11 +41,18 @@ export type I18nServerContext = I18nContext &
 
 const localeContextStorage = new AsyncLocalStorage<I18nRequestContext>()
 
+_initGetI18nRef(locale => {
+  const serverContext = localeContextStorage.getStore()
+  if (!serverContext)
+    throw new Error("_getI18n must be on the server used within a localeMiddleware")
+  return serverContext._i18nInstances[locale]
+})
+
 /**
  * Hook to access the server-side i18n context. Use only in loaders and actions.
  *
  * @throws {Error} If used outside a localeMiddleware context
- * @returns {I18nServerContext} The server-side i18n context object containing:
+ * @returns {I18nRouterContext} The server-side i18n context object containing:
  * - i18n: The internationalization processing object
  * - url: The URL object for the current request
  * - requestLocale: The locale explicitly requested by the client, if any
@@ -47,7 +61,7 @@ const localeContextStorage = new AsyncLocalStorage<I18nRequestContext>()
  * - _: The translation function bound to the current i18n instance
  * - redirect: Function to redirect to a different locale while preserving the current locale prefix
  */
-export function useLinguiServer(): I18nServerContext {
+export function useLinguiServer(): I18nRouterContext {
   const serverContext = localeContextStorage.getStore()
   if (!serverContext) throw new Error("useLinguiServer must be used within a localeMiddleware")
 
@@ -70,23 +84,16 @@ export function useLinguiServer(): I18nServerContext {
  * and caches initialized I18n instances for fast requests.
  */
 export function createLocaleMiddleware(config: I18nAppConfig): MiddlewareFunction<Response> {
-  // Lazy-initialized reference
-  let loadedLocales: Record<string, I18n>
-
-  // Load eagerly and store it when done - middleware will wait for the promise to resolve.
+  // Load eagerly - middleware will wait for the promise to resolve.
   // This pattern allows for createLocaleMiddleware to be synchronous.
-  // GlobalRef should not be used anywhere outside the middleware context
-  const loadPromise = loadAllLocales(config).then(locales => (loadedLocales = locales))
-
-  // Initialize global
-  setGlobalRef(config, (locale: string): I18n => loadedLocales[locale])
+  const localesPromise = loadAllLocales(config)
 
   // Return middleware
   return async (args: { request: Request }, next: () => Promise<Response>) => {
     // Wait for lazy init
-    await loadPromise
+    const i18nInstances = await localesPromise
     // Run the actual middleware
-    return localeMiddleware(config, args, next)
+    return localeMiddleware(config, i18nInstances, args, next)
   }
 }
 
@@ -97,6 +104,7 @@ export function createLocaleMiddleware(config: I18nAppConfig): MiddlewareFunctio
  */
 async function localeMiddleware(
   config: I18nAppConfig,
+  i18nInstances: Record<string, I18n>,
   { request }: { request: Request },
   next: () => Promise<Response>
 ): Promise<Response> {
@@ -120,11 +128,21 @@ async function localeMiddleware(
     }
   }
 
-  const i18n = initI18n(selectedLocale || config.defaultLocale)
+  const i18n = i18nInstances[selectedLocale || config.defaultLocale]
+  if (!i18n) {
+    throw new Error(`Missing i18n instance for ${selectedLocale}`)
+  }
 
   // Run the handler in the storage context
   return localeContextStorage.run(
-    { i18n, url, requestLocale: selectedLocale, requestPathname: pathname },
+    {
+      i18n,
+      url,
+      requestLocale: selectedLocale,
+      requestPathname: pathname,
+      config,
+      _i18nInstances: i18nInstances,
+    },
     async () => {
       setI18n(i18n)
       const response = await next()

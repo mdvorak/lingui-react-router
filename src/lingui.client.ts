@@ -1,8 +1,10 @@
 import { i18n } from "@lingui/core"
 import { I18nAppConfig } from "./config"
-import { setGlobalRef } from "./globals"
+import { _initGetI18nRef } from "./globals"
 
-// let i18nRef: I18n
+if (typeof window === "undefined") {
+  throw new Error("lingui.client.ts must be imported only on client")
+}
 
 /**
  * Setup lingui for client-side rendering.
@@ -32,12 +34,11 @@ import { setGlobalRef } from "./globals"
 /**
  * @returns The initialized I18n instance bound to the detected locale.
  */
-export async function setupLingui(config: I18nAppConfig, pathname: string) {
-  setGlobalRef(config, () => i18n)
-
+export async function loadInitialLocale(config: I18nAppConfig, pathname: string) {
   const locale = config.parseUrlLocale(pathname).locale || config.defaultLocale
   const messages = await config.loadCatalog(locale)
 
   i18n.loadAndActivate({ locale, messages })
-  return i18n
 }
+
+_initGetI18nRef(() => i18n)

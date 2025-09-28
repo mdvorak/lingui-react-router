@@ -1,39 +1,6 @@
-import type { I18n } from "@lingui/core"
-import { useEffect, useMemo } from "react"
+import { useMemo } from "react"
 import { useLocation } from "react-router"
-import { I18nAppConfig } from "./config"
-import { getGlobalRef, initI18n } from "./globals"
-
-/**
- * Initialize a lingui instance within a page component for both client and server rendering.
- *
- * Use it in your root layout to initialize lingui for all pages.
- *
- */
-export function initLingui(): I18n {
-  const { locale } = useLocale()
-  const i18n = useMemo(() => initI18n(locale), [locale])
-
-  useEffect(() => {
-    const localeDidChange = locale !== i18n.locale
-    if (localeDidChange) {
-      const { config } = getGlobalRef()
-      config.loadCatalog(locale).then(messages => i18n.loadAndActivate({ locale, messages }))
-    }
-  }, [i18n, locale])
-
-  return i18n
-}
-
-/**
- * Access the immutable i18n application configuration.
- *
- * Useful for reading supported locales, defaultLocale, and helpers like
- * parseUrlLocale/route/index on the client.
- */
-export function useI18nConfig(): Omit<I18nAppConfig, "loadCatalog"> {
-  return getGlobalRef().config
-}
+import { useI18nConfig } from "./context"
 
 /**
  * React hook that derives the active locale from the current URL path.
@@ -56,13 +23,12 @@ export function useI18nConfig(): Omit<I18nAppConfig, "loadCatalog"> {
  *
  * @see {@link I18nAppConfig['parseUrlLocale']} for the underlying URL parsing logic
  */
-export function useLocale(location = useLocation()): {
+export function useLocale(location = useLocation(), config = useI18nConfig()): {
   locale: string
   requestLocale?: string
   pathname: string
   excluded: boolean
 } {
-  const { config } = getGlobalRef()
   return useMemo(() => {
     const { locale: requestLocale, pathname, excluded } = config.parseUrlLocale(location.pathname)
     return {
