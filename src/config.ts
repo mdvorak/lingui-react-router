@@ -120,18 +120,16 @@ class I18nAppConfigImpl implements I18nAppConfig {
    */
   constructor(lingui: LinguiConfig, cfg: I18nConfig) {
     const locales = lingui.locales.slice()
+    const fallbackLocales = lingui.fallbackLocales || {}
 
     const exclude = typeof cfg.exclude === "string" ? [cfg.exclude] : cfg.exclude || []
     const rootDir = `${lingui.rootDir || "."}/`.replace(/\/+/g, "/")
 
     const catalogPaths = [...new Set(lingui.catalogs?.map(c => rootDir + c.path))]
 
-    const defaultFallbackLocale =
-      typeof lingui.fallbackLocales === "object" ? lingui.fallbackLocales?.default : undefined
-
     this.locales = locales
     this.pseudoLocale = lingui.pseudoLocale
-    this.defaultLocale = defaultFallbackLocale || locales[0]
+    this.defaultLocale = fallbackLocales.default || locales[0]
     this.exclude = exclude
 
     this.#catalogPaths = catalogPaths

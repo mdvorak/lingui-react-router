@@ -2,9 +2,11 @@ import { type I18n, setupI18n } from "@lingui/core"
 import { type I18nContext } from "@lingui/react"
 import Negotiator from "negotiator"
 import { AsyncLocalStorage } from "node:async_hooks"
-import { redirect, type RedirectFunction } from "react-router"
+import { MiddlewareFunction, redirect, type RedirectFunction } from "react-router"
 import { I18nAppConfig } from "./config"
-import { getGlobalRef, initI18n, setGlobalRef } from "./globals"
+import { initI18n, setGlobalRef } from "./globals"
+
+const HTTP_ACCEPT_LANGUAGE = "accept-language"
 
 /**
  * A utility type for server-side i18n context.
@@ -66,11 +68,13 @@ export function useLinguiServer(): I18nServerContext {
  * The middleware eagerly loads catalogs for all configured locales on first use
  * and caches initialized I18n instances for fast requests.
  */
-export function createLocaleMiddleware(config: I18nAppConfig): typeof localeMiddleware {
+export function createLocaleMiddleware(config: I18nAppConfig): MiddlewareFunction<Response> {
   // Lazy-initialized reference
   let loadedLocales: Record<string, I18n>
 
-  // This will trigger eager init
+  // Load eagerly and store it when done - middleware will wait for the promise to resolve.
+  // This pattern allows for createLocaleMiddleware to be synchronous.
+  // GlobalRef should not be used anywhere outside the middleware context
   const loadPromise = loadAllLocales(config).then(locales => (loadedLocales = locales))
 
   // Initialize global
@@ -81,7 +85,7 @@ export function createLocaleMiddleware(config: I18nAppConfig): typeof localeMidd
     // Wait for lazy init
     await loadPromise
     // Run the actual middleware
-    return localeMiddleware(args, next)
+    return localeMiddleware(config, args, next)
   }
 }
 
@@ -91,37 +95,35 @@ export function createLocaleMiddleware(config: I18nAppConfig): typeof localeMidd
  * AsyncLocalStorage context containing i18n and request metadata.
  */
 async function localeMiddleware(
+  config: I18nAppConfig,
   { request }: { request: Request },
   next: () => Promise<Response>
 ): Promise<Response> {
-  const { config } = getGlobalRef()
-
   const url = new URL(request.url)
-  const location = config.parseUrlLocale(url.pathname)
-  const { pathname, excluded } = location
-  let locale = location.locale
+  const { locale, pathname, excluded } = config.parseUrlLocale(url.pathname)
+  let selectedLocale = locale
 
   // TODO have redirect and use of headers optional
 
-  if (!locale) {
-    // Get locale from Accept-Encoding header
-    const preferredLocale = getPreferredLocale(request)
+  if (!selectedLocale) {
+    // Get locale from the Accept-Language header
+    const preferredLocale = getAcceptedLocale(config, request.headers.get(HTTP_ACCEPT_LANGUAGE))
     if (preferredLocale) {
       if (!excluded && preferredLocale !== config.defaultLocale) {
         // Redirect to preferred locale
         throw redirect(`/${preferredLocale}${pathname}${url.search}${url.hash}`)
       } else if (excluded) {
         // Use preferred locale for API requests
-        locale = preferredLocale
+        selectedLocale = preferredLocale
       }
     }
   }
 
-  const i18n = initI18n(locale || config.defaultLocale)
+  const i18n = initI18n(selectedLocale || config.defaultLocale)
 
   // Run the handler in the storage context
   return localeContextStorage.run(
-    { i18n, url, requestLocale: locale, requestPathname: pathname },
+    { i18n, url, requestLocale: selectedLocale, requestPathname: pathname },
     async () => {
       const response = await next()
       response.headers.set("Content-Language", i18n.locale)
@@ -132,14 +134,17 @@ async function localeMiddleware(
 
 /**
  * Parse the Accept-Language header and return the best language match
- * normalized to a base language (e.g., "en-US" -> "en").
  */
-function getPreferredLocale(request: Request): string | undefined {
-  const acceptLanguage = request.headers.get("Accept-Language")
+function getAcceptedLocale(
+  config: I18nAppConfig,
+  acceptLanguage?: string | null
+): string | undefined {
   if (!acceptLanguage) return
 
-  const negotiator = new Negotiator({ headers: { "accept-language": acceptLanguage } })
-  return negotiator.language()?.split("-", 2)[0]
+  const negotiator = new Negotiator({ headers: { HTTP_ACCEPT_LANGUAGE: acceptLanguage } })
+  const accepted = negotiator.languages(config.locales.slice())
+
+  return accepted[0]
 }
 
 /**
