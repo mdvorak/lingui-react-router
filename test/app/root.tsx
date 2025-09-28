@@ -1,8 +1,10 @@
-import { isRouteErrorResponse, Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router"
+import type { I18n } from "@lingui/core"
+import { msg } from "@lingui/core/macro"
 import { useLingui } from "@lingui/react/macro"
 import { I18nApp } from "lingui-react-router"
 import { createLocaleMiddleware } from "lingui-react-router/server"
 import { type ReactNode } from "react"
+import { isRouteErrorResponse, Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router"
 import SelectLanguage from "~/components/SelectLanguage"
 import i18nConfig from "../i18n.config"
 import type { Route } from "./+types/root"
@@ -22,23 +24,25 @@ export const middleware: Route.MiddlewareFunction[] = [createLocaleMiddleware(i1
 export function Layout({ children }: { children: ReactNode }) {
   return (
     <I18nApp config={i18nConfig}>
-      <html lang={"en"}>
-        <head>
-          <meta charSet="utf-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1" />
-          <title>{`Lingui React Router App`}</title>
-          <Meta />
-          <Links />
-        </head>
-        <body>
-          <div className="w-full">
-            <SelectLanguage />
-          </div>
-          {children}
-          <ScrollRestoration />
-          <Scripts />
-        </body>
-      </html>
+      {(i18n: I18n) => (
+        <html lang={i18n.locale}>
+          <head>
+            <meta charSet="utf-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+            <title>{i18n._(msg`Lingui React Router App`)}</title>
+            <Meta />
+            <Links />
+          </head>
+          <body>
+            <div className="w-full">
+              <SelectLanguage />
+            </div>
+            {children}
+            <ScrollRestoration />
+            <Scripts />
+          </body>
+        </html>
+      )}
     </I18nApp>
   )
 }

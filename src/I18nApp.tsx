@@ -29,9 +29,12 @@ export function I18nApp({
     }
   }, [locale])
 
+  // @ts-ignore
+  const childrenRender = typeof children === "function" ? children(i18n) : children
+
   return (
     <I18nConfigContext.Provider value={config}>
-      <I18nProvider i18n={i18n}>{children}</I18nProvider>
+      <I18nProvider i18n={i18n}>{childrenRender}</I18nProvider>
     </I18nConfigContext.Provider>
   )
 }

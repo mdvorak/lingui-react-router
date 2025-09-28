@@ -23,7 +23,10 @@ import { useI18nConfig } from "./context"
  *
  * @see {@link I18nAppConfig['parseUrlLocale']} for the underlying URL parsing logic
  */
-export function useLocale(location = useLocation(), config = useI18nConfig()): {
+export function useLocale(
+  location = useLocation(),
+  config = useI18nConfig()
+): {
   locale: string
   requestLocale?: string
   pathname: string
