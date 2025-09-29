@@ -1,4 +1,3 @@
-import type { I18n } from "@lingui/core"
 import { msg } from "@lingui/core/macro"
 import { useLingui } from "@lingui/react/macro"
 import { I18nApp } from "lingui-react-router"
@@ -21,28 +20,34 @@ export const links: Route.LinksFunction = () => [
 
 export const middleware: Route.MiddlewareFunction[] = [createLocaleMiddleware(i18nConfig)]
 
+function RootLayout({ children }: { children: ReactNode }) {
+  const { i18n } = useLingui()
+
+  return (
+    <html lang={i18n.locale}>
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>{i18n._(msg`Lingui React Router App`)}</title>
+        <Meta />
+        <Links />
+      </head>
+      <body>
+        <div className="w-full">
+          <SelectLanguage />
+        </div>
+        {children}
+        <ScrollRestoration />
+        <Scripts />
+      </body>
+    </html>
+  )
+}
+
 export function Layout({ children }: { children: ReactNode }) {
   return (
     <I18nApp config={i18nConfig}>
-      {(i18n: I18n) => (
-        <html lang={i18n.locale}>
-          <head>
-            <meta charSet="utf-8" />
-            <meta name="viewport" content="width=device-width, initial-scale=1" />
-            <title>{i18n._(msg`Lingui React Router App`)}</title>
-            <Meta />
-            <Links />
-          </head>
-          <body>
-            <div className="w-full">
-              <SelectLanguage />
-            </div>
-            {children}
-            <ScrollRestoration />
-            <Scripts />
-          </body>
-        </html>
-      )}
+      <RootLayout>{children}</RootLayout>
     </I18nApp>
   )
 }
