@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.9](https://github.com/mdvorak/lingui-react-router/compare/v0.1.8...v0.1.9) (2025-09-29)
+
+
+### Bug Fixes
+
+* reorganize package.json metadata and add repository link ([17c60ba](https://github.com/mdvorak/lingui-react-router/commit/17c60ba0ee4a49b692cd2fd4413a419edcdf2ae7))
+
 ## [0.1.8](https://github.com/mdvorak/lingui-react-router/compare/v0.1.7...v0.1.8) (2025-09-29)
 
 
