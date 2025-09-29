@@ -2,6 +2,19 @@
   "name": "lingui-react-router",
   "version": "0.1.8",
   "description": "Integration between Lingui and React Router app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mdvorak/lingui-react-router"
+  },
+  "author": "Michal Dvořák",
+  "license": "MIT",
+  "keywords": [
+    "lingui",
+    "react-router",
+    "i18n",
+    "internationalization"
+  ],
+  "packageManager": "pnpm@10.17.1",
   "type": "module",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -37,15 +50,6 @@
     "pretest": "pnpm run build",
     "test": "pnpm -F ./test build"
   },
-  "keywords": [
-    "lingui",
-    "react-router",
-    "i18n",
-    "internationalization"
-  ],
-  "author": "Michal Dvořák",
-  "license": "MIT",
-  "packageManager": "pnpm@10.17.1",
   "dependencies": {
     "@lingui/conf": "^5.5.0",
     "@lingui/core": "^5.5.0",
