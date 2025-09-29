@@ -46,6 +46,15 @@
   "author": "Michal Dvořák",
   "license": "MIT",
   "packageManager": "pnpm@10.17.1",
+  "dependencies": {
+    "@lingui/conf": "^5.5.0",
+    "@lingui/core": "^5.5.0",
+    "@lingui/react": "^5.5.0",
+    "@react-router/dev": "^7.9.3",
+    "negotiator": "^1.0.0",
+    "react": "^19.1.1",
+    "react-router": "^7.9.3"
+  },
   "devDependencies": {
     "@types/negotiator": "^0.6.4",
     "@types/node": "^24.5.2",
@@ -55,14 +64,5 @@
     "tsx": "^4.20.6",
     "typescript": "^5.9.2",
     "unbuild": "^3.6.1"
-  },
-  "dependencies": {
-    "@lingui/conf": "^5.5.0",
-    "@lingui/core": "^5.5.0",
-    "@lingui/react": "^5.5.0",
-    "@react-router/dev": "^7.9.3",
-    "negotiator": "^1.0.0",
-    "react": "^19.1.1",
-    "react-router": "^7.9.3"
   }
 }

@@ -218,6 +218,6 @@ pnpm test
 ## Requirements
 
 - [React](https://react.dev/) ^19
-- [React Router](https://reactrouter.com/) ^7
-- [Lingui](https://lingui.dev/) ^5
+- [React Router](https://reactrouter.com/) ^7.9
+- [Lingui](https://lingui.dev/) ^5.5
 - [Node.js](https://nodejs.org/) >= 20
