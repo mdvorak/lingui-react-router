@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.7](https://github.com/mdvorak/lingui-react-router/compare/v0.1.6...v0.1.7) (2025-09-29)
+
+
+### Bug Fixes
+
+* fixed root layout lingui usage, added docs for I18nApp component ([5ccec96](https://github.com/mdvorak/lingui-react-router/commit/5ccec96b416964897a9e96e7fe1ed5dc6fc6061e))
+
 ## [0.1.6](https://github.com/mdvorak/lingui-react-router/compare/v0.1.5...v0.1.6) (2025-09-29)
 
 
