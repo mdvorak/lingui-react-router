@@ -1,7 +1,7 @@
 import { route, RouteConfigEntry } from "@react-router/dev/routes"
 import { I18nAppConfig } from "./config"
 
-const LOCAL_PATH_REGEX = /^(:?\.\/)?/
+const LOCAL_PATH_REGEX = /^(?:\.\/)?/
 
 export function localeRoutes(config: I18nAppConfig) {
   const { locales } = config
