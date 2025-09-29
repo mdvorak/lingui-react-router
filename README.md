@@ -7,7 +7,7 @@ Integration between [Lingui](https://lingui.dev/) and [React Router](https://rea
 This library provides a small set of helpers to make Lingui work seamlessly with React Router apps:
 - i18n-aware route config helpers (generate routes for each locale)
 - server middleware that detects/redirects locale and initializes Lingui
-- clients bootstrap to preload the correct catalog
+- client bootstrap to preload the correct catalog
 - runtime hooks and a locale-aware Link component
 
 It ships ESM and CJS builds with TypeScript types.
@@ -41,21 +41,27 @@ export default defineConfig(linguiConfig, {
 In your root route module (e.g. app/root.tsx):
 
 ```tsx
-import { initLingui } from "lingui-react-router"
+import {I18nApp} from "lingui-react-router"
 import { createLocaleMiddleware } from "lingui-react-router/server"
-import { I18nProvider } from "@lingui/react"
+import {useLingui} from "@lingui/react/macro"
 import i18nConfig from "../i18n.config"
 
 export const middleware = [createLocaleMiddleware(i18nConfig)]
 
-export function Layout({ children }: { children: React.ReactNode }) {
-  const i18n = initLingui()
+function RootLayout({children}: { children: React.ReactNode }) {
+  const {i18n} = useLingui()
   return (
     <html lang={i18n.locale}>
-      <body>
-        <I18nProvider i18n={i18n}>{children}</I18nProvider>
-      </body>
+    <body>{children}</body>
     </html>
+  )
+}
+
+export function Layout({children}: { children: React.ReactNode }) {
+  return (
+    <I18nApp config={i18nConfig}>
+      <RootLayout>{children}</RootLayout>
+    </I18nApp>
   )
 }
 ```
@@ -65,14 +71,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
 Create or edit app/entry.client.tsx:
 
 ```tsx
-import { setupLingui } from "lingui-react-router/client"
+import { loadInitialLocale } from "lingui-react-router/client"
 import { startTransition, StrictMode } from "react"
 import { hydrateRoot } from "react-dom/client"
 import { HydratedRouter } from "react-router/dom"
 import i18nConfig from "../i18n.config"
 
 startTransition(async () => {
-  await setupLingui(i18nConfig, location.pathname)
+  await loadInitialLocale(i18nConfig, location.pathname)
   hydrateRoot(document, (
     <StrictMode>
       <HydratedRouter />
@@ -116,6 +122,15 @@ function Header() {
   )
 }
 ```
+
+Notes about LocaleLink:
+
+- It is a drop-in replacement for react-router's Link that automatically prefixes the current
+  request locale (e.g., "/en") to the target URL.
+- Always pass locale-less paths to `to` (e.g., `to="/hello"` or
+  `to={{ pathname: "/hello", search: "?x=1" }}`). The locale segment will be added for you.
+- If there is no locale in the current URL (for example on the default root "/"), LocaleLink renders
+  a normal Link without modification.
 
 6) Use `useLinguiServer()` in loaders/actions
 
