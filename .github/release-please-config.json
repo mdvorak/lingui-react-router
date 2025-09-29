@@ -1,0 +1,8 @@
+{
+  "always-update": true,
+  "packages": {
+    ".": {
+      "release-type": "node"
+    }
+  }
+}
