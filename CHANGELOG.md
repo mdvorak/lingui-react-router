@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.8](https://github.com/mdvorak/lingui-react-router/compare/v0.1.7...v0.1.8) (2025-09-29)
+
+
+### Bug Fixes
+
+* improve route ID generation with locale prefix handling ([346dad1](https://github.com/mdvorak/lingui-react-router/commit/346dad16a7c92572d641a4cdef427d1b3e01b25a))
+
 ## [0.1.7](https://github.com/mdvorak/lingui-react-router/compare/v0.1.6...v0.1.7) (2025-09-29)
 
 
