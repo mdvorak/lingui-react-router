@@ -24,8 +24,8 @@ npm install lingui-react-router
 This library requires the following dependencies to be installed in your project:
 
 ```bash
-npm install -S @lingui/core @lingui/react @lingui/conf
-npm install -D vite @lingui/cli @lingui/vite-plugin vite-plugin-babel-macros
+npm install -S @lingui/core @lingui/react
+npm install -D vite @lingui/cli @lingui/vite-plugin vite-plugin-babel-macros vite-tsconfig-paths
 ```
 
 This list does not include react-router dependencies, please
