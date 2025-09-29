@@ -7,7 +7,7 @@ Integration between [Lingui](https://lingui.dev/) and [React Router](https://rea
 This library provides a small set of helpers to make Lingui work seamlessly with React Router apps:
 - i18n-aware route config helpers (generate routes for each locale)
 - server middleware that detects/redirects locale and initializes Lingui
-- client bootstrap to preload the correct catalog
+- client-side bootstrap to preload the correct catalog
 - runtime hooks and a locale-aware Link component
 
 It ships ESM and CJS builds with TypeScript types.
