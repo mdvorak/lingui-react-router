@@ -1,4 +1,3 @@
-import { msg } from "@lingui/core/macro"
 import { useLingui } from "@lingui/react/macro"
 import { I18nApp } from "lingui-react-router"
 import { createLocaleMiddleware } from "lingui-react-router/server"
@@ -20,6 +19,14 @@ export const links: Route.LinksFunction = () => [
 
 export const middleware: Route.MiddlewareFunction[] = [createLocaleMiddleware(i18nConfig)]
 
+export function meta({}: Route.MetaArgs) {
+  const { t } = useLingui()
+  return [
+    { title: t`Lingui React Router App` },
+    { name: "description", content: t`Lingui React Router integration example` },
+  ]
+}
+
 function RootLayout({ children }: { children: ReactNode }) {
   const { i18n } = useLingui()
 
@@ -28,7 +35,6 @@ function RootLayout({ children }: { children: ReactNode }) {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>{i18n._(msg`Lingui React Router App`)}</title>
         <Meta />
         <Links />
       </head>
