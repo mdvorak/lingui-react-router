@@ -21,7 +21,6 @@
   },
   "devDependencies": {
     "@lingui/cli": "^5.5.0",
-    "@lingui/conf": "^5.5.0",
     "@lingui/vite-plugin": "^5.5.0",
     "@react-router/dev": "^7.9.3",
     "@tailwindcss/vite": "^4.1.13",
