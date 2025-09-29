@@ -1,6 +1,6 @@
 {
   "name": "lingui-react-router",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "Integration between Lingui and React Router app",
   "repository": {
     "type": "git",
