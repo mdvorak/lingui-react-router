@@ -5,6 +5,7 @@
 Integration between [Lingui](https://lingui.dev/) and [React Router](https://reactrouter.com/).
 
 This library provides a small set of helpers to make Lingui work seamlessly with React Router apps:
+
 - i18n-aware route config helpers (generate routes for each locale)
 - server middleware that detects/redirects locale and initializes Lingui
 - client-side bootstrap to preload the correct catalog
@@ -17,6 +18,18 @@ It ships ESM and CJS builds with TypeScript types.
 ```bash
 npm install lingui-react-router
 ```
+
+### Required Dependencies
+
+This library requires the following dependencies to be installed in your project:
+
+```bash
+npm install -S @lingui/core @lingui/react @lingui/conf
+npm install -D vite @lingui/cli @lingui/vite-plugin vite-plugin-babel-macros
+```
+
+This list does not include react-router dependencies, please
+see [React Router Installation](https://reactrouter.com/start/framework/installation) for more info.
 
 ## Quick start
 
@@ -142,21 +155,57 @@ import { useLinguiServer } from "lingui-react-router/server"
 import { msg } from "@lingui/core/macro"
 
 export async function loader() {
-    const {i18n, _, url, requestLocale, pathnamePrefix, redirect} = useLinguiServer()
+  const {i18n, _, url, requestLocale, pathnamePrefix, redirect} = useLinguiServer()
 
-    // Read locale info
-    console.log("active:", i18n.locale, "from URL:", requestLocale)
+  // Read locale info
+  console.log("active:", i18n.locale, "from URL:", requestLocale)
 
-    // Locale-aware redirect: this will become "/en/login" when locale is "en"
-    if (url.searchParams.get("login") === "1") {
-        throw redirect("/login")
-    }
+  // Locale-aware redirect: this will become "/en/login" when locale is "en"
+  if (url.searchParams.get("login") === "1") {
+    throw redirect("/login")
+  }
 
-    // Translate on the server
-    const title = _(msg`Welcome`)
+  // Translate on the server
+  const title = _(msg`Welcome`)
 
-    return Response.json({title, locale: i18n.locale, prefix: pathnamePrefix})
+  return Response.json({title, locale: i18n.locale, prefix: pathnamePrefix})
 }
+```
+
+### Vite Configuration
+
+To use this library with Vite, you'll need to configure the Lingui plugin in your `vite.config.ts`:
+
+```ts
+import {lingui} from "@lingui/vite-plugin"
+import {reactRouter} from "@react-router/dev/vite"
+import {defineConfig} from "vite"
+import macrosPlugin from "vite-plugin-babel-macros"
+import tsconfigPaths from "vite-tsconfig-paths"
+
+export default defineConfig({
+  plugins: [
+    // tailwindcss(),
+    reactRouter(),
+    macrosPlugin(),
+    lingui(),
+    tsconfigPaths()
+  ],
+})
+```
+
+### React Router Configuration
+
+Make sure your `react-router.config.ts` is properly configured for SSR with i18n support:
+
+```ts
+import type {Config} from "@react-router/dev/config"
+
+export default {
+  ssr: true,
+  future: {v8_middleware: true},
+  // Add any additional configuration options as needed
+} satisfies Config
 ```
 
 ## Development
