@@ -54,15 +54,15 @@ export default defineConfig(linguiConfig, {
 In your root route module (e.g. app/root.tsx):
 
 ```tsx
-import {I18nApp} from "lingui-react-router"
+import { I18nApp } from "lingui-react-router"
 import { createLocaleMiddleware } from "lingui-react-router/server"
-import {useLingui} from "@lingui/react/macro"
+import { useLingui } from "@lingui/react/macro"
 import i18nConfig from "../i18n.config"
 
 export const middleware = [createLocaleMiddleware(i18nConfig)]
 
-function RootLayout({children}: { children: React.ReactNode }) {
-  const {i18n} = useLingui()
+function RootLayout({ children }: { children: React.ReactNode }) {
+  const { i18n } = useLingui()
   return (
     <html lang={i18n.locale}>
     <body>{children}</body>
@@ -70,7 +70,7 @@ function RootLayout({children}: { children: React.ReactNode }) {
   )
 }
 
-export function Layout({children}: { children: React.ReactNode }) {
+export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <I18nApp config={i18nConfig}>
       <RootLayout>{children}</RootLayout>
