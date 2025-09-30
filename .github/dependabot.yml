@@ -8,6 +8,19 @@ updates:
       interval: "weekly"
     versioning-strategy: increase-if-necessary
     groups:
+      react-router:
+        patterns:
+          - "react-router"
+          - "@react-router/*"
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
+      lingui:
+        patterns:
+          - "@lingui/*"
       prod-deps:
         patterns:
           - "*"
