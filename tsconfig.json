@@ -17,6 +17,7 @@
     "noUnusedLocals": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
+    "verbatimModuleSyntax": true,
     "jsx": "react-jsx"
   },
   "include": [
