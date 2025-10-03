@@ -1,9 +1,10 @@
 import { getConfig, type LinguiConfigNormalized } from "@lingui/conf"
 import fg from "fast-glob"
 import path from "node:path"
-import type { Plugin } from "vite"
+import type { Plugin, UserConfig } from "vite"
 import type { LinguiRouterConfig } from "../config"
 
+const NAME = "lingui-react-router"
 const VIRTUAL_PREFIX = "virtual:lingui-router-locale-"
 const VIRTUAL_MANIFEST = "virtual:lingui-router-manifest"
 const VIRTUAL_LOADER = "virtual:lingui-router-loader"
@@ -24,7 +25,7 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
   const localeChunks = new Map<string, string>()
 
   return {
-    name: "vite-plugin-lingui-react-router",
+    name: `vite-plugin-${NAME}`,
 
     async configResolved(config) {
       linguiConfig = getConfig({ cwd: config.root })
@@ -42,6 +43,16 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
       }
 
       const rollupInput = config.build?.rollupOptions?.input
+      let noExternal = config.ssr?.noExternal ?? []
+
+      // This library must be included, otherwise virtual imports won't work
+      if (noExternal !== true) {
+        if (noExternal instanceof Array) {
+          noExternal = [...noExternal, NAME]
+        } else {
+          noExternal = [noExternal, NAME]
+        }
+      }
 
       return {
         build: {
@@ -57,7 +68,10 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
             },
           },
         },
-      }
+        ssr: {
+          noExternal,
+        },
+      } satisfies UserConfig
     },
 
     resolveId(id) {
@@ -208,7 +222,7 @@ function generateLoaderModule(
 
   //language=js
   return `
-    import { buildUrlParserFunction, buildI18n } from "lingui-react-router"
+    import { buildUrlParserFunction, buildI18n } from "${NAME}"
     ${staticImports.join("\n")}
 
     export const localeLoaders = {
