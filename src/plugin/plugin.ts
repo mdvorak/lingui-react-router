@@ -56,13 +56,20 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
       }
 
       return {
+        resolve: {
+          dedupe: (config.resolve?.dedupe ?? []).concat(NAME),
+        },
         build: {
           rollupOptions: {
             input: addToRollupInput(rollupInput, localeInputs),
             output: {
-              manualChunks(id) {
-                if (id.startsWith("\0" + VIRTUAL_MANIFEST)) {
-                  return MANIFEST_CHUNK_NAME
+              manualChunks(id, { getModuleInfo }) {
+                if (id === "\0" + VIRTUAL_MANIFEST) {
+                  const info = getModuleInfo(id)
+                  // Don't split empty chunk
+                  if (!info?.code?.includes("export default {}")) {
+                    return MANIFEST_CHUNK_NAME
+                  }
                 }
                 if (id.startsWith("\0" + VIRTUAL_PREFIX)) {
                   const locale = id.replace("\0" + VIRTUAL_PREFIX, "")
