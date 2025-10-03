@@ -28,11 +28,11 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
   return {
     name: `vite-plugin-${NAME}`,
 
-    async configResolved(config) {
-      linguiConfig = getConfig({ cwd: config.root })
-    },
-
     config(config) {
+      if (!linguiConfig) {
+        linguiConfig = getConfig({ cwd: config.root })
+      }
+
       // Add virtual locale modules as additional inputs
       const localeInputs: Record<string, string> = {}
 
@@ -103,7 +103,7 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
       const server = this.environment.name === "ssr"
 
       if (id === "\0" + VIRTUAL_MANIFEST) {
-        if (server) {
+        if (server && this.environment.mode !== "dev") {
           return `
           const manifest = ${MANIFEST_PLACEHOLDER}
           export default manifest
@@ -144,8 +144,33 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
       for (const chunk of Object.values(bundle)) {
         if (chunk.type === "chunk" && chunk.name === MANIFEST_CHUNK_NAME) {
           chunk.code = chunk.code.replace(MANIFEST_PLACEHOLDER, manifestJson)
+          break
         }
       }
+    },
+
+    configureServer(server) {
+      server.watcher.on("change", file => {
+        // Check if changed file is a catalog
+        if (file.endsWith(".po")) {
+          // Invalidate virtual modules
+          const mod = server.moduleGraph.getModuleById("\0" + VIRTUAL_MANIFEST)
+          if (mod) {
+            server.moduleGraph.invalidateModule(mod)
+          }
+
+          // Invalidate affected locale module
+          for (const locale of linguiConfig.locales) {
+            const localeModId = "\0" + VIRTUAL_PREFIX + locale
+            const localeMod = server.moduleGraph.getModuleById(localeModId)
+            if (localeMod) {
+              server.moduleGraph.invalidateModule(localeMod)
+            }
+          }
+
+          server.ws.send({ type: "full-reload" })
+        }
+      })
     },
   }
 }
