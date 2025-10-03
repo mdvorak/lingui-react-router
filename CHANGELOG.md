@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/mdvorak/lingui-react-router/compare/v0.2.0...v0.2.1) (2025-10-03)
+
+
+### Bug Fixes
+
+* add automatically lingui-react-router to ssr.noExternal ([51107f6](https://github.com/mdvorak/lingui-react-router/commit/51107f69d2ebc5f02be451625be6bec742d46ee6))
+
 ## [0.2.0](https://github.com/mdvorak/lingui-react-router/compare/v0.1.9...v0.2.0) (2025-10-03)
 
 
