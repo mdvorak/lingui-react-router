@@ -1,8 +1,8 @@
 import { index, type RouteConfig } from "@react-router/dev/routes"
 import { localeRoutes } from "lingui-react-router/routes"
-import i18nConfig from "../i18n.config"
+import linguiConfig from "../lingui.config"
 
-const locale = localeRoutes(i18nConfig)
+const locale = localeRoutes(linguiConfig)
 
 export default [
   index("./routes/_index.tsx"),

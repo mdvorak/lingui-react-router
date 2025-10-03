@@ -1,10 +1,9 @@
 import { useLingui } from "@lingui/react/macro"
 import { I18nApp } from "lingui-react-router"
-import { createLocaleMiddleware } from "lingui-react-router/server"
+import { localeMiddleware } from "lingui-react-router/server"
 import { type ReactNode } from "react"
 import { isRouteErrorResponse, Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router"
 import SelectLanguage from "~/components/SelectLanguage"
-import i18nConfig from "../i18n.config"
 import type { Route } from "./+types/root"
 import "./app.css"
 
@@ -17,7 +16,7 @@ export const links: Route.LinksFunction = () => [
   },
 ]
 
-export const middleware: Route.MiddlewareFunction[] = [createLocaleMiddleware(i18nConfig)]
+export const middleware: Route.MiddlewareFunction[] = [localeMiddleware]
 
 export function meta({}: Route.MetaArgs) {
   const { t } = useLingui()
@@ -52,7 +51,7 @@ function RootLayout({ children }: { children: ReactNode }) {
 
 export function Layout({ children }: { children: ReactNode }) {
   return (
-    <I18nApp config={i18nConfig}>
+    <I18nApp>
       <RootLayout>{children}</RootLayout>
     </I18nApp>
   )

@@ -1,6 +1,6 @@
 import { useMemo } from "react"
 import { useLocation } from "react-router"
-import { useI18nConfig } from "./context"
+import { config, parseUrlLocale } from "./runtime"
 
 /**
  * React hook that derives the active locale from the current URL path.
@@ -23,17 +23,14 @@ import { useI18nConfig } from "./context"
  *
  * @see {@link I18nAppConfig['parseUrlLocale']} for the underlying URL parsing logic
  */
-export function useLocale(
-  location = useLocation(),
-  config = useI18nConfig()
-): {
+export function usePathLocale(location = useLocation()): {
   locale: string
   requestLocale?: string
   pathname: string
   excluded: boolean
 } {
   return useMemo(() => {
-    const { locale: requestLocale, pathname, excluded } = config.parseUrlLocale(location.pathname)
+    const { locale: requestLocale, pathname, excluded } = parseUrlLocale(location.pathname)
     return {
       requestLocale,
       locale: requestLocale || config.defaultLocale,

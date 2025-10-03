@@ -1,11 +1,11 @@
-import { type I18n, setupI18n } from "@lingui/core"
+import { type I18n } from "@lingui/core"
 import { type I18nContext } from "@lingui/react"
 import { setI18n } from "@lingui/react/server"
 import Negotiator from "negotiator"
 import { AsyncLocalStorage } from "node:async_hooks"
-import { MiddlewareFunction, redirect, type RedirectFunction } from "react-router"
-import { I18nAppConfig } from "./config"
-import { _initGetI18nRef } from "./globals"
+import { redirect, type RedirectFunction } from "react-router"
+import { config, parseUrlLocale } from "./runtime"
+import { $getI18nInstance } from "virtual:lingui-router-loader"
 
 const HTTP_ACCEPT_LANGUAGE = "accept-language"
 
@@ -35,20 +35,9 @@ export type I18nRouterContext = I18nContext &
   I18nRequestContext & {
     pathnamePrefix: string
     redirect: RedirectFunction
-    config: I18nAppConfig
   }
 
 const localeContextStorage = new AsyncLocalStorage<I18nRequestContext>()
-const globalContext: {
-  config?: I18nAppConfig
-  i18nInstances?: Record<string, I18n>
-  init?: Promise<Record<string, I18n>>
-} = {}
-
-_initGetI18nRef(locale => {
-  if (!globalContext.i18nInstances) throw new Error("createLocaleMiddleware must be called")
-  return globalContext.i18nInstances[locale]
-})
 
 /**
  * Hook to access the server-side i18n context. Use only in loaders and actions.
@@ -73,60 +62,28 @@ export function useLinguiServer(): I18nRouterContext {
     ...serverContext,
     _: serverContext.i18n._.bind(serverContext.i18n),
     pathnamePrefix,
-    config: globalContext.config!,
     redirect: (to, init) => redirect(`${pathnamePrefix}${to}`, init),
   }
 }
 
 /**
- * Create a server middleware that detects the locale, initializes Lingui, and
- * sets Content-Language on the response. It also performs redirects to the
- * user's preferred locale when appropriate.
- *
- * The middleware eagerly loads catalogs for all configured locales on first use
- * and caches initialized I18n instances for fast requests.
- */
-export function createLocaleMiddleware(config: I18nAppConfig): MiddlewareFunction<Response> {
-  if (globalContext.config && globalContext.config !== config) {
-    throw new Error("Only one global configuration can be used")
-  }
-
-  // Load eagerly - middleware will wait for the promise to resolve.
-  // This pattern allows for createLocaleMiddleware to be synchronous.
-  const localesPromise =
-    globalContext.init ??
-    loadAllLocales(config).then(i18nInstances => (globalContext.i18nInstances = i18nInstances))
-  globalContext.init = localesPromise
-
-  // Return middleware
-  return async (args: { request: Request }, next: () => Promise<Response>) => {
-    // Wait for lazy init
-    const i18nInstances = await localesPromise
-    // Run the actual middleware
-    return localeMiddleware(config, i18nInstances, args, next)
-  }
-}
-
-/**
- * Internal middleware implementation. Determines the locale from the URL or the
+ * Locale middleware implementation. Determines the locale from the URL or the
  * Accept-Language header, initializes i18n, and runs the request within an
  * AsyncLocalStorage context containing i18n and request metadata.
  */
-async function localeMiddleware(
-  config: I18nAppConfig,
-  i18nInstances: Record<string, I18n>,
+export async function localeMiddleware(
   { request }: { request: Request },
   next: () => Promise<Response>
 ): Promise<Response> {
   const url = new URL(request.url)
-  const { locale, pathname, excluded } = config.parseUrlLocale(url.pathname)
+  const { locale, pathname, excluded } = parseUrlLocale(url.pathname)
   let selectedLocale = locale
 
   // TODO have redirect and use of headers optional
 
   if (!selectedLocale) {
     // Get locale from the Accept-Language header
-    const preferredLocale = getAcceptedLocale(config, request.headers.get(HTTP_ACCEPT_LANGUAGE))
+    const preferredLocale = getAcceptedLocale(request.headers.get(HTTP_ACCEPT_LANGUAGE))
     if (preferredLocale) {
       if (!excluded && preferredLocale !== config.defaultLocale) {
         // Redirect to preferred locale
@@ -138,7 +95,7 @@ async function localeMiddleware(
     }
   }
 
-  const i18n = i18nInstances[selectedLocale || config.defaultLocale]
+  const i18n = $getI18nInstance(selectedLocale || config.defaultLocale)
   if (!i18n) {
     throw new Error(`Missing i18n instance for ${selectedLocale}`)
   }
@@ -163,34 +120,11 @@ async function localeMiddleware(
 /**
  * Parse the Accept-Language header and return the best language match
  */
-function getAcceptedLocale(
-  config: I18nAppConfig,
-  acceptLanguage?: string | null
-): string | undefined {
+function getAcceptedLocale(acceptLanguage?: string | null): string | undefined {
   if (!acceptLanguage) return
 
   const negotiator = new Negotiator({ headers: { HTTP_ACCEPT_LANGUAGE: acceptLanguage } })
   const accepted = negotiator.languages(config.locales.slice())
 
   return accepted[0]
-}
-
-/**
- * Preload and initialize Lingui I18n objects for every configured locale.
- * Returns a map of locale -> I18n.
- */
-async function loadAllLocales(config: I18nAppConfig): Promise<Record<string, I18n>> {
-  const locales = config.locales
-  const catalogs = await Promise.all(locales.map(loc => config.loadCatalog(loc)))
-
-  return locales.reduce((acc, locale, index) => {
-    const messages = catalogs[index]
-    if (!messages) throw new Error(`Catalog for ${locale} not found`)
-
-    const i18n = setupI18n({
-      locale,
-      messages: { [locale]: messages },
-    })
-    return { ...acc, [locale]: i18n }
-  }, {})
 }
