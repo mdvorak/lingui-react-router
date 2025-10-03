@@ -6,18 +6,16 @@ import { defineConfig } from "vite"
 import macrosPlugin from "vite-plugin-babel-macros"
 import tsconfigPaths from "vite-tsconfig-paths"
 
-export default defineConfig(async () => {
-  return {
-    plugins: [
-      tailwindcss(),
-      reactRouter(),
-      macrosPlugin(),
-      lingui(),
-      linguiRouterPlugin(),
-      tsconfigPaths(),
-    ],
-    build: {
-      minify: false,
-    },
-  }
+export default defineConfig({
+  plugins: [
+    tailwindcss(),
+    reactRouter(),
+    macrosPlugin(),
+    lingui(),
+    linguiRouterPlugin(),
+    tsconfigPaths(),
+  ],
+  build: {
+    minify: false,
+  },
 })

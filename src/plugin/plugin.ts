@@ -108,8 +108,7 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
 }
 
 async function generateLocaleModule(locale: string, config: any): Promise<string> {
-  const imports: string[] = []
-  const catalogVars: string[] = []
+  const catalogs: { varName: string; path: string }[] = []
 
   let importIndex = 0
 
@@ -128,19 +127,27 @@ async function generateLocaleModule(locale: string, config: any): Promise<string
 
     for (const poFile of poFiles) {
       const varName = `catalog${importIndex++}`
-      catalogVars.push(varName)
-
       // Resolve to absolute path for import
       const absolutePath = path.resolve(config.rootDir || process.cwd(), poFile)
-      imports.push(`import {messages as ${varName}} from '${absolutePath}'`)
+      catalogs.push({ varName, path: absolutePath })
     }
   }
 
-  return `
+  if (catalogs.length > 1) {
+    const imports = catalogs.map(c => `import {messages as ${c.varName}} from '${c.path}'`)
+    const catalogVars = catalogs.map(c => c.varName)
+
+    return `
 ${imports.join("\n")}
 
-export const messages = Object.assign({}, ${catalogVars.map(v => `${v}`).join(", ")})
+export const messages = Object.assign({}, ${catalogVars.join(", ")})
 `
+  } else if (catalogs.length === 1) {
+    return `export * from '${catalogs[0].path}'`
+  } else {
+    // TODO log warning
+    return ""
+  }
 }
 
 function addToRollupInput(

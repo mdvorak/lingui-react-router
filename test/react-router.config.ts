@@ -5,7 +5,6 @@ const { locales } = linguiConfig
 const langPrerender = ["hello"]
 
 export default {
-  ssr: true,
   future: {
     v8_middleware: true,
   },
