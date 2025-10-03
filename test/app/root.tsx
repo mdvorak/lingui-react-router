@@ -1,5 +1,5 @@
 import { useLingui } from "@lingui/react/macro"
-import { I18nApp } from "lingui-react-router"
+import { I18nApp, LocalePreload } from "lingui-react-router"
 import { localeMiddleware } from "lingui-react-router/server"
 import { type ReactNode } from "react"
 import { isRouteErrorResponse, Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router"
@@ -36,6 +36,7 @@ function RootLayout({ children }: { children: ReactNode }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
+        <LocalePreload />
       </head>
       <body>
         <div className="w-full">

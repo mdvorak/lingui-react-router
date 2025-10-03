@@ -26,6 +26,8 @@ export type PathLocale = {
   excluded: boolean
 }
 
+export type LocaleManifest = Record<string, string>
+
 // noinspection JSUnusedGlobalSymbols
 export function buildUrlParserFunction(config: LinguiRouterConfig): (url: string) => PathLocale {
   const localesRegex = buildParserRegex(config.locales, config.exclude)
