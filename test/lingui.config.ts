@@ -1,8 +1,7 @@
-import type { LinguiConfig } from "@lingui/conf"
+import { defineConfig } from "@lingui/cli"
 
-export default {
+export default defineConfig({
   locales: ["en", "cs", "pseudo"],
-  // exclude: "api",
   sourceLocale: "en",
   pseudoLocale: "pseudo",
   fallbackLocales: {
@@ -23,4 +22,4 @@ export default {
     },
   ],
   format: "po",
-} satisfies LinguiConfig
+})
