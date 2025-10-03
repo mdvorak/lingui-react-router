@@ -8,6 +8,8 @@ const NAME = "lingui-react-router"
 const VIRTUAL_PREFIX = "virtual:lingui-router-locale-"
 const VIRTUAL_MANIFEST = "virtual:lingui-router-manifest"
 const VIRTUAL_LOADER = "virtual:lingui-router-loader"
+const MANIFEST_PLACEHOLDER = "__$$_LINGUI_REACT_ROUTER_MANIFEST_PLACEHOLDER$$__"
+const MANIFEST_CHUNK_NAME = "locale-manifest"
 
 /**
  * Configuration passed from the consumer to wire up catalog loading and path exclusions.
@@ -22,7 +24,6 @@ export type LinguiRouterPluginConfig = {
 
 export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}): Plugin {
   let linguiConfig: LinguiConfigNormalized
-  const localeChunks = new Map<string, string>()
 
   return {
     name: `vite-plugin-${NAME}`,
@@ -60,6 +61,9 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
             input: addToRollupInput(rollupInput, localeInputs),
             output: {
               manualChunks(id) {
+                if (id.startsWith("\0" + VIRTUAL_MANIFEST)) {
+                  return MANIFEST_CHUNK_NAME
+                }
                 if (id.startsWith("\0" + VIRTUAL_PREFIX)) {
                   const locale = id.replace("\0" + VIRTUAL_PREFIX, "")
                   return `locale-${locale}`
@@ -75,7 +79,11 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
     },
 
     resolveId(id) {
-      if (id === VIRTUAL_MANIFEST || id === VIRTUAL_LOADER) {
+      if (id === VIRTUAL_MANIFEST) {
+        return "\0" + id
+      }
+
+      if (id === VIRTUAL_LOADER) {
         return "\0" + id
       }
 
@@ -88,8 +96,14 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
       const server = this.environment.name === "ssr"
 
       if (id === "\0" + VIRTUAL_MANIFEST) {
-        const manifest = Object.fromEntries(localeChunks)
-        return `const manifest = JSON.parse('${JSON.stringify(manifest)}')\nexport default manifest`
+        if (server) {
+          return `
+          const manifest = ${MANIFEST_PLACEHOLDER}
+          export default manifest
+        `
+        } else {
+          return "export default {}"
+        }
       }
 
       if (id === "\0" + VIRTUAL_LOADER) {
@@ -103,20 +117,28 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
     },
 
     generateBundle(options, bundle) {
-      localeChunks.clear()
+      if (this.environment.name !== "ssr") return
+
+      const localeChunks: Record<string, string> = {}
 
       for (const [fileName, chunk] of Object.entries(bundle)) {
-        if (chunk.type === "chunk" && chunk.name?.startsWith("locale-")) {
+        if (
+          chunk.type === "chunk" &&
+          chunk.name?.startsWith("locale-") &&
+          chunk.name !== MANIFEST_CHUNK_NAME
+        ) {
           const locale = chunk.name.replace("locale-", "")
-          localeChunks.set(locale, `/${fileName}`)
+          localeChunks[locale] = `/${fileName}`
         }
       }
 
-      this.emitFile({
-        type: "asset",
-        fileName: "lingui-manifest.json",
-        source: JSON.stringify(Object.fromEntries(localeChunks), null, 2),
-      })
+      // Replace placeholder in all chunks
+      const manifestJson = JSON.stringify(localeChunks, null, 2)
+      for (const chunk of Object.values(bundle)) {
+        if (chunk.type === "chunk" && chunk.name === MANIFEST_CHUNK_NAME) {
+          chunk.code = chunk.code.replace(MANIFEST_PLACEHOLDER, manifestJson)
+        }
+      }
     },
   }
 }

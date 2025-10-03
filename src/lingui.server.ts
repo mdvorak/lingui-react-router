@@ -4,8 +4,8 @@ import { setI18n } from "@lingui/react/server"
 import Negotiator from "negotiator"
 import { AsyncLocalStorage } from "node:async_hooks"
 import { redirect, type RedirectFunction } from "react-router"
-import { config, parseUrlLocale } from "./runtime"
 import { $getI18nInstance } from "virtual:lingui-router-loader"
+import { config, parseUrlLocale } from "./runtime"
 
 const HTTP_ACCEPT_LANGUAGE = "accept-language"
 
