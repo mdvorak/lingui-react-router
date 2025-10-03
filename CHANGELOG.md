@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.0](https://github.com/mdvorak/lingui-react-router/compare/v0.1.9...v0.2.0) (2025-10-03)
+
+
+### Features
+
+* introducing linguiRouterPlugin ([3a97551](https://github.com/mdvorak/lingui-react-router/commit/3a97551f2c70166c0f57c80b2c5d4cfb84b445ef))
+* introducing linguiRouterPlugin ([f394f9f](https://github.com/mdvorak/lingui-react-router/commit/f394f9ff924bf95dc2daf2e74bdb7e5ba2670277))
+
 ## [0.1.9](https://github.com/mdvorak/lingui-react-router/compare/v0.1.8...v0.1.9) (2025-09-29)
 
 
