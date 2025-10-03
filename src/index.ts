@@ -1,5 +1,5 @@
 export * from "./config"
-export { useI18nConfig } from "./context"
 export * from "./I18nApp"
 export * from "./lingui"
 export * from "./LocaleLink"
+export * from "./runtime"

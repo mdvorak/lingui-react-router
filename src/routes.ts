@@ -1,9 +1,9 @@
-import { route, RouteConfigEntry } from "@react-router/dev/routes"
-import { I18nAppConfig } from "./config"
+import { route, type RouteConfigEntry } from "@react-router/dev/routes"
+import type { LinguiConfig } from "@lingui/conf"
 
 const LOCAL_PATH_REGEX = /^(?:\.\/)?/
 
-export function localeRoutes(config: I18nAppConfig) {
+export function localeRoutes(config: LinguiConfig) {
   const { locales } = config
   const routePrefixes = [""].concat(locales.map(loc => loc + "/"))
 

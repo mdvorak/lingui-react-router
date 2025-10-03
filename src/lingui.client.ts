@@ -1,12 +1,9 @@
 import { i18n } from "@lingui/core"
-import { I18nAppConfig } from "./config"
-import { _initGetI18nRef } from "./globals"
+import { config, loadLocaleCatalog, parseUrlLocale } from "./runtime"
 
 if (typeof window === "undefined") {
   throw new Error("lingui.client.ts must be imported only on client")
 }
-
-_initGetI18nRef(() => i18n)
 
 /**
  * Setup lingui for client-side rendering.
@@ -18,10 +15,9 @@ _initGetI18nRef(() => i18n)
  * import { startTransition, StrictMode } from "react"
  * import { hydrateRoot } from "react-dom/client"
  * import { HydratedRouter } from "react-router/dom"
- * import i18nConfig from "../i18n.config"
  *
  * startTransition(async () => {
- *   await setupLingui(i18nConfig, location.pathname)
+ *   await loadInitialLocale(location.pathname)
  *
  *   hydrateRoot(
  *     document,
@@ -36,9 +32,9 @@ _initGetI18nRef(() => i18n)
 /**
  * @returns The initialized I18n instance bound to the detected locale.
  */
-export async function loadInitialLocale(config: I18nAppConfig, pathname: string) {
-  const locale = config.parseUrlLocale(pathname).locale || config.defaultLocale
-  const messages = await config.loadCatalog(locale)
+export async function loadInitialLocale(pathname: string) {
+  const locale = parseUrlLocale(pathname).locale || config.defaultLocale
+  const messages = await loadLocaleCatalog(locale)
 
   i18n.loadAndActivate({ locale, messages })
 }

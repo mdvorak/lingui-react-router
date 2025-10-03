@@ -1,12 +1,14 @@
-import { useI18nConfig, useLocale } from "lingui-react-router"
+import { useLingui } from "@lingui/react/macro"
+import { config, usePathLocale } from "lingui-react-router"
 import { type ChangeEvent } from "react"
 import { useLocation, useNavigate } from "react-router"
 
 export default function SelectLanguage() {
+  const { t } = useLingui()
   const navigate = useNavigate()
   const location = useLocation()
-  const { locale, pathname } = useLocale(location)
-  const { locales, pseudoLocale } = useI18nConfig()
+  const { locale, pathname } = usePathLocale(location)
+  const { locales, pseudoLocale } = config
 
   const onChange = (e: ChangeEvent<HTMLSelectElement>) => {
     const nextLang = e.target.value
@@ -16,6 +18,7 @@ export default function SelectLanguage() {
 
   return (
     <div style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+      <label>{t`Language`}</label>
       <select value={locale} onChange={onChange} className="data-hover:outline-1 border-0!">
         {locales
           .filter(loc => loc !== pseudoLocale)

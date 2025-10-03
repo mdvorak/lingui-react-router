@@ -13,11 +13,11 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
-#: app/root.tsx:68
+#: app/root.tsx:67
 msgid "\"Oops!"
 msgstr "Jejda!"
 
-#: app/root.tsx:69
+#: app/root.tsx:68
 msgid "An unexpected error occurred."
 msgstr "Nastala neočekávaná chyba."
 
@@ -25,18 +25,18 @@ msgstr "Nastala neočekávaná chyba."
 msgid "Continue"
 msgstr "Pokračovat"
 
-#: app/routes/hello.tsx:7
+#: app/routes/hello.tsx:14
 msgid "Hello, World!"
 msgstr "Ahoj světe!"
 
-#: app/root.tsx:25
+#: app/root.tsx:24
 msgid "Lingui React Router App"
 msgstr "Lingui React Router Aplikace"
 
-#: app/root.tsx:26
+#: app/root.tsx:25
 msgid "Lingui React Router integration example"
 msgstr "Příklad integrace Lingui React Router"
 
-#: app/root.tsx:75
+#: app/root.tsx:74
 msgid "The requested page could not be found."
 msgstr "Požadovaná stránka nebyla nalezena."

@@ -1,10 +1,9 @@
 import { I18nProvider } from "@lingui/react"
 import React, { useEffect } from "react"
 import { useLocation } from "react-router"
-import { I18nAppConfig } from "./config"
-import { I18nConfigContext } from "./context"
-import { _getI18n } from "./globals"
-import { useLocale } from "./lingui"
+import { usePathLocale } from "./lingui"
+import { loadLocaleCatalog } from "./runtime"
+import { $getI18nInstance } from "virtual:lingui-router-loader"
 
 /**
  * The I18nApp component provides internationalization context to the application.
@@ -46,19 +45,12 @@ import { useLocale } from "./lingui"
  * }
  *
  * @param props - The component props
- * @param props.config - The internationalization configuration object
  * @param props.children - The child components to be rendered within the i18n context
  */
-export function I18nApp({
-  config,
-  children,
-}: {
-  config: I18nAppConfig
-  children: React.ReactNode
-}) {
+export function I18nApp({ children }: { children: React.ReactNode }) {
   const location = useLocation()
-  const { locale } = useLocale(location, config) // context is not set up yet, so we provide it
-  const i18n = _getI18n(locale)
+  const { locale } = usePathLocale(location) // context is not set up yet, so we provide it
+  const i18n = $getI18nInstance(locale)
 
   useEffect(() => {
     // This is executed only client-side
@@ -67,7 +59,7 @@ export function I18nApp({
       if (locale in i18n.messages) {
         i18n.activate(locale)
       } else {
-        config.loadCatalog(locale).then(messages => i18n.loadAndActivate({ locale, messages }))
+        loadLocaleCatalog(locale).then(messages => i18n.loadAndActivate({ locale, messages }))
       }
     }
   }, [locale])
@@ -75,9 +67,5 @@ export function I18nApp({
   // @ts-ignore
   const childrenRender = typeof children === "function" ? children(i18n) : children
 
-  return (
-    <I18nConfigContext.Provider value={config}>
-      <I18nProvider i18n={i18n}>{childrenRender}</I18nProvider>
-    </I18nConfigContext.Provider>
-  )
+  return <I18nProvider i18n={i18n}>{childrenRender}</I18nProvider>
 }
