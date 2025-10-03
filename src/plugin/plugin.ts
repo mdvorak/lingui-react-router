@@ -1,5 +1,5 @@
 import { getConfig, type LinguiConfigNormalized } from "@lingui/conf"
-import { glob } from "node:fs/promises"
+import fg from "fast-glob"
 import path from "node:path"
 import type { Plugin } from "vite"
 import type { LinguiRouterConfig } from "../config"
@@ -122,13 +122,9 @@ async function generateLocaleModule(locale: string, config: any): Promise<string
     // Add .po extension for glob pattern
     const globPattern = `${catalogPath}.po`
 
-    // Use Node.js 22 fs.glob
-    const poFiles = []
-    for await (const file of glob(globPattern, {
+    const poFiles = await fg(globPattern, {
       cwd: config.rootDir || process.cwd(),
-    })) {
-      poFiles.push(file)
-    }
+    })
 
     for (const poFile of poFiles) {
       const varName = `catalog${importIndex++}`
