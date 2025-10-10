@@ -145,7 +145,7 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
         // Write locale manifest JSON
         this.info(`writing ${path.relative(this.environment.config.root, manifestPath)}`)
         const manifestJson = JSON.stringify(localeChunks, null, 2)
-        await fs.mkdir(path.dirname(manifestPath))
+        await fs.mkdir(path.dirname(manifestPath), { recursive: true })
         await fs.writeFile(manifestPath, manifestJson, { encoding: "utf8" })
       } else {
         // Parse and stringify to validate the JSON
