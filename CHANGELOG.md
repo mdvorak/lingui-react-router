@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/mdvorak/lingui-react-router/compare/v0.2.1...v0.2.2) (2025-10-10)
+
+
+### Bug Fixes
+
+* support for locale preloading ([c4fd719](https://github.com/mdvorak/lingui-react-router/commit/c4fd719053df2a3beba668fe6e517bbf805c18ac)), closes [#18](https://github.com/mdvorak/lingui-react-router/issues/18)
+
 ## [0.2.1](https://github.com/mdvorak/lingui-react-router/compare/v0.2.0...v0.2.1) (2025-10-03)
 
 
