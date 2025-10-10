@@ -13,6 +13,12 @@ const MANIFEST_PLACEHOLDER = "__$$_LINGUI_REACT_ROUTER_MANIFEST_PLACEHOLDER$$__"
 const MANIFEST_CHUNK_NAME = "locale-manifest"
 const LOCALE_MANIFEST_FILENAME = ".locale-manifest.json"
 
+declare module "vite" {
+  interface ResolvedConfig {
+    linguiConfig: LinguiConfigNormalized
+  }
+}
+
 /**
  * Configuration passed from the consumer to wire up catalog loading and path exclusions.
  */
@@ -35,13 +41,11 @@ export type LinguiRouterPluginConfig = {
  * @returns Vite plugin object with hooks for build and dev server integration
  */
 export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}): Plugin {
-  let linguiConfig: LinguiConfigNormalized
-
   return {
     name: NAME,
 
     configResolved(config) {
-      linguiConfig = getConfig({ cwd: config.root })
+      config.linguiConfig = getConfig({ cwd: config.root })
     },
 
     config(config) {
@@ -90,6 +94,7 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
 
     async load(id) {
       const server = this.environment.name === "ssr"
+      const config = this.environment.config
 
       if (id === "\0" + VIRTUAL_MANIFEST) {
         if (server && this.environment.mode !== "dev") {
@@ -103,12 +108,12 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
       }
 
       if (id === "\0" + VIRTUAL_LOADER) {
-        return generateLoaderModule(pluginConfig, linguiConfig, server)
+        return generateLoaderModule(pluginConfig, config.linguiConfig, server)
       }
 
       if (id.startsWith("\0" + VIRTUAL_PREFIX)) {
         const locale = id.replace("\0" + VIRTUAL_PREFIX, "")
-        const module = await generateLocaleModule(locale, linguiConfig)
+        const module = await generateLocaleModule(locale, config.linguiConfig)
         if (!module) {
           this.warn(
             `No message catalogs found for locale '${locale}'. Please check your Lingui configuration.`
@@ -154,30 +159,6 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
           }
         }
       }
-    },
-
-    configureServer(server) {
-      server.watcher.on("change", file => {
-        // Check if a changed file is a catalog
-        if (file.endsWith(".po")) {
-          // Invalidate virtual modules
-          const mod = server.moduleGraph.getModuleById("\0" + VIRTUAL_MANIFEST)
-          if (mod) {
-            server.moduleGraph.invalidateModule(mod)
-          }
-
-          // Invalidate affected locale module
-          for (const locale of linguiConfig.locales) {
-            const localeModId = "\0" + VIRTUAL_PREFIX + locale
-            const localeMod = server.moduleGraph.getModuleById(localeModId)
-            if (localeMod) {
-              server.moduleGraph.invalidateModule(localeMod)
-            }
-          }
-
-          server.ws.send({ type: "full-reload" })
-        }
-      })
     },
   }
 }
