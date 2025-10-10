@@ -1,5 +1,5 @@
 import { i18n } from "@lingui/core"
-import { config, loadLocaleCatalog, parseUrlLocale } from "./runtime"
+import { defaultLocale, loadLocaleCatalog, parseUrlLocale } from "./runtime"
 
 if (typeof window === "undefined") {
   throw new Error("lingui.client.ts must be imported only on client")
@@ -33,7 +33,7 @@ if (typeof window === "undefined") {
  * @returns The initialized I18n instance bound to the detected locale.
  */
 export async function loadInitialLocale(pathname: string) {
-  const locale = parseUrlLocale(pathname).locale || config.defaultLocale
+  const locale = parseUrlLocale(pathname).locale || defaultLocale
   const messages = await loadLocaleCatalog(locale)
 
   i18n.loadAndActivate({ locale, messages })

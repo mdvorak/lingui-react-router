@@ -1,5 +1,6 @@
 declare module "virtual:lingui-router-manifest" {
-  const manifest: Record<string, string>
+  import type { LocaleManifest } from "./config"
+  const manifest: LocaleManifest
   export default manifest
 }
 

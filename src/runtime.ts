@@ -3,6 +3,7 @@ import * as loader from "virtual:lingui-router-loader"
 import type { LinguiRouterConfig, PathLocale } from "./config"
 
 export const config: LinguiRouterConfig = loader.config
+export const defaultLocale = loader.config.defaultLocale
 export const localeLoaders: Record<string, () => Promise<{ messages: Messages }>> =
   loader.localeLoaders
 export const parseUrlLocale: (url: string) => PathLocale = loader.parseUrlLocale

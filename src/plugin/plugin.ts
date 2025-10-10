@@ -1,13 +1,23 @@
 import { getConfig, type LinguiConfigNormalized } from "@lingui/conf"
 import fg from "fast-glob"
+import * as fs from "node:fs/promises"
 import path from "node:path"
-import type { Plugin, UserConfig } from "vite"
+import type { Plugin, ResolvedConfig, SSROptions, UserConfig } from "vite"
 import type { LinguiRouterConfig } from "../config"
 
 const NAME = "lingui-react-router"
 const VIRTUAL_PREFIX = "virtual:lingui-router-locale-"
 const VIRTUAL_MANIFEST = "virtual:lingui-router-manifest"
 const VIRTUAL_LOADER = "virtual:lingui-router-loader"
+const MANIFEST_PLACEHOLDER = "__$$_LINGUI_REACT_ROUTER_MANIFEST_PLACEHOLDER$$__"
+const MANIFEST_CHUNK_NAME = "locale-manifest"
+const LOCALE_MANIFEST_FILENAME = ".locale-manifest.json"
+
+declare module "vite" {
+  interface ResolvedConfig {
+    linguiConfig: LinguiConfigNormalized
+  }
+}
 
 /**
  * Configuration passed from the consumer to wire up catalog loading and path exclusions.
@@ -20,46 +30,40 @@ export type LinguiRouterPluginConfig = {
   exclude?: string | string[]
 }
 
+/**
+ * Vite plugin for Lingui React Router that handles internationalization with automatic
+ * code splitting by locale and optimized asset loading.
+ *
+ * This plugin creates virtual modules for locale manifests and message catalogs,
+ * enabling efficient client-side loading and SSR support.
+ *
+ * @param pluginConfig - Configuration options for the plugin
+ * @returns Vite plugin object with hooks for build and dev server integration
+ */
 export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}): Plugin {
-  let linguiConfig: LinguiConfigNormalized
-  const localeChunks = new Map<string, string>()
-
   return {
-    name: `vite-plugin-${NAME}`,
+    name: NAME,
 
-    async configResolved(config) {
-      linguiConfig = getConfig({ cwd: config.root })
+    configResolved(config) {
+      config.linguiConfig = getConfig({ cwd: config.root })
     },
 
     config(config) {
-      // Add virtual locale modules as additional inputs
-      const localeInputs: Record<string, string> = {}
-
-      // We'll populate this after config is resolved
-      if (linguiConfig?.locales) {
-        for (const locale of linguiConfig.locales) {
-          localeInputs[`locale-${locale}`] = VIRTUAL_PREFIX + locale
-        }
-      }
-
-      const rollupInput = config.build?.rollupOptions?.input
-      let noExternal = config.ssr?.noExternal ?? []
-
-      // This library must be included, otherwise virtual imports won't work
-      if (noExternal !== true) {
-        if (noExternal instanceof Array) {
-          noExternal = [...noExternal, NAME]
-        } else {
-          noExternal = [noExternal, NAME]
-        }
-      }
-
       return {
+        resolve: {
+          dedupe: (config.resolve?.dedupe ?? []).concat(NAME),
+        },
         build: {
           rollupOptions: {
-            input: addToRollupInput(rollupInput, localeInputs),
             output: {
-              manualChunks(id) {
+              manualChunks(id, { getModuleInfo }) {
+                if (id === "\0" + VIRTUAL_MANIFEST) {
+                  const info = getModuleInfo(id)
+                  // Don't split an empty chunk
+                  if (!info?.code?.includes("export default {}")) {
+                    return MANIFEST_CHUNK_NAME
+                  }
+                }
                 if (id.startsWith("\0" + VIRTUAL_PREFIX)) {
                   const locale = id.replace("\0" + VIRTUAL_PREFIX, "")
                   return `locale-${locale}`
@@ -69,13 +73,17 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
           },
         },
         ssr: {
-          noExternal,
+          noExternal: addToNoExternal(config.ssr?.noExternal, NAME),
         },
       } satisfies UserConfig
     },
 
     resolveId(id) {
-      if (id === VIRTUAL_MANIFEST || id === VIRTUAL_LOADER) {
+      if (id === VIRTUAL_MANIFEST) {
+        return "\0" + id
+      }
+
+      if (id === VIRTUAL_LOADER) {
         return "\0" + id
       }
 
@@ -86,51 +94,89 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
 
     async load(id) {
       const server = this.environment.name === "ssr"
+      const config = this.environment.config
 
       if (id === "\0" + VIRTUAL_MANIFEST) {
-        const manifest = Object.fromEntries(localeChunks)
-        return `const manifest = JSON.parse('${JSON.stringify(manifest)}')\nexport default manifest`
+        if (server && this.environment.mode !== "dev") {
+          return `
+          const manifest = ${MANIFEST_PLACEHOLDER}
+          export default manifest
+        `
+        } else {
+          return "export default {}"
+        }
       }
 
       if (id === "\0" + VIRTUAL_LOADER) {
-        return generateLoaderModule(pluginConfig, linguiConfig, server)
+        return generateLoaderModule(pluginConfig, config.linguiConfig, server)
       }
 
       if (id.startsWith("\0" + VIRTUAL_PREFIX)) {
         const locale = id.replace("\0" + VIRTUAL_PREFIX, "")
-        return await generateLocaleModule(locale, linguiConfig)
+        const module = await generateLocaleModule(locale, config.linguiConfig)
+        if (!module) {
+          this.warn(
+            `No message catalogs found for locale '${locale}'. Please check your Lingui configuration.`
+          )
+        }
+        return module
       }
     },
 
-    generateBundle(options, bundle) {
-      localeChunks.clear()
+    async generateBundle(options, bundle) {
+      const manifestPath = resolveManifestPath(this.environment.config)
 
-      for (const [fileName, chunk] of Object.entries(bundle)) {
-        if (chunk.type === "chunk" && chunk.name?.startsWith("locale-")) {
-          const locale = chunk.name.replace("locale-", "")
-          localeChunks.set(locale, `/${fileName}`)
+      if (this.environment.name === "client") {
+        const base = this.environment.config.base
+        const modulePrefix = "\0" + VIRTUAL_PREFIX
+
+        const localeChunks: Record<string, string> = {}
+
+        for (const [fileName, chunk] of Object.entries(bundle)) {
+          if (chunk.type === "chunk" && chunk.isDynamicEntry) {
+            const moduleId = chunk.moduleIds.find(modId => modId.startsWith(modulePrefix))
+            if (moduleId) {
+              const locale = moduleId.replace(modulePrefix, "")
+              localeChunks[locale] = `${base}${fileName}`
+            }
+          }
+        }
+
+        // Write locale manifest JSON
+        this.info(`writing ${path.relative(this.environment.config.root, manifestPath)}`)
+        const manifestJson = JSON.stringify(localeChunks, null, 2)
+        await fs.mkdir(path.dirname(manifestPath))
+        await fs.writeFile(manifestPath, manifestJson, { encoding: "utf8" })
+      } else {
+        // Parse and stringify to validate the JSON
+        this.info(`reading ${path.relative(this.environment.config.root, manifestPath)}`)
+        const manifestJson = JSON.parse(await fs.readFile(manifestPath, { encoding: "utf8" }))
+
+        for (const chunk of Object.values(bundle)) {
+          if (chunk.type === "chunk" && chunk.name === MANIFEST_CHUNK_NAME) {
+            chunk.code = chunk.code.replace(MANIFEST_PLACEHOLDER, JSON.stringify(manifestJson))
+            break
+          }
         }
       }
-
-      this.emitFile({
-        type: "asset",
-        fileName: "lingui-manifest.json",
-        source: JSON.stringify(Object.fromEntries(localeChunks), null, 2),
-      })
     },
   }
 }
 
-async function generateLocaleModule(locale: string, config: any): Promise<string> {
+async function generateLocaleModule(
+  locale: string,
+  config: LinguiConfigNormalized
+): Promise<string> {
   const catalogs: { varName: string; path: string }[] = []
 
   let importIndex = 0
 
-  for (const catalogConfig of config.catalogs) {
+  // Note: catalogs are never empty in the normalized parsed config
+  for (const catalogConfig of config.catalogs!) {
     let catalogPath = catalogConfig.path
-      .replaceAll("<rootDir>", config.rootDir || process.cwd())
-      .replaceAll("{locale}", locale)
-      .replaceAll("{name}", "*")
+      .replace(/<rootDir>/g, config.rootDir || process.cwd())
+      .replace(/\{locale}/g, locale)
+      .replace(/\{name}/g, "*")
 
     // Add .po extension for glob pattern
     const globPattern = `${catalogPath}.po`
@@ -141,7 +187,7 @@ async function generateLocaleModule(locale: string, config: any): Promise<string
 
     for (const poFile of poFiles) {
       const varName = `catalog${importIndex++}`
-      // Resolve to absolute path for import
+      // Resolve to an absolute path for import
       const absolutePath = path.resolve(config.rootDir || process.cwd(), poFile)
       catalogs.push({ varName, path: absolutePath })
     }
@@ -159,29 +205,7 @@ export const messages = Object.assign({}, ${catalogVars.join(", ")})
   } else if (catalogs.length === 1) {
     return `export * from '${catalogs[0].path}'`
   } else {
-    // TODO log warning
     return ""
-  }
-}
-
-function addToRollupInput(
-  rollupInput: string | string[] | Record<string, string> | undefined,
-  newInput: Record<string, string>
-) {
-  switch (typeof rollupInput) {
-    case "string":
-      return Object.values(newInput).concat(rollupInput)
-    case "object":
-      if (rollupInput instanceof Array) {
-        return Object.values(newInput).concat(rollupInput)
-      } else {
-        return {
-          ...rollupInput,
-          ...newInput,
-        }
-      }
-    default:
-      return newInput
   }
 }
 
@@ -195,6 +219,8 @@ function generateLoaderModule(
   const bundleMap: string[] = []
 
   if (server) {
+    staticImports.push(`import { buildI18n } from "${NAME}"`)
+
     // For server builds, use static imports
     for (const locale of linguiConfig.locales) {
       const varName = `locale_${locale.replace(/-/g, "_")}`
@@ -222,7 +248,8 @@ function generateLoaderModule(
 
   //language=js
   return `
-    import { buildUrlParserFunction, buildI18n } from "${NAME}"
+    import { buildUrlParserFunction } from "${NAME}"
+
     ${staticImports.join("\n")}
 
     export const localeLoaders = {
@@ -256,8 +283,27 @@ function generateGetI18nInstance(server: boolean, bundleMap: string[]) {
     //language=js
     return `
     import { i18n } from "@lingui/core"
-    export function $getI18nInstance(locale) {
+    export function $getI18nInstance(_locale) {
       return i18n
     }`
   }
+}
+
+function addToNoExternal(userNoExternal: SSROptions["noExternal"], name: string) {
+  let noExternal = userNoExternal ?? []
+
+  // This library must be included, otherwise virtual imports won't work
+  if (noExternal !== true) {
+    if (noExternal instanceof Array) {
+      noExternal = [...noExternal, name]
+    } else {
+      noExternal = [noExternal, name]
+    }
+  }
+  return noExternal
+}
+
+function resolveManifestPath(config: ResolvedConfig): string {
+  // outDir always consists of buildDirectory/consumer
+  return path.resolve(config.root, config.build.outDir, "..", LOCALE_MANIFEST_FILENAME)
 }

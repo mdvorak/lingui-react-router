@@ -8,7 +8,7 @@ locale-aware routing, server middleware, and a streamlined client bootstrap for 
 - i18n-aware route config helpers to generate routes per locale from a single source of truth.
 - Server middleware to detect, normalize, and initialize locale with SSR support and locale-aware
   redirects.
-- Client bootstrap to preload the initial catalog before hydration to avoid flicker or missing
+- Client bootstraps to preload the initial catalog before hydration to avoid flicker or missing
   messages.
 - Runtime hooks and a locale-aware Link that automatically prefixes paths with the active request
   locale.

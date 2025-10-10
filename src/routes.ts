@@ -1,5 +1,5 @@
-import { route, type RouteConfigEntry } from "@react-router/dev/routes"
 import type { LinguiConfig } from "@lingui/conf"
+import { route, type RouteConfigEntry } from "@react-router/dev/routes"
 
 const LOCAL_PATH_REGEX = /^(?:\.\/)?/
 
