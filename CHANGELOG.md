@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.3](https://github.com/mdvorak/lingui-react-router/compare/v0.2.2...v0.2.3) (2025-10-10)
+
+
+### Bug Fixes
+
+* **plugin:** added missing recursive flag to mkdir ([6b6d27b](https://github.com/mdvorak/lingui-react-router/commit/6b6d27bf45417407eaae1eff3ad69370ff4b741a))
+
 ## [0.2.2](https://github.com/mdvorak/lingui-react-router/compare/v0.2.1...v0.2.2) (2025-10-10)
 
 
