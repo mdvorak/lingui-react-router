@@ -212,7 +212,6 @@ Notes about LocaleLink:
 
    export function loader({ context }: LoaderFunctionArgs) {
      const { _, redirect } = useLinguiServer(context)
-     const { _, redirect } = useLinguiServer()
 
      // Example of localized redirect
      if (someCondition) {
