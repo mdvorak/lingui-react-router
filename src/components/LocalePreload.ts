@@ -1,7 +1,7 @@
 import React from "react"
 import { useLocation } from "react-router"
 import manifest from "virtual:lingui-router-manifest"
-import { defaultLocale, parseUrlLocale } from "./runtime"
+import { defaultLocale, parseUrlLocale } from "../runtime"
 
 export function LocalePreload() {
   if ((import.meta as any).env.SSR) {
@@ -11,8 +11,8 @@ export function LocalePreload() {
     if (locale && locale in manifest) {
       const href = ((import.meta as any).env.BASE_URL ?? "") + manifest[locale].replace(/^\//, "")
       return React.createElement("link", {
-        href,
         rel: "modulepreload",
+        href,
         as: "script",
       })
     }

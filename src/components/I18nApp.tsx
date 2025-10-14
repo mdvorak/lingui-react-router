@@ -2,8 +2,8 @@ import { I18nProvider } from "@lingui/react"
 import React, { useEffect } from "react"
 import { useLocation } from "react-router"
 import { $getI18nInstance } from "virtual:lingui-router-loader"
-import { usePathLocale } from "./lingui"
-import { loadLocaleCatalog } from "./runtime"
+import { usePathLocale } from "../i18n"
+import { loadLocaleCatalog } from "../runtime"
 
 /**
  * The I18nApp component provides internationalization context to the application.

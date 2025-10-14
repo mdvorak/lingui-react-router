@@ -25,7 +25,11 @@ msgstr "An unexpected error occurred."
 msgid "Continue"
 msgstr "Continue"
 
-#: app/routes/hello.tsx:14
+#: app/routes/hello.tsx:8
+msgid "From loader too!"
+msgstr "From loader too!"
+
+#: app/routes/hello.tsx:17
 msgid "Hello, World!"
 msgstr "Hello, World!"
 

@@ -25,7 +25,11 @@ msgstr ""
 msgid "Continue"
 msgstr ""
 
-#: app/routes/hello.tsx:14
+#: app/routes/hello.tsx:8
+msgid "From loader too!"
+msgstr ""
+
+#: app/routes/hello.tsx:17
 msgid "Hello, World!"
 msgstr ""
 
