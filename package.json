@@ -25,14 +25,14 @@
       "require": "./dist/index.cjs"
     },
     "./client": {
-      "types": "./dist/lingui.client.d.ts",
-      "import": "./dist/lingui.client.mjs",
-      "require": "./dist/lingui.client.cjs"
+      "types": "./dist/i18n.client.d.ts",
+      "import": "./dist/i18n.client.mjs",
+      "require": "./dist/i18n.client.cjs"
     },
     "./server": {
-      "types": "./dist/lingui.server.d.ts",
-      "import": "./dist/lingui.server.mjs",
-      "require": "./dist/lingui.server.cjs"
+      "types": "./dist/i18n.server.d.ts",
+      "import": "./dist/i18n.server.mjs",
+      "require": "./dist/i18n.server.cjs"
     },
     "./routes": {
       "types": "./dist/routes.d.ts",

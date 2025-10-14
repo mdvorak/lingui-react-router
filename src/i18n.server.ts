@@ -2,8 +2,12 @@ import { type I18n } from "@lingui/core"
 import { type I18nContext } from "@lingui/react"
 import { setI18n } from "@lingui/react/server"
 import Negotiator from "negotiator"
-import { AsyncLocalStorage } from "node:async_hooks"
-import { redirect, type RedirectFunction } from "react-router"
+import {
+  createContext,
+  redirect,
+  type RedirectFunction,
+  type RouterContextProvider,
+} from "react-router"
 import { $getI18nInstance } from "virtual:lingui-router-loader"
 import { config, parseUrlLocale } from "./runtime"
 
@@ -11,7 +15,7 @@ const HTTP_ACCEPT_LANGUAGE = "accept-language"
 
 // Assert this is included only on server
 if (typeof window !== "undefined") {
-  throw new Error("lingui.server.ts must be imported only on server")
+  throw new Error("lingui-react-router/server must be imported only on server")
 }
 
 /**
@@ -37,7 +41,7 @@ export type I18nRouterContext = I18nContext &
     redirect: RedirectFunction
   }
 
-const localeContextStorage = new AsyncLocalStorage<I18nRequestContext>()
+const LocaleContext = createContext<I18nRequestContext>()
 
 /**
  * Hook to access the server-side i18n context. Use only in loaders and actions.
@@ -52,17 +56,22 @@ const localeContextStorage = new AsyncLocalStorage<I18nRequestContext>()
  * - _: The translation function bound to the current i18n instance
  * - redirect: Function to redirect to a different locale while preserving the current locale prefix
  */
-export function useLinguiServer(): I18nRouterContext {
-  const serverContext = localeContextStorage.getStore()
-  if (!serverContext) throw new Error("useLinguiServer must be used within a localeMiddleware")
+export function useLinguiServer(context: Readonly<RouterContextProvider>): I18nRouterContext {
+  try {
+    const serverContext = context.get(LocaleContext)
+    const pathnamePrefix = serverContext.requestLocale ? `/${serverContext.requestLocale}` : ""
 
-  const pathnamePrefix = serverContext.requestLocale ? `/${serverContext.requestLocale}` : ""
-
-  return {
-    ...serverContext,
-    _: serverContext.i18n._.bind(serverContext.i18n),
-    pathnamePrefix,
-    redirect: (to, init) => redirect(`${pathnamePrefix}${to}`, init),
+    return {
+      ...serverContext,
+      _: serverContext.i18n._.bind(serverContext.i18n),
+      pathnamePrefix,
+      redirect: (to, init) => redirect(`${pathnamePrefix}${to}`, init),
+    }
+  } catch (err: unknown) {
+    if (err instanceof Error && err.message === "No value found for context") {
+      throw new Error("useLinguiServer must be used within a localeMiddleware")
+    }
+    throw err
   }
 }
 
@@ -72,7 +81,7 @@ export function useLinguiServer(): I18nRouterContext {
  * AsyncLocalStorage context containing i18n and request metadata.
  */
 export async function localeMiddleware(
-  { request }: { request: Request },
+  { request, context }: { request: Request; context: Readonly<RouterContextProvider> },
   next: () => Promise<Response>
 ): Promise<Response> {
   const url = new URL(request.url)
@@ -101,20 +110,17 @@ export async function localeMiddleware(
   }
 
   // Run the handler in the storage context
-  return localeContextStorage.run(
-    {
-      i18n,
-      url,
-      requestLocale: selectedLocale,
-      requestPathname: pathname,
-    },
-    async () => {
-      setI18n(i18n)
-      const response = await next()
-      response.headers.set("Content-Language", i18n.locale)
-      return response
-    }
-  )
+  context.set(LocaleContext, {
+    i18n,
+    url,
+    requestLocale: selectedLocale,
+    requestPathname: pathname,
+  })
+
+  setI18n(i18n)
+  const response = await next()
+  response.headers.set("Content-Language", i18n.locale)
+  return response
 }
 
 /**

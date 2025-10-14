@@ -2,7 +2,7 @@ import { i18n } from "@lingui/core"
 import { defaultLocale, loadLocaleCatalog, parseUrlLocale } from "./runtime"
 
 if (typeof window === "undefined") {
-  throw new Error("lingui.client.ts must be imported only on client")
+  throw new Error("lingui-react-router/client must be imported only on client")
 }
 
 /**
