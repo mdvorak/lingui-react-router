@@ -207,11 +207,11 @@ Notes about LocaleLink:
    ```tsx
    // app/routes/hello.tsx
    import { msg } from "@lingui/react/macro"
-   import { data, useLoaderData } from "react-router"
+   import { data, type LoaderFunctionArgs, useLoaderData } from "react-router"
    import { useLinguiServer } from "lingui-react-router/server"
 
-   export function loader() {
-     const { _, redirect } = useLinguiServer()
+   export function loader({ context }: LoaderFunctionArgs) {
+     const { _, redirect } = useLinguiServer(context)
 
      // Example of localized redirect
      if (someCondition) {
@@ -223,7 +223,7 @@ Notes about LocaleLink:
    }
 
    export default function Hello() {
-     const { message } = useLoaderData()
+     const { message } = useLoaderData<typeof loader>()
 
      return (
        <div>
