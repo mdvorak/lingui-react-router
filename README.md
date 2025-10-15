@@ -46,10 +46,10 @@ server/client builds.
 
  ```typescript
  // vite.config.ts
-import {lingui} from "@lingui/vite-plugin"
-import {reactRouter} from "@react-router/dev/vite"
-import {linguiRouterPlugin} from "lingui-react-router/plugin"
-import {defineConfig} from "vite"
+import { lingui } from "@lingui/vite-plugin"
+import { reactRouter } from "@react-router/dev/vite"
+import { linguiRouterPlugin } from "lingui-react-router/plugin"
+import { defineConfig } from "vite"
 import macrosPlugin from "vite-plugin-babel-macros"
 import tsconfigPaths from "vite-tsconfig-paths"
 
@@ -72,10 +72,10 @@ Configure prerendering for localized routes if needed.
 
  ```ts
 // react-router.config.ts
-import type {Config} from "@react-router/dev/config"
+import type { Config } from "@react-router/dev/config"
 import linguiConfig from "./lingui.config"
 
-const {locales} = linguiConfig
+const { locales } = linguiConfig
 const langPrerender = ["hello"] // Add your localized paths here
 
 export default {
@@ -92,36 +92,36 @@ export default {
 
 ```tsx
 // app/root.tsx
-import {useLingui} from "@lingui/react/macro"
-import {I18nApp, LocalePreload} from "lingui-react-router"
-import {localeMiddleware} from "lingui-react-router/server"
-import {type ReactNode} from "react"
-import {Links, Meta, Outlet, Scripts, ScrollRestoration} from "react-router"
+import { useLingui } from "@lingui/react/macro"
+import { I18nApp, LocalePreload } from "lingui-react-router"
+import { localeMiddleware } from "lingui-react-router/server"
+import { type ReactNode } from "react"
+import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router"
 
 export const middleware = [localeMiddleware]
 
-function RootLayout({children}: { children: ReactNode }) {
-  const {i18n} = useLingui()
+function RootLayout({ children }: { children: ReactNode }) {
+  const { i18n } = useLingui()
 
   return (
     <html lang={i18n.locale}>
     <head>
-      <meta charSet="utf-8"/>
-      <meta name="viewport" content="width=device-width, initial-scale=1"/>
-      <Meta/>
-      <Links/>
-      <LocalePreload/>
+      <meta charSet="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <Meta />
+      <Links />
+      <LocalePreload />
     </head>
     <body>
     {children}
-    <ScrollRestoration/>
-    <Scripts/>
+    <ScrollRestoration />
+    <Scripts />
     </body>
     </html>
   )
 }
 
-export function Layout({children}: { children: ReactNode }) {
+export function Layout({ children }: { children: ReactNode }) {
   return (
     <I18nApp>
       <RootLayout>{children}</RootLayout>
@@ -130,7 +130,7 @@ export function Layout({children}: { children: ReactNode }) {
 }
 
 export default function App() {
-  return <Outlet/>
+  return <Outlet />
 }
 ```
 
@@ -139,10 +139,10 @@ export default function App() {
 
 ```tsx
 // app/entry.client.tsx
-import {loadInitialLocale} from "lingui-react-router/client"
-import {startTransition, StrictMode} from "react"
-import {hydrateRoot} from "react-dom/client"
-import {HydratedRouter} from "react-router/dom"
+import { loadInitialLocale } from "lingui-react-router/client"
+import { startTransition, StrictMode } from "react"
+import { hydrateRoot } from "react-dom/client"
+import { HydratedRouter } from "react-router/dom"
 
 startTransition(async () => {
   await loadInitialLocale(location.pathname)
@@ -150,7 +150,7 @@ startTransition(async () => {
   hydrateRoot(
     document,
     <StrictMode>
-      <HydratedRouter/>
+      <HydratedRouter />
     </StrictMode>
   )
 })
@@ -179,10 +179,10 @@ startTransition(async () => {
    correctness.
 
 ```tsx
-import {LocaleLink, usePathLocale, config} from "lingui-react-router"
+import { LocaleLink, usePathLocale, config } from "lingui-react-router"
 
 function Header() {
-  const {locale, requestLocale} = usePathLocale()
+  const { locale, requestLocale } = usePathLocale()
   return (
     <nav>
       <LocaleLink to="/hello">Hello</LocaleLink>
