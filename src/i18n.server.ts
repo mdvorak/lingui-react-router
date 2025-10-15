@@ -11,8 +11,6 @@ import {
 import { $getI18nInstance } from "virtual:lingui-router-loader"
 import { config, parseUrlLocale } from "./runtime"
 
-const HTTP_ACCEPT_LANGUAGE = "accept-language"
-
 // Assert this is included only on server
 if (typeof window !== "undefined") {
   throw new Error("lingui-react-router/server must be imported only on server")
@@ -92,7 +90,7 @@ export async function localeMiddleware(
 
   if (!selectedLocale) {
     // Get locale from the Accept-Language header
-    const preferredLocale = getAcceptedLocale(request.headers.get(HTTP_ACCEPT_LANGUAGE))
+    const preferredLocale = getAcceptedLocale(request.headers.get("accept-language"))
     if (preferredLocale) {
       if (!excluded && preferredLocale !== config.defaultLocale) {
         // Redirect to preferred locale
@@ -129,7 +127,7 @@ export async function localeMiddleware(
 function getAcceptedLocale(acceptLanguage?: string | null): string | undefined {
   if (!acceptLanguage) return
 
-  const negotiator = new Negotiator({ headers: { HTTP_ACCEPT_LANGUAGE: acceptLanguage } })
+  const negotiator = new Negotiator({ headers: { 'accept-language': acceptLanguage } })
   const accepted = negotiator.languages(config.locales.slice())
 
   return accepted[0]
