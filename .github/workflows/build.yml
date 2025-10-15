@@ -58,11 +58,15 @@ jobs:
     environment: publish
     needs: build-all
     if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
           registry-url: https://registry.npmjs.org/
+          node-version: lts/*
 
       - name: Download build artifacts
         uses: actions/download-artifact@v5
@@ -71,5 +75,3 @@ jobs:
 
       - name: Publish package
         run: npm publish lingui-react-router*.tgz
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
