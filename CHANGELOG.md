@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/mdvorak/lingui-react-router/compare/v0.3.0...v0.3.1) (2025-10-24)
+
+
+### Bug Fixes
+
+* **publish:** update npm before publish to fix OIDC publishing ([d397095](https://github.com/mdvorak/lingui-react-router/commit/d39709536d31ba8001c7ee1eb8bf5ed8bafe0221))
+
 ## [0.3.0](https://github.com/mdvorak/lingui-react-router/compare/v0.2.3...v0.3.0) (2025-10-24)
 
 
