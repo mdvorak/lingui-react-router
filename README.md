@@ -33,8 +33,10 @@ npm install -D @react-router/dev @lingui/cli @lingui/conf @lingui/vite-plugin vi
 # For Typescript, add
 npm install -D typescript tsx vite-tsconfig-paths @types/react @types/react-dom
 # Install this library
-npm install -S lingui-react-router
+npm install -D lingui-react-router
 ```
+
+Note that since this library is always inlined, it's only required as a dev dependency.
 
 ## Quick start
 

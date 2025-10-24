@@ -54,7 +54,8 @@
     "dev": "pnpm run typecheck && unbuild --watch",
     "prepack": "pnpm run build",
     "pretest": "pnpm run build",
-    "test": "pnpm -F ./test build"
+    "test": "pnpm -F ./test build",
+    "start": "pnpm run test && pnpm -F ./test start"
   },
   "dependencies": {
     "fast-glob": "^3.3.3",
