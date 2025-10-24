@@ -12,7 +12,7 @@ const VIRTUAL_MANIFEST = "virtual:lingui-router-manifest"
 const VIRTUAL_LOADER = "virtual:lingui-router-loader"
 const MANIFEST_PLACEHOLDER = "__$$_LINGUI_REACT_ROUTER_MANIFEST_PLACEHOLDER$$__"
 const MANIFEST_CHUNK_NAME = "locale-manifest"
-const LOCALE_MANIFEST_FILENAME = ".locale-manifest.json"
+const LOCALE_MANIFEST_FILENAME = ".client-locale-manifest.json"
 
 declare module "vite" {
   interface ResolvedConfig {
