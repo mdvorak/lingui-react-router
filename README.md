@@ -61,7 +61,7 @@ export default defineConfig({
     macrosPlugin(),
     lingui(),
     linguiRouterPlugin({
-      // Exclude paths that should not be treated as localized pages
+      // Exclude paths that should not be treated as localized pages (optional)
       exclude: ["api", "health"],
     }),
     tsconfigPaths(),
