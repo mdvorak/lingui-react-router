@@ -79,7 +79,7 @@ export function useLinguiServer(context: Readonly<RouterContextProvider>): I18nR
  * AsyncLocalStorage context containing i18n and request metadata.
  */
 export async function localeMiddleware(
-  { request, context }: Readonly<{ request: Request; context: RouterContextProvider }>,
+  { request, context }: { request: Request; context: Readonly<RouterContextProvider> },
   next: () => Promise<Response>
 ): Promise<Response> {
   const url = new URL(request.url)
@@ -127,7 +127,7 @@ export async function localeMiddleware(
 function getAcceptedLocale(acceptLanguage?: string | null): string | undefined {
   if (!acceptLanguage) return
 
-  const negotiator = new Negotiator({ headers: { 'accept-language': acceptLanguage } })
+  const negotiator = new Negotiator({ headers: { "accept-language": acceptLanguage } })
   const accepted = negotiator.languages(config.locales.slice())
 
   return accepted[0]

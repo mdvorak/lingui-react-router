@@ -26,7 +26,7 @@ export function meta({}: Route.MetaArgs) {
   ]
 }
 
-function RootLayout({ children }: { children: ReactNode }) {
+function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   const { i18n } = useLingui()
 
   return (
@@ -50,7 +50,7 @@ function RootLayout({ children }: { children: ReactNode }) {
   )
 }
 
-export function Layout({ children }: { children: ReactNode }) {
+export function Layout({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <I18nApp>
       <RootLayout>{children}</RootLayout>
