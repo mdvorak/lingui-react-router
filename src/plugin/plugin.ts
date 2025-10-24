@@ -16,7 +16,7 @@ const LOCALE_MANIFEST_FILENAME = ".locale-manifest.json"
 
 declare module "vite" {
   interface ResolvedConfig {
-    linguiConfig: Readonly<LinguiConfigNormalized>
+    linguiConfig?: Readonly<LinguiConfigNormalized>
   }
 }
 
@@ -41,7 +41,7 @@ export type LinguiRouterPluginConfig = {
  * @param pluginConfig - Configuration options for the plugin
  * @returns Vite plugin object with hooks for build and dev server integration
  */
-export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}): Plugin {
+export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}): any {
   return {
     name: NAME,
 
@@ -96,6 +96,8 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
     async load(id) {
       const server = this.environment.name === "ssr"
       const config = this.environment.config
+      const linguiConfig = config.linguiConfig
+      if (!linguiConfig) throw new Error("linguiConfig not loaded")
 
       if (id === "\0" + VIRTUAL_MANIFEST) {
         if (server && this.environment.mode !== "dev") {
@@ -109,12 +111,12 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
       }
 
       if (id === "\0" + VIRTUAL_LOADER) {
-        return generateLoaderModule(pluginConfig, config.linguiConfig, server)
+        return generateLoaderModule(pluginConfig, linguiConfig, server)
       }
 
       if (id.startsWith("\0" + VIRTUAL_PREFIX)) {
         const locale = id.replace("\0" + VIRTUAL_PREFIX, "")
-        const module = await generateLocaleModule(locale, config.linguiConfig)
+        const module = await generateLocaleModule(locale, linguiConfig)
         if (!module) {
           this.warn(
             `No message catalogs found for locale '${locale}'. Please check your Lingui configuration.`
@@ -131,7 +133,7 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
         await generateBundleServer(this, this.environment.config, bundle)
       }
     },
-  }
+  } satisfies Plugin
 }
 
 async function generateLocaleModule(
