@@ -2,23 +2,14 @@
 
 ## [0.3.2](https://github.com/mdvorak/lingui-react-router/compare/v0.3.1...v0.3.2) (2025-10-24)
 
+### ⚠ BREAKING CHANGES
+
+- `useLinguiServer()` now requires router context explicitly
 
 ### Bug Fixes
 
 * remove dependency on vite, don't leak vite Plugin ([110e773](https://github.com/mdvorak/lingui-react-router/commit/110e773d72d4f3616d9b1350922abd998e15ee8a))
-
-## [0.3.1](https://github.com/mdvorak/lingui-react-router/compare/v0.3.0...v0.3.1) (2025-10-24)
-
-
-### Bug Fixes
-
 * **publish:** update npm before publish to fix OIDC publishing ([d397095](https://github.com/mdvorak/lingui-react-router/commit/d39709536d31ba8001c7ee1eb8bf5ed8bafe0221))
-
-## [0.3.0](https://github.com/mdvorak/lingui-react-router/compare/v0.2.3...v0.3.0) (2025-10-24)
-
-
-### Features
-
 * moved server context to explicit RouterContextProvider, which useLinguiServer now requires ([09a2d89](https://github.com/mdvorak/lingui-react-router/commit/09a2d89ea4ab310a16c435c688e160867cd44c21))
 
 ## [0.2.3](https://github.com/mdvorak/lingui-react-router/compare/v0.2.2...v0.2.3) (2025-10-10)
