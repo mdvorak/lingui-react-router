@@ -60,7 +60,10 @@ export default defineConfig({
     reactRouter(),
     macrosPlugin(),
     lingui(),
-    linguiRouterPlugin(),
+    linguiRouterPlugin({
+      // Exclude paths that should not be treated as localized pages
+      exclude: ["api", "health"],
+    }),
     tsconfigPaths(),
   ],
 })
