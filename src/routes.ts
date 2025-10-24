@@ -3,7 +3,7 @@ import { route, type RouteConfigEntry } from "@react-router/dev/routes"
 
 const LOCAL_PATH_REGEX = /^(?:\.\/)?/
 
-export function localeRoutes(config: LinguiConfig) {
+export function localeRoutes(config: Readonly<LinguiConfig>) {
   const { locales } = config
   const routePrefixes = [""].concat(locales.map(loc => loc + "/"))
 

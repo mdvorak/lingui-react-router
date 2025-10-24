@@ -56,7 +56,7 @@ function buildParserRegex(locales: string[], exclude?: string[]) {
 
 function toGroupPattern(name: string, list?: string[]): string {
   if (!list || list.length === 0) return ""
-  return `(?<${name}>${list.map(v => v.replace(/[^a-zA-Z0-9\/_-]/g, "\\$&")).join("|")})`
+  return `(?<${name}>${list.map(v => v.replace(/[^a-zA-Z0-9/_-]/g, "\\$&")).join("|")})`
 }
 
 // noinspection JSUnusedGlobalSymbols

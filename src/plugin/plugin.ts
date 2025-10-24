@@ -2,7 +2,8 @@ import { getConfig, type LinguiConfigNormalized } from "@lingui/conf"
 import fg from "fast-glob"
 import * as fs from "node:fs/promises"
 import path from "node:path"
-import type { Plugin, ResolvedConfig, SSROptions, UserConfig } from "vite"
+import type { OutputBundle } from "rollup"
+import type { ConfigPluginContext, Plugin, ResolvedConfig, SSROptions, UserConfig } from "vite"
 import type { LinguiRouterConfig } from "../config"
 
 const NAME = "lingui-react-router"
@@ -15,7 +16,7 @@ const LOCALE_MANIFEST_FILENAME = ".locale-manifest.json"
 
 declare module "vite" {
   interface ResolvedConfig {
-    linguiConfig: LinguiConfigNormalized
+    linguiConfig: Readonly<LinguiConfigNormalized>
   }
 }
 
@@ -124,40 +125,10 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
     },
 
     async generateBundle(options, bundle) {
-      const manifestPath = resolveManifestPath(this.environment.config)
-
       if (this.environment.name === "client") {
-        const base = this.environment.config.base
-        const modulePrefix = "\0" + VIRTUAL_PREFIX
-
-        const localeChunks: Record<string, string> = {}
-
-        for (const [fileName, chunk] of Object.entries(bundle)) {
-          if (chunk.type === "chunk" && chunk.isDynamicEntry) {
-            const moduleId = chunk.moduleIds.find(modId => modId.startsWith(modulePrefix))
-            if (moduleId) {
-              const locale = moduleId.replace(modulePrefix, "")
-              localeChunks[locale] = `${base}${fileName}`
-            }
-          }
-        }
-
-        // Write locale manifest JSON
-        this.info(`writing ${path.relative(this.environment.config.root, manifestPath)}`)
-        const manifestJson = JSON.stringify(localeChunks, null, 2)
-        await fs.mkdir(path.dirname(manifestPath), { recursive: true })
-        await fs.writeFile(manifestPath, manifestJson, { encoding: "utf8" })
+        await generateBundleClient(this, this.environment.config, bundle)
       } else {
-        // Parse and stringify to validate the JSON
-        this.info(`reading ${path.relative(this.environment.config.root, manifestPath)}`)
-        const manifestJson = JSON.parse(await fs.readFile(manifestPath, { encoding: "utf8" }))
-
-        for (const chunk of Object.values(bundle)) {
-          if (chunk.type === "chunk" && chunk.name === MANIFEST_CHUNK_NAME) {
-            chunk.code = chunk.code.replace(MANIFEST_PLACEHOLDER, JSON.stringify(manifestJson))
-            break
-          }
-        }
+        await generateBundleServer(this, this.environment.config, bundle)
       }
     },
   }
@@ -237,12 +208,14 @@ function generateLoaderModule(
 
   const exclude =
     typeof pluginConfig.exclude === "string" ? [pluginConfig.exclude] : pluginConfig.exclude || []
+  const defaultFallbackLocale = linguiConfig.fallbackLocales?.default
+
   const configOutput = {
     locales: linguiConfig.locales,
     pseudoLocale: linguiConfig.pseudoLocale,
     sourceLocale: linguiConfig.sourceLocale,
     fallbackLocales: linguiConfig.fallbackLocales,
-    defaultLocale: linguiConfig.fallbackLocales?.default || linguiConfig.locales[0] || "en",
+    defaultLocale: (typeof defaultFallbackLocale === "string" ? defaultFallbackLocale : undefined) || linguiConfig.locales[0] || "en",
     exclude,
   } satisfies LinguiRouterConfig
 
@@ -259,14 +232,13 @@ function generateLoaderModule(
     export const config = ${JSON.stringify(configOutput)}
     export const parseUrlLocale = buildUrlParserFunction(config)
 
-    ${generateGetI18nInstance(server, bundleMap)}
+    ${server ? generateGetI18nInstanceServer(bundleMap) : generateGetI18nInstanceClient()}
   `
 }
 
-function generateGetI18nInstance(server: boolean, bundleMap: string[]) {
-  if (server) {
-    //language=js
-    return `
+function generateGetI18nInstanceServer(bundleMap: string[]) {
+  //language=js
+  return `
     const i18nInstances = {
       ${bundleMap.join(",\n")},
     }
@@ -278,15 +250,16 @@ function generateGetI18nInstance(server: boolean, bundleMap: string[]) {
       }
       return i18n
     }
-    `
-  } else {
-    //language=js
-    return `
+  `
+}
+
+function generateGetI18nInstanceClient() {
+  //language=js
+  return `
     import { i18n } from "@lingui/core"
     export function $getI18nInstance(_locale) {
       return i18n
     }`
-  }
 }
 
 function addToNoExternal(userNoExternal: SSROptions["noExternal"], name: string) {
@@ -294,7 +267,7 @@ function addToNoExternal(userNoExternal: SSROptions["noExternal"], name: string)
 
   // This library must be included, otherwise virtual imports won't work
   if (noExternal !== true) {
-    if (noExternal instanceof Array) {
+    if (Array.isArray(noExternal)) {
       noExternal = [...noExternal, name]
     } else {
       noExternal = [noExternal, name]
@@ -306,4 +279,50 @@ function addToNoExternal(userNoExternal: SSROptions["noExternal"], name: string)
 function resolveManifestPath(config: ResolvedConfig): string {
   // outDir always consists of buildDirectory/consumer
   return path.resolve(config.root, config.build.outDir, "..", LOCALE_MANIFEST_FILENAME)
+}
+
+async function generateBundleClient(
+  context: ConfigPluginContext,
+  config: ResolvedConfig,
+  bundle: OutputBundle
+) {
+  const manifestPath = resolveManifestPath(config)
+  const base = config.base
+  const modulePrefix = "\0" + VIRTUAL_PREFIX
+
+  const localeChunks: Record<string, string> = {}
+
+  for (const [fileName, chunk] of Object.entries(bundle)) {
+    if (chunk.type === "chunk" && chunk.isDynamicEntry) {
+      const moduleId = chunk.moduleIds.find(modId => modId.startsWith(modulePrefix))
+      if (moduleId) {
+        const locale = moduleId.replace(modulePrefix, "")
+        localeChunks[locale] = `${base}${fileName}`
+      }
+    }
+  }
+
+  // Write locale manifest JSON
+  context.info(`writing ${path.relative(config.root, manifestPath)}`)
+  const manifestJson = JSON.stringify(localeChunks, null, 2)
+  await fs.mkdir(path.dirname(manifestPath), { recursive: true })
+  await fs.writeFile(manifestPath, manifestJson, { encoding: "utf8" })
+}
+
+async function generateBundleServer(
+  context: ConfigPluginContext,
+  config: ResolvedConfig,
+  bundle: OutputBundle
+) {
+  // Parse and stringify to validate the JSON
+  const manifestPath = resolveManifestPath(config)
+  context.info(`reading ${path.relative(config.root, manifestPath)}`)
+  const manifestJson = JSON.parse(await fs.readFile(manifestPath, { encoding: "utf8" }))
+
+  for (const chunk of Object.values(bundle)) {
+    if (chunk.type === "chunk" && chunk.name === MANIFEST_CHUNK_NAME) {
+      chunk.code = chunk.code.replace(MANIFEST_PLACEHOLDER, JSON.stringify(manifestJson))
+      break
+    }
+  }
 }
