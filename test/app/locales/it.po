@@ -1,11 +1,11 @@
 msgid ""
 msgstr ""
-"POT-Creation-Date: 2025-09-27 11:39+0200\n"
+"POT-Creation-Date: 2025-10-25 09:02+0200\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: @lingui/cli\n"
-"Language: cs\n"
+"Language: it\n"
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "PO-Revision-Date: \n"
@@ -15,38 +15,38 @@ msgstr ""
 
 #: app/root.tsx:73
 msgid "\"Oops!"
-msgstr "Jejda!"
+msgstr "\"Ops!"
 
 #: app/root.tsx:74
 msgid "An unexpected error occurred."
-msgstr "Nastala neočekávaná chyba."
+msgstr "Si è verificato un errore imprevisto."
 
 #: app/routes/_index.tsx:8
 msgctxt "nav"
 msgid "Continue"
-msgstr "Pokračovat"
+msgstr "Continua"
 
 #: app/routes/hello.tsx:8
 msgid "From loader too!"
-msgstr "Také z loaderu!"
+msgstr "Anche dal loader!"
 
 #: app/routes/hello.tsx:18
 msgid "Hello, World!"
-msgstr "Ahoj světe!"
+msgstr "Ciao, mondo!"
 
 #: app/root.tsx:44
 msgctxt "nav"
 msgid "Home"
-msgstr "Hlavní stránka"
+msgstr "Home"
 
 #: app/root.tsx:24
 msgid "Lingui React Router App"
-msgstr "Lingui React Router Aplikace"
+msgstr "App Lingui React Router"
 
 #: app/root.tsx:25
 msgid "Lingui React Router integration example"
-msgstr "Příklad integrace Lingui React Router"
+msgstr "Esempio di integrazione di Lingui con React Router"
 
 #: app/root.tsx:80
 msgid "The requested page could not be found."
-msgstr "Požadovaná stránka nebyla nalezena."
+msgstr "La pagina richiesta non è stata trovata."

@@ -12,10 +12,18 @@ export default defineConfig({
     reactRouter(),
     macrosPlugin(),
     lingui(),
-    linguiRouterPlugin(),
+    linguiRouterPlugin({
+      // These are defaults
+      detectLocale: true,
+      redirect: "auto",
+    }),
     tsconfigPaths(),
   ],
   build: {
     minify: false,
+  },
+  // Note this is not needed in the user application, here it's because we use the lib from workspace
+  ssr: {
+    noExternal: ["negotiator"],
   },
 })

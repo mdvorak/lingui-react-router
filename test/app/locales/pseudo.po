@@ -13,15 +13,16 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
-#: app/root.tsx:68
+#: app/root.tsx:73
 msgid "\"Oops!"
 msgstr ""
 
-#: app/root.tsx:69
+#: app/root.tsx:74
 msgid "An unexpected error occurred."
 msgstr ""
 
 #: app/routes/_index.tsx:8
+msgctxt "nav"
 msgid "Continue"
 msgstr ""
 
@@ -29,8 +30,13 @@ msgstr ""
 msgid "From loader too!"
 msgstr ""
 
-#: app/routes/hello.tsx:17
+#: app/routes/hello.tsx:18
 msgid "Hello, World!"
+msgstr ""
+
+#: app/root.tsx:44
+msgctxt "nav"
+msgid "Home"
 msgstr ""
 
 #: app/root.tsx:24
@@ -41,6 +47,6 @@ msgstr ""
 msgid "Lingui React Router integration example"
 msgstr ""
 
-#: app/root.tsx:75
+#: app/root.tsx:80
 msgid "The requested page could not be found."
 msgstr ""

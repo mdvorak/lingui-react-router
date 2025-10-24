@@ -17,4 +17,8 @@ declare module "virtual:lingui-router-loader" {
   export const localeLoaders: Record<string, () => Promise<{ messages: Messages }>>
   export function parseUrlLocale(url: string): PathLocale
   export function $getI18nInstance(locale: string): I18n
+  export function $detectLocale(
+    headers: Record<string, string | undefined>,
+    locales: readonly string[]
+  ): string | undefined
 }

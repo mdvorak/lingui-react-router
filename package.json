@@ -34,6 +34,11 @@
       "import": "./dist/i18n.server.mjs",
       "require": "./dist/i18n.server.cjs"
     },
+    "./negotiate": {
+      "types": "./dist/negotiate.d.ts",
+      "import": "./dist/negotiate.mjs",
+      "require": "./dist/negotiate.cjs"
+    },
     "./routes": {
       "types": "./dist/routes.d.ts",
       "import": "./dist/routes.mjs",

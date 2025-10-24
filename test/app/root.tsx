@@ -1,5 +1,5 @@
-import { useLingui } from "@lingui/react/macro"
-import { I18nApp, LocalePreload } from "lingui-react-router"
+import { Trans, useLingui } from "@lingui/react/macro"
+import { I18nApp, LocalePreload, LocaleLink } from "lingui-react-router"
 import { localeMiddleware } from "lingui-react-router/server"
 import { type ReactNode } from "react"
 import { isRouteErrorResponse, Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router"
@@ -39,10 +39,15 @@ function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
         <LocalePreload />
       </head>
       <body>
-        <div className="w-full">
-          <SelectLanguage />
+        <div className="w-full flex items-center p-4 border-b-1 border-foreground mb-2">
+          <LocaleLink to="/">
+            <Trans context="nav">Home</Trans>
+          </LocaleLink>
+          <span className="ml-auto">
+            <SelectLanguage />
+          </span>
         </div>
-        {children}
+        <div className="p-4">{children}</div>
         <ScrollRestoration />
         <Scripts />
       </body>

@@ -4,7 +4,7 @@ import * as fs from "node:fs/promises"
 import path from "node:path"
 import type { OutputBundle } from "rollup"
 import type { ConfigPluginContext, Plugin, ResolvedConfig, SSROptions, UserConfig } from "vite"
-import type { LinguiRouterConfig } from "../config"
+import type { LinguiRouterConfig, RedirectBehavior } from "../config"
 
 const NAME = "lingui-react-router"
 const VIRTUAL_PREFIX = "virtual:lingui-router-locale-"
@@ -20,15 +20,36 @@ declare module "vite" {
   }
 }
 
-/**
- * Configuration passed from the consumer to wire up catalog loading and path exclusions.
- */
-export type LinguiRouterPluginConfig = {
+type LinguiRouterPluginConfigFull = {
   /**
    * One or more root-level path prefixes that should NOT be treated as locales.
    * For example, ["api"].
    */
-  exclude?: string | string[]
+  exclude: string | string[]
+  /**
+   * Whether to detect locale from the Accept-Language header.
+   * Defaults to true.
+   */
+  detectLocale: boolean
+  /**
+   * Redirect behavior for detected locales.
+   *
+   * - "auto": Redirect to detected locale only if it's not the default locale.
+   * - "always": Always redirect to detected locale, even if it's the default locale.
+   * - "never": Never redirect to detected locale.
+   */
+  redirect: RedirectBehavior
+}
+
+/**
+ * Configuration passed from the consumer to wire up catalog loading and path exclusions.
+ */
+export type LinguiRouterPluginConfig = Partial<LinguiRouterPluginConfigFull>
+
+const DEFAULT_CONFIG: LinguiRouterPluginConfigFull = {
+  exclude: [],
+  detectLocale: true,
+  redirect: "auto",
 }
 
 /**
@@ -42,6 +63,10 @@ export type LinguiRouterPluginConfig = {
  * @returns Vite plugin object with hooks for build and dev server integration
  */
 export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}): any {
+  const normalizedConfig = {
+    ...DEFAULT_CONFIG,
+    ...pluginConfig,
+  }
   return {
     name: NAME,
 
@@ -75,6 +100,9 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
         },
         ssr: {
           noExternal: addToNoExternal(config.ssr?.noExternal, NAME),
+          optimizeDeps: {
+            include: ["negotiator"].concat(config.ssr?.optimizeDeps?.include ?? []),
+          },
         },
       } satisfies UserConfig
     },
@@ -111,7 +139,7 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
       }
 
       if (id === "\0" + VIRTUAL_LOADER) {
-        return generateLoaderModule(pluginConfig, linguiConfig, server)
+        return generateLoaderModule(normalizedConfig, linguiConfig, server)
       }
 
       if (id.startsWith("\0" + VIRTUAL_PREFIX)) {
@@ -183,23 +211,27 @@ export const messages = Object.assign({}, ${catalogVars.join(", ")})
 }
 
 function generateLoaderModule(
-  pluginConfig: LinguiRouterPluginConfig,
+  pluginConfig: LinguiRouterPluginConfigFull,
   linguiConfig: LinguiConfigNormalized,
   server: boolean
 ): string {
+  // TODO refactor to use simply list of exports
+
   const loaderMap: string[] = []
   const staticImports: string[] = []
   const bundleMap: string[] = []
 
   if (server) {
-    staticImports.push(`import { buildI18n } from "${NAME}"`)
+    staticImports.push(`import { setupI18n } from "@lingui/core"`)
 
     // For server builds, use static imports
     for (const locale of linguiConfig.locales) {
       const varName = `locale_${locale.replace(/-/g, "_")}`
       staticImports.push(`import { messages as ${varName} } from '${VIRTUAL_PREFIX}${locale}'`)
       loaderMap.push(`  '${locale}': () => Promise.resolve({messages: ${varName}})`)
-      bundleMap.push(`  '${locale}': buildI18n('${locale}', ${varName})`)
+      bundleMap.push(
+        `  '${locale}': setupI18n({ locale: '${locale}', messages: { "${locale}": ${varName} } })`
+      )
     }
   } else {
     // For client builds, use dynamic imports
@@ -218,10 +250,21 @@ function generateLoaderModule(
     locales: linguiConfig.locales,
     pseudoLocale: linguiConfig.pseudoLocale,
     sourceLocale: linguiConfig.sourceLocale,
-    fallbackLocales,
+    fallbackLocales: fallbackLocales ?? {},
     defaultLocale: defaultLocale || linguiConfig.locales[0] || "en",
     exclude,
+    redirect: pluginConfig.redirect ?? "auto",
   } satisfies LinguiRouterConfig
+
+  let dynamicExports: string[] = []
+  if (server) {
+    if (pluginConfig.detectLocale) {
+      staticImports.push(`import { negotiateClientLocale } from "${NAME}/negotiate"`)
+      dynamicExports.push(`export const $detectLocale = negotiateClientLocale`)
+    } else {
+      dynamicExports.push(`export const $detectLocale = () => undefined`)
+    }
+  }
 
   //language=js
   return `
@@ -235,6 +278,7 @@ function generateLoaderModule(
 
     export const config = ${JSON.stringify(configOutput)}
     export const parseUrlLocale = buildUrlParserFunction(config)
+    ${dynamicExports.join("\n")}
 
     ${server ? generateGetI18nInstanceServer(bundleMap) : generateGetI18nInstanceClient()}
   `
