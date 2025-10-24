@@ -68,6 +68,9 @@ jobs:
           registry-url: https://registry.npmjs.org/
           node-version: lts/*
 
+      - name: Update npm
+        run: npm install -g npm
+
       - name: Download build artifacts
         uses: actions/download-artifact@v5
         with:
