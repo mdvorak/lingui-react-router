@@ -47,7 +47,7 @@ import { loadLocaleCatalog } from "../runtime"
  * @param props - The component props
  * @param props.children - The child components to be rendered within the i18n context
  */
-export function I18nApp({ children }: { children: React.ReactNode }) {
+export function I18nApp({ children }: Readonly<{ children: React.ReactNode }>) {
   const location = useLocation()
   const { locale } = usePathLocale(location) // context is not set up yet, so we provide it
   const i18n = $getI18nInstance(locale)

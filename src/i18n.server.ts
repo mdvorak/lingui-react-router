@@ -79,7 +79,7 @@ export function useLinguiServer(context: Readonly<RouterContextProvider>): I18nR
  * AsyncLocalStorage context containing i18n and request metadata.
  */
 export async function localeMiddleware(
-  { request, context }: { request: Request; context: Readonly<RouterContextProvider> },
+  { request, context }: Readonly<{ request: Request; context: RouterContextProvider }>,
   next: () => Promise<Response>
 ): Promise<Response> {
   const url = new URL(request.url)
