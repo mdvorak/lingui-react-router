@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.2](https://github.com/mdvorak/lingui-react-router/compare/v0.3.1...v0.3.2) (2025-10-24)
+
+
+### Bug Fixes
+
+* remove dependency on vite, don't leak vite Plugin ([110e773](https://github.com/mdvorak/lingui-react-router/commit/110e773d72d4f3616d9b1350922abd998e15ee8a))
+
 ## [0.3.1](https://github.com/mdvorak/lingui-react-router/compare/v0.3.0...v0.3.1) (2025-10-24)
 
 
