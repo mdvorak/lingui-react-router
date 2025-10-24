@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/mdvorak/lingui-react-router/compare/v0.2.3...v0.3.0) (2025-10-24)
+
+
+### Features
+
+* moved server context to explicit RouterContextProvider, which useLinguiServer now requires ([09a2d89](https://github.com/mdvorak/lingui-react-router/commit/09a2d89ea4ab310a16c435c688e160867cd44c21))
+
 ## [0.2.3](https://github.com/mdvorak/lingui-react-router/compare/v0.2.2...v0.2.3) (2025-10-10)
 
 
