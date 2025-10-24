@@ -49,8 +49,9 @@
     "dist/"
   ],
   "scripts": {
-    "build": "unbuild",
-    "dev": "unbuild --watch",
+    "typecheck": "tsc --noEmit --strict",
+    "build": "pnpm run typecheck && unbuild",
+    "dev": "pnpm run typecheck && unbuild --watch",
     "prepack": "pnpm run build",
     "pretest": "pnpm run build",
     "test": "pnpm -F ./test build"
