@@ -210,7 +210,7 @@ function generateLoaderModule(
     typeof pluginConfig.exclude === "string" ? [pluginConfig.exclude] : pluginConfig.exclude || []
   const fallbackLocales = linguiConfig.fallbackLocales
   const defaultLocale =
-    typeof fallbackLocales?.default === "string" ? fallbackLocales?.default : undefined
+    typeof fallbackLocales?.default === "string" ? fallbackLocales.default : undefined
 
   const configOutput = {
     locales: linguiConfig.locales,
