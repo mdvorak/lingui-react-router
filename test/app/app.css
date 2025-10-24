@@ -27,3 +27,7 @@ body {
     color-scheme: dark;
   }
 }
+
+select {
+  @apply dark:bg-gray-800;
+}

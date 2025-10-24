@@ -1,18 +1,17 @@
 import { type I18n } from "@lingui/core"
 import { type I18nContext } from "@lingui/react"
 import { setI18n } from "@lingui/react/server"
-import Negotiator from "negotiator"
 import {
   createContext,
   redirect,
   type RedirectFunction,
   type RouterContextProvider,
 } from "react-router"
-import { $getI18nInstance } from "virtual:lingui-router-loader"
-import { config, parseUrlLocale } from "./runtime"
+import { $detectLocale, $getI18nInstance } from "virtual:lingui-router-loader"
+import { config, parseUrlLocale } from "./runtime" // Assert this is included only on server
 
 // Assert this is included only on server
-if (typeof window !== "undefined") {
+if (globalThis.window) {
   throw new Error("lingui-react-router/server must be imported only on server")
 }
 
@@ -26,7 +25,7 @@ type I18nRequestContext = {
   url: URL
   /** An optional string indicating the locale explicitly requested. */
   requestLocale?: string
-  /** The pathname of the current request, used to determine or generate locale-specific responses. */
+  /** The pathname of the current request, can be used to build locale-specific urls. */
   requestPathname: string
 }
 
@@ -86,20 +85,8 @@ export async function localeMiddleware(
   const { locale, pathname, excluded } = parseUrlLocale(url.pathname)
   let selectedLocale = locale
 
-  // TODO have redirect and use of headers optional
-
   if (!selectedLocale) {
-    // Get locale from the Accept-Language header
-    const preferredLocale = getAcceptedLocale(request.headers.get("accept-language"))
-    if (preferredLocale) {
-      if (!excluded && preferredLocale !== config.defaultLocale) {
-        // Redirect to preferred locale
-        throw redirect(`/${preferredLocale}${pathname}${url.search}${url.hash}`)
-      } else if (excluded) {
-        // Use preferred locale for API requests
-        selectedLocale = preferredLocale
-      }
-    }
+    selectedLocale = handleRequestLocale(request, url, pathname, excluded)
   }
 
   const i18n = $getI18nInstance(selectedLocale || config.defaultLocale)
@@ -118,17 +105,33 @@ export async function localeMiddleware(
   setI18n(i18n)
   const response = await next()
   response.headers.set("Content-Language", i18n.locale)
+  response.headers.append("Vary", "Accept-Language")
   return response
 }
 
-/**
- * Parse the Accept-Language header and return the best language match
- */
-function getAcceptedLocale(acceptLanguage?: string | null): string | undefined {
-  if (!acceptLanguage) return
+function handleRequestLocale(
+  request: Request,
+  url: URL,
+  pathname: string,
+  excluded: boolean
+): string | undefined {
+  const detectedLocale = $detectLocale(getRequestHeaders(request.headers), config.locales)
+  const preferredLocale = detectedLocale || config.defaultLocale
 
-  const negotiator = new Negotiator({ headers: { "accept-language": acceptLanguage } })
-  const accepted = negotiator.languages(config.locales.slice())
+  if (excluded) {
+    // Always use preferred locale for API requests
+    return preferredLocale
+  } else if (
+    config.redirect === "always" ||
+    (config.redirect === "auto" && preferredLocale !== config.defaultLocale)
+  ) {
+    // Redirect to a page with the preferred locale
+    throw redirect(`/${preferredLocale}${pathname}${url.search}${url.hash}`)
+  }
+}
 
-  return accepted[0]
+function getRequestHeaders(headers: Headers): Record<string, string | undefined> {
+  return {
+    "accept-language": headers.get("accept-language") ?? undefined,
+  }
 }
