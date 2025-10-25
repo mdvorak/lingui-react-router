@@ -70,7 +70,7 @@ export default function App() {
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   const { t } = useLingui()
 
-  let message = t`"Oops!`
+  let message = t`Oops!`
   let details = t`An unexpected error occurred.`
   let stack: string | undefined
 
