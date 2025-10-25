@@ -40,14 +40,14 @@ Note that since this library is always inlined, it's only required as a dev depe
 
 ## Quick start
 
-1) Configure vite and react router
+1. Configure vite and react router
 
 Enable React Router, Lingui, and macros in Vite for SSR and catalog compilation during development.
 Path alias resolution via tsconfigPaths is recommended for clean imports and consistent
 server/client builds.
 
- ```typescript
- // vite.config.ts
+```typescript
+// vite.config.ts
 import { lingui } from "@lingui/vite-plugin"
 import { reactRouter } from "@react-router/dev/vite"
 import { linguiRouterPlugin } from "lingui-react-router/plugin"
@@ -67,7 +67,7 @@ export default defineConfig({
     tsconfigPaths(),
   ],
 })
- ```
+```
 
 Enable SSR and v8-style middleware in the React Router config to support server-side i18n
 initialization and redirects.
@@ -75,7 +75,7 @@ This aligns server middleware with the app's route modules and the I18nApp layou
 hydration.
 Configure prerendering for localized routes if needed.
 
- ```ts
+```ts
 // react-router.config.ts
 import type { Config } from "@react-router/dev/config"
 import linguiConfig from "./lingui.config"
@@ -89,9 +89,9 @@ export default {
   },
   prerender: [...langPrerender.flatMap(path => locales.map(lang => `/${lang}/${path}`))],
 } satisfies Config
- ```
+```
 
-2) Add server middleware and wrap the app with I18nApp in the root layout route module.
+2. Add server middleware and wrap the app with I18nApp in the root layout route module.
    The middleware sets up the server-side i18n context, and the I18nApp provides hydration-safe i18n
    on the client and server.
 
@@ -110,18 +110,18 @@ function RootLayout({ children }: { children: ReactNode }) {
 
   return (
     <html lang={i18n.locale}>
-    <head>
-      <meta charSet="utf-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1" />
-      <Meta />
-      <Links />
-      <LocalePreload />
-    </head>
-    <body>
-    {children}
-    <ScrollRestoration />
-    <Scripts />
-    </body>
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <Meta />
+        <Links />
+        <LocalePreload />
+      </head>
+      <body>
+        {children}
+        <ScrollRestoration />
+        <Scripts />
+      </body>
     </html>
   )
 }
@@ -139,7 +139,7 @@ export default function App() {
 }
 ```
 
-3) Bootstrap the client by preloading the initial locale before hydrating the router.
+3. Bootstrap the client by preloading the initial locale before hydrating the router.
    This ensures the correct messages are available at first paint and avoids hydration warnings.
 
 ```tsx
@@ -161,7 +161,7 @@ startTransition(async () => {
 })
 ```
 
-4) Generate localized routes from the i18n config with localeRoutes helpers.
+4. Generate localized routes from the i18n config with localeRoutes helpers.
    Define the default root and locale-scoped routes in a single config to keep paths maintainable.
 
    ```ts
@@ -179,7 +179,7 @@ startTransition(async () => {
    ] satisfies RouteConfig
    ```
 
-5) Use the locale-aware link and runtime hooks for current locale, request locale, and config.
+5. Use the locale-aware link and runtime hooks for current locale, request locale, and config.
    LocaleLink automatically prefixes the active locale and should receive locale-less paths for
    correctness.
 
@@ -191,7 +191,9 @@ function Header() {
   return (
     <nav>
       <LocaleLink to="/hello">Hello</LocaleLink>
-      <span>Active: {locale} (from URL: {requestLocale || "-"})</span>
+      <span>
+        Active: {locale} (from URL: {requestLocale || "-"})
+      </span>
       <span>Supported: {config.locales.join(", ")}</span>
     </nav>
   )
@@ -205,7 +207,7 @@ Notes about LocaleLink:
 - If the current URL has no locale segment (e.g., the default root), LocaleLink renders a normal
   Link without modification to preserve expected navigation.
 
-6) Access server-side i18n and locale-aware redirects in loaders and actions with `useLinguiServer`.
+6. Access server-side i18n and locale-aware redirects in loaders and actions with `useLinguiServer`.
    Redirects thrown from this helper are automatically prefixed with the current locale for
    consistent UX and SEO.
 
