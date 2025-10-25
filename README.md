@@ -254,6 +254,93 @@ Notes about LocaleLink:
 - `useLinguiServer`: loader/action helper with i18n instance, request locale, localized redirect,
   and convenience values like pathnamePrefix.
 
+## Plugin Configuration
+
+The `linguiRouterPlugin` accepts an optional configuration object to customize its behavior. All options are optional and have sensible defaults.
+
+### Options
+
+#### `exclude`
+
+- **Type:** `string | string[]`
+- **Default:** `[]`
+- **Description:** One or more root-level path prefixes that should NOT be treated as locales. This is useful for API routes, health check endpoints, or other non-localized paths.
+
+**Example:**
+
+```typescript
+linguiRouterPlugin({
+  exclude: ["api", "health"],
+})
+```
+
+With this configuration, paths like `/api/users` or `/health` will not be treated as locale-prefixed routes, even if "api" or "health" match your locale codes.
+
+#### `detectLocale`
+
+- **Type:** `boolean`
+- **Default:** `true`
+- **Description:** Whether to detect the user's preferred locale from the `Accept-Language` HTTP header. When enabled, the server middleware will attempt to determine the best matching locale based on the user's browser settings.
+
+**Example:**
+
+```typescript
+linguiRouterPlugin({
+  detectLocale: false, // Disable automatic locale detection
+})
+```
+
+When set to `false`, locale detection is disabled and users must explicitly navigate to a locale-prefixed URL.
+
+#### `redirect`
+
+- **Type:** `"auto" | "always" | "never"`
+- **Default:** `"auto"`
+- **Description:** Controls the redirect behavior when a locale is detected from the `Accept-Language` header.
+
+**Values:**
+
+- `"auto"`: Redirect to the detected locale only if it's not the default locale. This provides a clean UX where the default locale doesn't require a URL prefix, but other locales do.
+- `"always"`: Always redirect to the detected locale, even if it's the default locale. All users will see locale-prefixed URLs.
+- `"never"`: Never redirect based on detected locale. Users remain on the URL they requested.
+
+**Example:**
+
+```typescript
+linguiRouterPlugin({
+  redirect: "always", // Always show locale prefix in URLs
+})
+```
+
+### Complete Example
+
+```typescript
+// vite.config.ts
+import { lingui } from "@lingui/vite-plugin"
+import { reactRouter } from "@react-router/dev/vite"
+import { linguiRouterPlugin } from "lingui-react-router/plugin"
+import { defineConfig } from "vite"
+import macrosPlugin from "vite-plugin-babel-macros"
+import tsconfigPaths from "vite-tsconfig-paths"
+
+export default defineConfig({
+  plugins: [
+    reactRouter(),
+    macrosPlugin(),
+    lingui(),
+    linguiRouterPlugin({
+      // Exclude API and health check paths from locale handling
+      exclude: ["api", "health"],
+      // Detect locale from Accept-Language header
+      detectLocale: true,
+      // Only redirect non-default locales
+      redirect: "auto",
+    }),
+    tsconfigPaths(),
+  ],
+})
+```
+
 ## Development
 
 Run a full build and test to ensure catalogs, SSR, and middleware work together in the target
