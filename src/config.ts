@@ -30,6 +30,10 @@ export type LinguiRouterConfig = {
    * Redirect behavior for detected locales.
    */
   redirect: RedirectBehavior
+  /**
+   * Current execution environment.
+   */
+  runtimeEnv: "client" | "server"
 }
 
 /**

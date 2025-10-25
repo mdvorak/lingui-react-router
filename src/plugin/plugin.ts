@@ -215,38 +215,80 @@ function generateLoaderModule(
   linguiConfig: LinguiConfigNormalized,
   server: boolean
 ): string {
-  // TODO refactor to use simply list of exports
+  const lines: string[] = []
+  const configOutput = buildConfig(pluginConfig, linguiConfig, server)
 
-  const loaderMap: string[] = []
-  const staticImports: string[] = []
-  const bundleMap: string[] = []
+  lines.push(
+    `import { buildUrlParserFunction } from "${NAME}"`,
+    `export const config = ${JSON.stringify(configOutput)}`,
+    `export const parseUrlLocale = buildUrlParserFunction(config)`,
+    ""
+  )
 
   if (server) {
-    staticImports.push(`import { setupI18n } from "@lingui/core"`)
+    lines.push(`import { setupI18n } from "@lingui/core"`)
+
+    const loaderMap: string[] = []
+    const bundleMap: string[] = []
 
     // For server builds, use static imports
     for (const locale of linguiConfig.locales) {
       const varName = `locale_${locale.replace(/-/g, "_")}`
-      staticImports.push(`import { messages as ${varName} } from '${VIRTUAL_PREFIX}${locale}'`)
-      loaderMap.push(`  '${locale}': () => Promise.resolve({messages: ${varName}})`)
+      lines.push(`import { messages as ${varName} } from '${VIRTUAL_PREFIX}${locale}'`)
+
+      loaderMap.push(`  '${locale}': () => Promise.resolve({messages: ${varName}}),`)
       bundleMap.push(
-        `  '${locale}': setupI18n({ locale: '${locale}', messages: { "${locale}": ${varName} } })`
+        `  '${locale}': setupI18n({ locale: '${locale}', messages: { "${locale}": ${varName} } }),`
       )
     }
+
+    lines.push(
+      "",
+      `export const localeLoaders = {`,
+      ...loaderMap,
+      `}`,
+      "",
+      `const i18nInstances = {`,
+      ...bundleMap,
+      `}`,
+      generateGetI18nInstanceServer(),
+      ""
+    )
+
+    if (pluginConfig.detectLocale) {
+      lines.push(
+        `import { negotiateClientLocale } from "${NAME}/negotiate"`,
+        `export const $detectLocale = negotiateClientLocale`
+      )
+    } else {
+      lines.push(`export const $detectLocale = () => undefined`)
+    }
   } else {
+    lines.push(`export const localeLoaders = {`)
+
     // For client builds, use dynamic imports
     for (const locale of linguiConfig.locales) {
-      loaderMap.push(`  '${locale}': () => import('${VIRTUAL_PREFIX}${locale}')`)
+      lines.push(`  '${locale}': () => import('${VIRTUAL_PREFIX}${locale}'),`)
     }
+
+    lines.push(`}`, generateGetI18nInstanceClient())
   }
 
+  return lines.join("\n")
+}
+
+function buildConfig(
+  pluginConfig: LinguiRouterPluginConfigFull,
+  linguiConfig: LinguiConfigNormalized,
+  server: boolean
+): LinguiRouterConfig {
   const exclude =
     typeof pluginConfig.exclude === "string" ? [pluginConfig.exclude] : pluginConfig.exclude || []
   const fallbackLocales = linguiConfig.fallbackLocales
   const defaultLocale =
     typeof fallbackLocales?.default === "string" ? fallbackLocales.default : undefined
 
-  const configOutput = {
+  return {
     locales: linguiConfig.locales,
     pseudoLocale: linguiConfig.pseudoLocale,
     sourceLocale: linguiConfig.sourceLocale,
@@ -254,60 +296,29 @@ function generateLoaderModule(
     defaultLocale: defaultLocale || linguiConfig.locales[0] || "en",
     exclude,
     redirect: pluginConfig.redirect ?? "auto",
-  } satisfies LinguiRouterConfig
-
-  let dynamicExports: string[] = []
-  if (server) {
-    if (pluginConfig.detectLocale) {
-      staticImports.push(`import { negotiateClientLocale } from "${NAME}/negotiate"`)
-      dynamicExports.push(`export const $detectLocale = negotiateClientLocale`)
-    } else {
-      dynamicExports.push(`export const $detectLocale = () => undefined`)
-    }
+    runtimeEnv: server ? "server" : "client",
   }
-
-  //language=js
-  return `
-    import { buildUrlParserFunction } from "${NAME}"
-
-    ${staticImports.join("\n")}
-
-    export const localeLoaders = {
-      ${loaderMap.join(",\n")},
-    }
-
-    export const config = ${JSON.stringify(configOutput)}
-    export const parseUrlLocale = buildUrlParserFunction(config)
-    ${dynamicExports.join("\n")}
-
-    ${server ? generateGetI18nInstanceServer(bundleMap) : generateGetI18nInstanceClient()}
-  `
 }
 
-function generateGetI18nInstanceServer(bundleMap: string[]) {
-  //language=js
+function generateGetI18nInstanceServer() {
   return `
-    const i18nInstances = {
-      ${bundleMap.join(",\n")},
-    }
-
-    export function $getI18nInstance(locale) {
-      const i18n = i18nInstances[locale]
-      if (!i18n) {
-        throw new Error("Unsupported locale: " + locale)
-      }
-      return i18n
-    }
-  `
+export function $getI18nInstance(locale) {
+  const i18n = i18nInstances[locale]
+  if (!i18n) {
+    throw new Error("Unsupported locale: " + locale)
+  }
+  return i18n
+}
+`
 }
 
 function generateGetI18nInstanceClient() {
   //language=js
   return `
-    import { i18n } from "@lingui/core"
-    export function $getI18nInstance(_locale) {
-      return i18n
-    }`
+import { i18n } from "@lingui/core"
+export function $getI18nInstance(_locale) {
+  return i18n
+}`
 }
 
 function addToNoExternal(userNoExternal: SSROptions["noExternal"], name: string) {
