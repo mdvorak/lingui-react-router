@@ -18,6 +18,7 @@ export default function Hello() {
           <Trans>Hello, World!</Trans>
         </h1>
         <p>{loaderData.msg}</p>
+        <p><Trans>Special chars: "'$.*+@!</Trans></p>
       </div>
     </div>
   )

@@ -13,10 +13,6 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
-#: app/root.tsx:73
-msgid "\"Oops!"
-msgstr ""
-
 #: app/root.tsx:74
 msgid "An unexpected error occurred."
 msgstr ""
@@ -45,6 +41,14 @@ msgstr ""
 
 #: app/root.tsx:25
 msgid "Lingui React Router integration example"
+msgstr ""
+
+#: app/root.tsx:73
+msgid "Oops!"
+msgstr ""
+
+#: app/routes/hello.tsx:21
+msgid "Special chars: \"'$.*+@!"
 msgstr ""
 
 #: app/root.tsx:80
