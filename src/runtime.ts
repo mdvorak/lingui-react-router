@@ -4,7 +4,7 @@ import { type LinguiRouterConfig, normalizeLocaleKey } from "./config"
 
 export const config: LinguiRouterConfig = loader.config
 export const defaultLocale: string = loader.config.defaultLocale
-export const fallbackLocales: Record<string, string> | undefined = loader.fallbackLocales
+export const localeMapping: Record<string, string> | undefined = loader.localeMapping
 export const localeLoaders: Record<string, () => Promise<{ messages: Messages }>> =
   loader.localeLoaders
 /**
