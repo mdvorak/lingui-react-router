@@ -19,6 +19,9 @@ export default function Hello() {
         </h1>
         <p>{loaderData.msg}</p>
         <p><Trans>Special chars: "'$.*+@!</Trans></p>
+        <p><Trans>
+          Gray-colored text with a variable: {new Date().toLocaleDateString()}
+        </Trans></p>
       </div>
     </div>
   )

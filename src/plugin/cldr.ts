@@ -19,9 +19,11 @@ async function loadAllLocales(): Promise<Set<string>> {
 }
 
 // One-time loaded
-let cachedLocales: Set<string> | undefined
+let cachedLocales: Promise<Set<string>> | undefined
 
-export async function getAllLocales(): Promise<Set<string>> {
-  cachedLocales ??= await loadAllLocales()
+export function getAllLocales(): Promise<Set<string>> {
+  // cachedLocales ??= is a synchronous operation, so concurrent calls
+  // will all receive the same Promise instance without race conditions
+  cachedLocales ??= loadAllLocales()
   return cachedLocales
 }
