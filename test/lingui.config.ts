@@ -4,10 +4,6 @@ export default defineConfig({
   locales: ["en", "cs", "it", "pseudo"],
   sourceLocale: "en",
   pseudoLocale: "pseudo",
-  fallbackLocales: {
-    default: "en",
-    "cs-CZ": ["cs"],
-  },
   catalogs: [
     {
       name: "{locale}",

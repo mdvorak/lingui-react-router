@@ -4,7 +4,7 @@ import * as fs from "node:fs/promises"
 import path from "node:path"
 import type { OutputBundle } from "rollup"
 import type { ConfigPluginContext, Plugin, ResolvedConfig, SSROptions, UserConfig } from "vite"
-import { getSecondaryLocales, type LinguiRouterConfig } from "../config"
+import { type LinguiRouterConfig } from "../config"
 import type { LinguiRouterPluginConfig, LinguiRouterPluginConfigFull } from "./config"
 
 const NAME = "lingui-react-router"
@@ -213,17 +213,7 @@ function generateLoaderModule(
 
       loaderMap.push(`  '${locale}': () => Promise.resolve({messages: ${varName}}),`)
       messagesMap.push(`  '${locale}': ${varName},`)
-      bundleMap.push(
-        `  '${locale}': setupI18n({ locale: '${locale}', messages: localeMessages, fallbackLocales: config.fallbackLocales }),`
-      )
-    }
-    // Add secondary locales with mapping to primary locales
-    for (const [locale, primaryLocale] of Object.entries(configObject.secondaryLocales)) {
-      const varName = varNames[primaryLocale]
-      loaderMap.push(`  '${locale}': () => Promise.resolve({messages: ${varName}}),`)
-      bundleMap.push(
-        `  '${locale}': setupI18n({ locale: '${locale}', messages: localeMessages, fallbackLocales: config.fallbackLocales }),`
-      )
+      bundleMap.push(`  '${locale}': setupI18n({ locale: '${locale}', messages: localeMessages }),`)
     }
 
     lines.push(
@@ -258,10 +248,6 @@ function generateLoaderModule(
     for (const locale of linguiConfig.locales) {
       lines.push(`  '${locale}': () => import('${VIRTUAL_PREFIX}${locale}'),`)
     }
-    // Add secondary locales with mapping to primary locales
-    for (const [virtualLocale, primaryLocale] of Object.entries(configObject.secondaryLocales)) {
-      lines.push(`  '${virtualLocale}': () => import('${VIRTUAL_PREFIX}${primaryLocale}'),`)
-    }
 
     lines.push(`}`, generateGetI18nInstanceClient())
   }
@@ -282,8 +268,6 @@ function buildConfig(
 
   return {
     locales: linguiConfig.locales,
-    fallbackLocales: fallbackLocales ?? {},
-    secondaryLocales: getSecondaryLocales(linguiConfig.locales, fallbackLocales),
     pseudoLocale: linguiConfig.pseudoLocale,
     sourceLocale: linguiConfig.sourceLocale,
     defaultLocale: defaultLocale || linguiConfig.locales[0] || "en",
