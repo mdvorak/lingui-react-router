@@ -26,6 +26,11 @@ msgstr ""
 msgid "From loader too!"
 msgstr ""
 
+#. placeholder {0}: new Date().toLocaleDateString()
+#: app/routes/hello.tsx:22
+msgid "Gray-colored text with a variable: {0}"
+msgstr ""
+
 #: app/routes/hello.tsx:18
 msgid "Hello, World!"
 msgstr ""
