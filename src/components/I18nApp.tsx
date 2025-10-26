@@ -23,7 +23,6 @@ import { loadLocaleCatalog } from "../runtime"
  *       <head>
  *         <meta charSet="utf-8" />
  *         <meta name="viewport" content="width=device-width, initial-scale=1" />
- *         <title>{i18n._(msg`Lingui React Router App`)}</title>
  *         <Meta />
  *         <Links />
  *       </head>
@@ -49,7 +48,7 @@ import { loadLocaleCatalog } from "../runtime"
  */
 export function I18nApp({ children }: Readonly<{ children: React.ReactNode }>) {
   const location = useLocation()
-  const { locale } = usePathLocale(location) // context is not set up yet, so we provide it
+  const { locale } = usePathLocale(location)
   const i18n = $getI18nInstance(locale)
 
   useEffect(() => {

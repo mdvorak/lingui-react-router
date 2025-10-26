@@ -1,33 +1,42 @@
 import type { FallbackLocales } from "@lingui/conf"
 
+/**
+ * Runtime configuration for locale detection, routing, and fallbacks.
+ */
 export type LinguiRouterConfig = {
   /**
-   * List of supported locales.
+   * Supported locales in priority order (e.g., ["en", "it"]).
+   * Uses BCP 47 codes or project-specific variants.
    */
   locales: string[]
   /**
-   * Locale code for pseudo-localization.
-   */
-  pseudoLocale?: string
-  /**
-   * Locale code for source language.
-   */
-  sourceLocale?: string
-  /**
-   * Fallback locales configuration.
+   * Mapping of locales to their fallback locales used for message resolution.
    */
   fallbackLocales: FallbackLocales
   /**
-   * Default locale to use when no locale is detected.
+   * Locales that are in defined in the fallbackLocales but not in the primary locales list.
+   */
+  secondaryLocales: Record<string, string>
+  /**
+   * Default locale used when no locale can be detected.
+   * Should be included in `locales`.
    */
   defaultLocale: string
   /**
-   * One or more root-level path prefixes that should NOT be treated as locales.
+   * Locale code used for pseudo-localization during development.
+   */
+  pseudoLocale?: string
+  /**
+   * Locale code of the source (authoring) language.
+   */
+  sourceLocale?: string
+  /**
+   * One or more top-level path segments that must not be treated as locales.
    * For example, ["api"].
    */
   exclude: string[]
   /**
-   * Redirect behavior for detected locales.
+   * Redirect policy when a locale is detected.
    */
   redirect: RedirectBehavior
   /**
@@ -37,65 +46,67 @@ export type LinguiRouterConfig = {
 }
 
 /**
- * Result of parsing locale information from a URL path.
+ * Result of extracting locale information from a URL path.
  */
 export type PathLocale = {
-  /** The path portion after the locale or excluded prefix. */
+  /** Remainder of the path after removing the locale or excluded segment. */
   pathname: string
-  /** The detected locale, if any. */
+  /** Detected locale code, if present. */
   locale?: string
-  /** True if the path matched an excluded prefix rather than a locale. */
+  /** True if the first segment matched an excluded prefix, not a locale. */
   excluded: boolean
 }
 
 /**
- * Interface representing a locale manifest, mapping locale codes to their corresponding message catalog paths.
+ * Maps locale codes to message catalog locations.
  *
- * Keys are locale codes (e.g., "en", "it"), and values are paths to message catalogs (e.g., "/locales/en/messages.po").
+ * Keys are locale codes (e.g., "en", "it").
+ * Values are URLs or import paths to catalogs (e.g., "/locales/en/messages.po").
  */
 export type LocaleManifest = Record<string, string>
 
 /**
- * Redirect behavior for detected locales.
+ * Controls redirect behavior when a locale is detected.
  *
- * - "auto": Redirect to detected locale only if it's not the default locale.
- * - "always": Always redirect to detected locale, even if it's the default locale.
- * - "never": Never redirect to detected locale.
+ * - "auto": Redirect only if the detected locale differs from the default.
+ * - "always": Always redirect to the detected locale.
+ * - "never": Never redirect based on the detected locale.
  */
 export type RedirectBehavior = "auto" | "always" | "never"
 
 /**
- * Internal function to parse a URL path and extract locale information.
+ * Generate a mapping of secondary locales to their primary fallback locales.
  *
- * @param config - Lingui router configuration.
- * @returns A function that takes a URL path and returns locale information.
+ * @param locales - Primary supported locales in priority order.
+ * @param fallbackLocales - Optional mapping of locales to their fallbacks. Only its keys are considered; `"default"` is ignored.
+ * @returns A mapping of virtual locales to their primary fallback locales.
+ *
+ * @example
+ * // returns { fr: "en" }
+ * getSecondaryLocales(["en", "it"], { default: "en", fr: ["en"] })
  */
-export function buildUrlParserFunction(config: LinguiRouterConfig): (url: string) => PathLocale {
-  const localesRegex = buildParserRegex(config.locales, config.exclude)
-
-  return function parseUrlLocale(url: string): PathLocale {
-    if (url === "/") {
-      return { locale: undefined, pathname: "/", excluded: false }
-    }
-    const match = localesRegex.exec(url)
-    if (match) {
-      const { l, e, p } = match.groups ?? {}
-      if (l) {
-        return { locale: l, pathname: p, excluded: false }
-      } else if (e) {
-        return { locale: undefined, pathname: url, excluded: true }
-      }
-    }
-    return { locale: undefined, pathname: url, excluded: false }
+export function getSecondaryLocales(
+  locales: string[],
+  fallbackLocales?: FallbackLocales | false
+): Record<string, string> {
+  if (!fallbackLocales) {
+    return {}
   }
-}
 
-function buildParserRegex(locales: string[], exclude?: string[]) {
-  const patterns = [toGroupPattern("l", locales), toGroupPattern("e", exclude)].filter(Boolean)
-  return new RegExp(`^/(?:${patterns.join("|")})(?<p>/.*)?$`)
-}
+  // Build a map of secondary locales, mapping to their primary fallback
+  const primarySet = new Set(locales)
+  const secondaryLocales: Record<string, string> = {}
+  const defaultLocale = fallbackLocales.default as string | undefined // Can never be an array
 
-function toGroupPattern(name: string, list?: string[]): string {
-  if (!list || list.length === 0) return ""
-  return `(?<${name}>${list.map(v => v.replace(/[^a-zA-Z0-9/_-]/g, "\\$&")).join("|")})`
+  for (const [locale, fb] of Object.entries(fallbackLocales)) {
+    if (locale === "default" || primarySet.has(locale)) continue
+
+    const fallbacks = Array.isArray(fb) ? fb : [fb]
+    const primary = fallbacks.find(f => primarySet.has(f)) || defaultLocale
+    if (primary) {
+      secondaryLocales[locale] = primary
+    }
+  }
+
+  return secondaryLocales
 }

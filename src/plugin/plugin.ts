@@ -4,7 +4,7 @@ import * as fs from "node:fs/promises"
 import path from "node:path"
 import type { OutputBundle } from "rollup"
 import type { ConfigPluginContext, Plugin, ResolvedConfig, SSROptions, UserConfig } from "vite"
-import type { LinguiRouterConfig } from "../config"
+import { getSecondaryLocales, type LinguiRouterConfig } from "../config"
 import type { LinguiRouterPluginConfig, LinguiRouterPluginConfigFull } from "./config"
 
 const NAME = "lingui-react-router"
@@ -191,29 +191,38 @@ function generateLoaderModule(
   server: boolean
 ): string {
   const lines: string[] = []
-  const configOutput = buildConfig(pluginConfig, linguiConfig, server)
+  const configObject = buildConfig(pluginConfig, linguiConfig, server)
 
-  lines.push(
-    `import { buildUrlParserFunction } from "${NAME}"`,
-    `export const config = ${JSON.stringify(configOutput)}`,
-    `export const parseUrlLocale = buildUrlParserFunction(config)`,
-    ""
-  )
+  lines.push(`export const config = ${JSON.stringify(configObject)}`, "")
 
   if (server) {
     lines.push(`import { setupI18n } from "@lingui/core"`)
 
     const loaderMap: string[] = []
+    const messagesMap: string[] = []
     const bundleMap: string[] = []
+
+    const varNames = Object.fromEntries(
+      linguiConfig.locales.map(l => [l, `locale_${l.replace(/-/g, "_")}`])
+    )
 
     // For server builds, use static imports
     for (const locale of linguiConfig.locales) {
-      const varName = `locale_${locale.replace(/-/g, "_")}`
+      const varName = varNames[locale]
       lines.push(`import { messages as ${varName} } from '${VIRTUAL_PREFIX}${locale}'`)
 
       loaderMap.push(`  '${locale}': () => Promise.resolve({messages: ${varName}}),`)
+      messagesMap.push(`  '${locale}': ${varName},`)
       bundleMap.push(
-        `  '${locale}': setupI18n({ locale: '${locale}', messages: { "${locale}": ${varName} } }),`
+        `  '${locale}': setupI18n({ locale: '${locale}', messages: localeMessages, fallbackLocales: config.fallbackLocales }),`
+      )
+    }
+    // Add secondary locales with mapping to primary locales
+    for (const [locale, primaryLocale] of Object.entries(configObject.secondaryLocales)) {
+      const varName = varNames[primaryLocale]
+      loaderMap.push(`  '${locale}': () => Promise.resolve({messages: ${varName}}),`)
+      bundleMap.push(
+        `  '${locale}': setupI18n({ locale: '${locale}', messages: localeMessages, fallbackLocales: config.fallbackLocales }),`
       )
     }
 
@@ -221,6 +230,10 @@ function generateLoaderModule(
       "",
       `export const localeLoaders = {`,
       ...loaderMap,
+      `}`,
+      "",
+      `const localeMessages = {`,
+      ...messagesMap,
       `}`,
       "",
       `const i18nInstances = {`,
@@ -245,6 +258,10 @@ function generateLoaderModule(
     for (const locale of linguiConfig.locales) {
       lines.push(`  '${locale}': () => import('${VIRTUAL_PREFIX}${locale}'),`)
     }
+    // Add secondary locales with mapping to primary locales
+    for (const [virtualLocale, primaryLocale] of Object.entries(configObject.secondaryLocales)) {
+      lines.push(`  '${virtualLocale}': () => import('${VIRTUAL_PREFIX}${primaryLocale}'),`)
+    }
 
     lines.push(`}`, generateGetI18nInstanceClient())
   }
@@ -265,9 +282,10 @@ function buildConfig(
 
   return {
     locales: linguiConfig.locales,
+    fallbackLocales: fallbackLocales ?? {},
+    secondaryLocales: getSecondaryLocales(linguiConfig.locales, fallbackLocales),
     pseudoLocale: linguiConfig.pseudoLocale,
     sourceLocale: linguiConfig.sourceLocale,
-    fallbackLocales: fallbackLocales ?? {},
     defaultLocale: defaultLocale || linguiConfig.locales[0] || "en",
     exclude,
     redirect: pluginConfig.redirect ?? "auto",

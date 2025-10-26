@@ -6,6 +6,7 @@ export default defineConfig({
   pseudoLocale: "pseudo",
   fallbackLocales: {
     default: "en",
+    "cs-CZ": ["cs"],
   },
   catalogs: [
     {
