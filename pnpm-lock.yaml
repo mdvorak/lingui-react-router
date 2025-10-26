@@ -42,6 +42,9 @@ importers:
       '@types/react':
         specifier: ^19.2.2
         version: 19.2.2
+      cldr-core:
+        specifier: ^47.0.0
+        version: 47.0.0
       prettier:
         specifier: ^3.6.2
         version: 3.6.2
@@ -1067,6 +1070,9 @@ packages:
 
   citty@0.1.6:
     resolution: {integrity: sha512-tskPPKEs8D2KPafUypv2gxwJP8h/OaJmC82QQGGDQcHvXX43xF2VDACcJVmZ0EuSxkpO9Kc4MlrA3q0+FG58AQ==}
+
+  cldr-core@47.0.0:
+    resolution: {integrity: sha512-tdYRy66DMgpjEwVOWCTN0zhNr+zh1+d4A6MCNgJKU7voFDGsrwcWHor6jcqudHDmElCgyVNqWBKAB1JeNdSOKg==}
 
   cli-cursor@3.1.0:
     resolution: {integrity: sha512-I/zHAwsKf9FqGoXM4WWRACob9+SNukZTd94DWF57E4toouRulbCxcUh6RKUEOQlYTHJnzkPMySvPNaaSLNfLZw==}
@@ -3638,6 +3644,8 @@ snapshots:
   citty@0.1.6:
     dependencies:
       consola: 3.4.2
+
+  cldr-core@47.0.0: {}
 
   cli-cursor@3.1.0:
     dependencies:

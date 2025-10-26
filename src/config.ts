@@ -65,3 +65,15 @@ export type LocaleManifest = Record<string, string>
  * - "never": Never redirect based on the detected locale.
  */
 export type RedirectBehavior = "auto" | "always" | "never"
+
+/**
+ * Normalizes a locale code by converting to lowercase and replacing underscores with hyphens.
+ *
+ * This is an internal function, it is not exposed in the public API.
+ *
+ * @param locale - The locale code to normalize (e.g., "en_US").
+ * @returns The normalized locale code (e.g., "en-us").
+ */
+export function normalizeLocaleKey(locale: string): string {
+  return locale.toLowerCase().replace(/_/g, "-")
+}

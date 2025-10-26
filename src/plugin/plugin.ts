@@ -1,11 +1,13 @@
 import { getConfig, type LinguiConfigNormalized } from "@lingui/conf"
+
 import fg from "fast-glob"
 import * as fs from "node:fs/promises"
 import path from "node:path"
 import type { OutputBundle } from "rollup"
 import type { ConfigPluginContext, Plugin, ResolvedConfig, SSROptions, UserConfig } from "vite"
-import { type LinguiRouterConfig } from "../config"
+import { type LinguiRouterConfig, normalizeLocaleKey } from "../config"
 import type { LinguiRouterPluginConfig, LinguiRouterPluginConfigFull } from "./config"
+import { allLocales } from "../cldr"
 
 const NAME = "lingui-react-router"
 const VIRTUAL_PREFIX = "virtual:lingui-router-locale-"
@@ -202,13 +204,9 @@ function generateLoaderModule(
     const messagesMap: string[] = []
     const bundleMap: string[] = []
 
-    const varNames = Object.fromEntries(
-      linguiConfig.locales.map(l => [l, `locale_${l.replace(/-/g, "_")}`])
-    )
-
     // For server builds, use static imports
     for (const locale of linguiConfig.locales) {
-      const varName = varNames[locale]
+      const varName = `locale_${locale.replace(/-/g, "_")}`
       lines.push(`import { messages as ${varName} } from '${VIRTUAL_PREFIX}${locale}'`)
 
       loaderMap.push(`  '${locale}': () => Promise.resolve({messages: ${varName}}),`)
@@ -241,6 +239,13 @@ function generateLoaderModule(
     } else {
       lines.push(`export const $detectLocale = () => undefined`)
     }
+
+    const parentLocaleMap = buildParentLocaleMap(linguiConfig.locales)
+    lines.push(
+      "",
+      `export const parentLocaleMap = JSON.parse(\`${JSON.stringify(parentLocaleMap)}\`)`,
+      ""
+    )
   } else {
     lines.push(`export const localeLoaders = {`)
 
@@ -249,7 +254,7 @@ function generateLoaderModule(
       lines.push(`  '${locale}': () => import('${VIRTUAL_PREFIX}${locale}'),`)
     }
 
-    lines.push(`}`, generateGetI18nInstanceClient())
+    lines.push(`}`, generateGetI18nInstanceClient(), `export const parentLocaleMap = {}`)
   }
 
   return lines.join("\n")
@@ -275,6 +280,16 @@ function buildConfig(
     redirect: pluginConfig.redirect ?? "auto",
     runtimeEnv: server ? "server" : "client",
   }
+}
+
+function buildParentLocaleMap(locales: string[]): Record<string, string> {
+  const possibleParents = allLocales.map(normalizeLocaleKey)
+
+  const parentsList = locales.flatMap(l =>
+    possibleParents.filter(al => al.startsWith(normalizeLocaleKey(l) + "-")).map(al => [al, l])
+  )
+
+  return Object.fromEntries(parentsList)
 }
 
 function generateGetI18nInstanceServer() {

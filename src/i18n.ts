@@ -1,7 +1,13 @@
 import { useMemo } from "react"
 import { useLocation } from "react-router"
-import type { PathLocale } from "./config"
-import { config, defaultLocale, normalizeLocale, supportedLocales } from "./runtime"
+import { normalizeLocaleKey, type PathLocale } from "./config"
+import {
+  config,
+  defaultLocale,
+  normalizeLocale,
+  parentLocaleMap,
+  supportedLocales,
+} from "./runtime"
 
 /**
  * React hook that derives the active locale from the current URL path.
@@ -41,7 +47,11 @@ export function usePathLocale(location = useLocation()): {
   }, [location.pathname])
 }
 
-const LOCALE_PATH_REGEX = /^\/+([^/]+)\/+(.*)$/
+const localePathRegex = /^\/+([^/]+)(\/.*)?$/
+const matchParents: boolean = (() => {
+  for (const _ in parentLocaleMap) return true
+  return false
+})()
 
 /**
  * Parses a URL pathname to extract the locale code and remaining path.
@@ -54,14 +64,23 @@ export function parseUrlLocale(url: string): PathLocale {
     return { locale: undefined, pathname: "/", excluded: false }
   }
 
-  const match = LOCALE_PATH_REGEX.exec(url)
+  const match = localePathRegex.exec(url)
   if (match) {
-    const [, rawLocale, pathname] = match
+    const [, rawLocale, p] = match
+    const pathname = p || "/"
     const locale = normalizeLocale(rawLocale)
     if (supportedLocales.has(locale)) {
       return { locale, rawLocale, pathname, excluded: false }
     } else if (config.exclude.includes(rawLocale)) {
       return { locale: undefined, pathname: url, excluded: true }
+    }
+
+    // Support translation of nested locales, e.g. "en-US" -> "en"
+    // Note that keys in parentLocaleMap are stored as keys, not in canonical form,
+    // but values are already canonical.
+    const resolvedLocale = matchParents && parentLocaleMap[normalizeLocaleKey(rawLocale)]
+    if (resolvedLocale && supportedLocales.has(resolvedLocale)) {
+      return { locale: resolvedLocale, rawLocale, pathname, excluded: false }
     }
   }
   return { locale: undefined, pathname: url, excluded: false }
