@@ -8,7 +8,8 @@ import {
   type RouterContextProvider,
 } from "react-router"
 import { $detectLocale, $getI18nInstance } from "virtual:lingui-router-loader"
-import { config, parseUrlLocale } from "./runtime" // Assert this is included only on server
+import { config } from "./runtime"
+import { parseUrlLocale } from "./i18n" // Assert this is included only on server
 
 // Assert this is included only on server
 if (globalThis.window) {
