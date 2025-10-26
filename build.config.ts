@@ -6,8 +6,8 @@ export default defineBuildConfig({
     "src/index",
     "src/i18n.client",
     "src/i18n.server",
-    "src/routes",
     "src/negotiate",
+    "src/plugin/routes",
     "src/plugin/index",
   ],
   externals: [
@@ -18,6 +18,5 @@ export default defineBuildConfig({
   declaration: true,
   rollup: {
     emitCJS: true,
-    inlineDependencies: ["cldr-core"],
   },
 })
