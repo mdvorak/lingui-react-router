@@ -297,6 +297,10 @@ async function findFallbackLocales(locales: string[]): Promise<Record<string, st
   for (const cldrLocale of allLocales) {
     // We must compare normalized keys
     const specificLocale = normalizeLocaleKey(cldrLocale)
+    // Skip if this locale is already explicitly defined
+    if (localeKeys.includes(specificLocale)) {
+      continue
+    }
     const fallbackLocale = localeKeys.find(l => specificLocale.startsWith(l + "-"))
     if (fallbackLocale) {
       result.set(specificLocale, fallbackLocale)
