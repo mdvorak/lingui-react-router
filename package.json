@@ -40,9 +40,9 @@
       "require": "./dist/negotiate.cjs"
     },
     "./routes": {
-      "types": "./dist/routes.d.ts",
-      "import": "./dist/routes.mjs",
-      "require": "./dist/routes.cjs"
+      "types": "./dist/plugin/routes.d.ts",
+      "import": "./dist/plugin/routes.mjs",
+      "require": "./dist/plugin/routes.cjs"
     },
     "./plugin": {
       "types": "./dist/plugin/index.d.ts",

@@ -7,7 +7,7 @@ import type { OutputBundle } from "rollup"
 import type { ConfigPluginContext, Plugin, ResolvedConfig, SSROptions, UserConfig } from "vite"
 import { type LinguiRouterConfig, normalizeLocaleKey } from "../config"
 import type { LinguiRouterPluginConfig, LinguiRouterPluginConfigFull } from "./config"
-import { allLocales } from "../cldr"
+import { allLocales } from "./cldr"
 
 const NAME = "lingui-react-router"
 const VIRTUAL_PREFIX = "virtual:lingui-router-locale-"

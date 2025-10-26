@@ -1,7 +1,7 @@
 import type { LinguiConfig } from "@lingui/conf"
 import { route, type RouteConfigEntry } from "@react-router/dev/routes"
 import { allLocales } from "./cldr"
-import { normalizeLocaleKey } from "./config"
+import { normalizeLocaleKey } from "../config"
 
 const LOCAL_PATH_REGEX = /^(?:\.\/)?/
 
