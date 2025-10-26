@@ -78,16 +78,14 @@ Configure prerendering for localized routes if needed.
 ```ts
 // react-router.config.ts
 import type { Config } from "@react-router/dev/config"
+import { localePaths } from "lingui-react-router/routes"
 import linguiConfig from "./lingui.config"
-
-const { locales } = linguiConfig
-const langPrerender = ["hello"] // Add your localized paths here
 
 export default {
   future: {
     v8_middleware: true,
   },
-  prerender: [...langPrerender.flatMap(path => locales.map(lang => `/${lang}/${path}`))],
+  prerender: ["/hello"].flatMap(path => localePaths(linguiConfig, path)),
 } satisfies Config
 ```
 
@@ -161,23 +159,21 @@ startTransition(async () => {
 })
 ```
 
-4. Generate localized routes from the i18n config with localeRoutes helpers.
-   Define the default root and locale-scoped routes in a single config to keep paths maintainable.
+4. Generate localized routes from the i18n config with the prefix helper.
+   Define the default root and locale-scoped routes using React Router's prefix helper with an optional locale parameter.
 
-   ```ts
-   // app/routes.ts
-   import { index, type RouteConfig } from "@react-router/dev/routes"
-   import { localeRoutes } from "lingui-react-router/routes"
-   import linguiConfig from "../lingui.config"
+```ts
+// app/routes.ts
+import { index, prefix, route, type RouteConfig } from "@react-router/dev/routes"
 
-   const locale = localeRoutes(linguiConfig)
-
-   export default [
-     index("./routes/_index.tsx"),
-     ...locale.index("./routes/_index.tsx"),
-     ...locale.route("hello", "./routes/hello.tsx"),
-   ] satisfies RouteConfig
-   ```
+export default [
+  index("./routes/_index.tsx"),
+  ...prefix(":locale?", [
+    index("./routes/_index.tsx", { id: "locale-index" }),
+    route("hello", "./routes/hello.tsx"),
+  ]),
+] satisfies RouteConfig
+ ```
 
 5. Use the locale-aware link and runtime hooks for current locale, request locale, and config.
    LocaleLink automatically prefixes the active locale and should receive locale-less paths for
