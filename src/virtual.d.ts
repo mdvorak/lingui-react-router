@@ -20,5 +20,5 @@ declare module "virtual:lingui-router-loader" {
     headers: Record<string, string | undefined>,
     locales: readonly string[]
   ): string | undefined
-  export const parentLocaleMap: Record<string, string>
+  export const fallbackLocales: Record<string, string> | undefined
 }

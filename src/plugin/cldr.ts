@@ -1,13 +1,27 @@
-import * as fs from "node:fs"
+import * as fs from "node:fs/promises"
 import { createRequire } from "node:module"
 
 const require = createRequire(import.meta.url)
 
-const availableLocales: string[] = JSON.parse(
-  fs.readFileSync(require.resolve("cldr-core/availableLocales.json"), "utf-8")
-).availableLocales.full
-const defaultContent: string[] = JSON.parse(
-  fs.readFileSync(require.resolve("cldr-core/defaultContent.json"), "utf-8")
-).defaultContent
+async function loadModuleJson(path: string): Promise<any> {
+  const data = await fs.readFile(require.resolve(path), "utf-8")
+  return JSON.parse(data)
+}
 
-export const allLocales: string[] = [...availableLocales, ...defaultContent]
+async function loadAllLocales(): Promise<Set<string>> {
+  const lists = await Promise.all([
+    loadModuleJson("cldr-core/availableLocales.json").then(
+      obj => obj.availableLocales.full as string[]
+    ),
+    loadModuleJson("cldr-core/defaultContent.json").then(obj => obj.defaultContent as string[]),
+  ])
+  return new Set<string>(lists.flat())
+}
+
+// One-time loaded
+let cachedLocales: Set<string> | undefined
+
+export async function getAllLocales(): Promise<Set<string>> {
+  cachedLocales ??= await loadAllLocales()
+  return cachedLocales
+}

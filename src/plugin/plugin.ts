@@ -6,8 +6,8 @@ import path from "node:path"
 import type { OutputBundle } from "rollup"
 import type { ConfigPluginContext, Plugin, ResolvedConfig, SSROptions, UserConfig } from "vite"
 import { type LinguiRouterConfig, normalizeLocaleKey } from "../config"
+import { getAllLocales } from "./cldr"
 import type { LinguiRouterPluginConfig, LinguiRouterPluginConfigFull } from "./config"
-import { allLocales } from "./cldr"
 
 const NAME = "lingui-react-router"
 const VIRTUAL_PREFIX = "virtual:lingui-router-locale-"
@@ -116,7 +116,7 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
       }
 
       if (id === "\0" + VIRTUAL_LOADER) {
-        return generateLoaderModule(normalizedConfig, linguiConfig, server)
+        return await generateLoaderModule(normalizedConfig, linguiConfig, server)
       }
 
       if (id.startsWith("\0" + VIRTUAL_PREFIX)) {
@@ -187,15 +187,15 @@ export const messages = Object.assign({}, ${catalogVars.join(", ")})
   }
 }
 
-function generateLoaderModule(
+async function generateLoaderModule(
   pluginConfig: LinguiRouterPluginConfigFull,
   linguiConfig: LinguiConfigNormalized,
   server: boolean
-): string {
+): Promise<string> {
   const lines: string[] = []
   const configObject = buildConfig(pluginConfig, linguiConfig, server)
 
-  lines.push(`export const config = ${JSON.stringify(configObject)}`, "")
+  lines.push(`export const config = ${JSON.stringify(configObject)}`)
 
   if (server) {
     lines.push(`import { setupI18n } from "@lingui/core"`)
@@ -215,20 +215,16 @@ function generateLoaderModule(
     }
 
     lines.push(
-      "",
       `export const localeLoaders = {`,
       ...loaderMap,
       `}`,
-      "",
       `const localeMessages = {`,
       ...messagesMap,
       `}`,
-      "",
       `const i18nInstances = {`,
       ...bundleMap,
       `}`,
-      generateGetI18nInstanceServer(),
-      ""
+      generateGetI18nInstanceServer()
     )
 
     if (pluginConfig.detectLocale) {
@@ -240,11 +236,9 @@ function generateLoaderModule(
       lines.push(`export const $detectLocale = () => undefined`)
     }
 
-    const parentLocaleMap = buildParentLocaleMap(linguiConfig.locales)
+    const fallbackLocaleMap: Record<string, string> = await findFallbackLocales(linguiConfig.locales)
     lines.push(
-      "",
-      `export const parentLocaleMap = JSON.parse(\`${JSON.stringify(parentLocaleMap)}\`)`,
-      ""
+      `export const fallbackLocales = JSON.parse(\`${JSON.stringify(fallbackLocaleMap)}\`)`,
     )
   } else {
     lines.push(`export const localeLoaders = {`)
@@ -254,7 +248,7 @@ function generateLoaderModule(
       lines.push(`  '${locale}': () => import('${VIRTUAL_PREFIX}${locale}'),`)
     }
 
-    lines.push(`}`, generateGetI18nInstanceClient(), `export const parentLocaleMap = {}`)
+    lines.push(`}`, generateGetI18nInstanceClient(), `export const fallbackLocales = undefined`)
   }
 
   return lines.join("\n")
@@ -282,14 +276,25 @@ function buildConfig(
   }
 }
 
-function buildParentLocaleMap(locales: string[]): Record<string, string> {
-  const possibleParents = allLocales.map(normalizeLocaleKey)
+async function findFallbackLocales(locales: string[]): Promise<Record<string, string>> {
+  const allLocales = await getAllLocales()
+  const result = new Map<string, string>()
 
-  const parentsList = locales.flatMap(l =>
-    possibleParents.filter(al => al.startsWith(normalizeLocaleKey(l) + "-")).map(al => [al, l])
-  )
+  // Convert current locales to normalized keys for comparison
+  // This will help in matching more specific locales first
+  const localeKeys = locales.map(normalizeLocaleKey).sort().reverse()
 
-  return Object.fromEntries(parentsList)
+  // Find all more specific locales for each defined locale
+  for (const cldrLocale of allLocales) {
+    // We must compare normalized keys
+    const specificLocale = normalizeLocaleKey(cldrLocale)
+    const fallbackLocale = localeKeys.find(l => specificLocale.startsWith(l + "-"))
+    if (fallbackLocale) {
+      result.set(specificLocale, fallbackLocale)
+    }
+  }
+
+  return Object.fromEntries(result)
 }
 
 function generateGetI18nInstanceServer() {
