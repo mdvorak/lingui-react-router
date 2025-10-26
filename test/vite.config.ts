@@ -13,6 +13,9 @@ export default defineConfig({
     macrosPlugin(),
     lingui(),
     linguiRouterPlugin({
+      localeMapping: {
+        "de": "en",
+      },
       // These are defaults
       detectLocale: true,
       redirect: "auto",

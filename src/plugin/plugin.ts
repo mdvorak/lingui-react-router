@@ -27,6 +27,7 @@ const DEFAULT_CONFIG: LinguiRouterPluginConfigFull = {
   exclude: [],
   detectLocale: true,
   redirect: "auto",
+  localeMapping: {},
 }
 
 /**
@@ -48,7 +49,7 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
     name: NAME,
 
     configResolved(config) {
-      config.linguiConfig = getConfig({ cwd: config.root })
+      config.linguiConfig = normalizedConfig.linguiConfig ?? getConfig({ cwd: config.root })
     },
 
     config(config) {
@@ -235,8 +236,11 @@ async function generateLoaderModuleServer(
     lines.push(`export const $detectLocale = () => undefined`)
   }
 
-  const fallbackLocaleMap: Record<string, string> = await findFallbackLocales(linguiConfig.locales)
-  lines.push(`export const fallbackLocales = JSON.parse(\`${JSON.stringify(fallbackLocaleMap)}\`)`)
+  const allLocaleMapping: Record<string, string> = await buildLocaleMapping(
+    linguiConfig.locales,
+    pluginConfig.localeMapping
+  )
+  lines.push(`export const localeMapping = JSON.parse(\`${JSON.stringify(allLocaleMapping)}\`)`)
 
   return lines.join("\n")
 }
@@ -257,7 +261,7 @@ async function generateLoaderModuleClient(
     lines.push(`  '${locale}': () => import('${VIRTUAL_PREFIX}${locale}'),`)
   }
 
-  lines.push(`}`, generateGetI18nInstanceClient(), `export const fallbackLocales = undefined`)
+  lines.push(`}`, generateGetI18nInstanceClient(), `export const localeMapping = undefined`)
 
   return lines.join("\n")
 }
@@ -284,26 +288,55 @@ function buildConfig(
   }
 }
 
-async function findFallbackLocales(locales: string[]): Promise<Record<string, string>> {
-  const allLocales = await getAllLocales()
-  const result = new Map<string, string>()
+async function buildLocaleMapping(
+  locales: string[],
+  localeMap: Record<string, string>
+): Promise<Record<string, string>> {
+  const knownLocales = await getAllLocales()
+
+  // Add existing locales to the result
+  const result = new Map<string, string>(locales.map(l => [normalizeLocaleKey(l), l]))
+
+  // Add user-defined fallback locales
+  for (const [locale, fallback] of Object.entries(localeMap)) {
+    const key = normalizeLocaleKey(locale)
+    // Validate
+    if (result.has(key)) {
+      throw new Error(`Mapped locale ${locale} is already defined in the Lingui configuration.`)
+    }
+    if (!locales.includes(fallback)) {
+      throw new Error(
+        `Fallback locale ${fallback} for locale ${locale} is not defined in the Lingui configuration.`
+      )
+    }
+    // Add to result
+    result.set(key, fallback)
+  }
 
   // Convert current locales to normalized keys for comparison
   // This will help in matching more specific locales first
   // Sort locale keys by descending length to prioritize more specific locales first
-  const localeKeys = locales.map(normalizeLocaleKey).sort((a, b) => b.length - a.length)
+  const definedLocales = [...locales]
+    .sort((a, b) => b.length - a.length)
+    .map(locale => ({ locale, prefix: normalizeLocaleKey(locale) + "-" }))
 
   // Find all more specific locales for each defined locale
-  for (const cldrLocale of allLocales) {
-    // We must compare normalized keys
-    const specificLocale = normalizeLocaleKey(cldrLocale)
-    // Skip if this locale is already explicitly defined
-    if (localeKeys.includes(specificLocale)) {
+  for (const cldrLocale of knownLocales) {
+    if (/\d/.test(cldrLocale)) {
+      // Skip locales with digits (e.g., en-150)
       continue
     }
-    const fallbackLocale = localeKeys.find(l => specificLocale.startsWith(l + "-"))
+
+    // We must compare normalized keys
+    const specificLocale = normalizeLocaleKey(cldrLocale)
+    if (result.has(specificLocale)) {
+      continue
+    }
+
+    // Skip if this locale is already explicitly defined
+    const fallbackLocale = definedLocales.find(l => specificLocale.startsWith(l.prefix))
     if (fallbackLocale) {
-      result.set(specificLocale, fallbackLocale)
+      result.set(specificLocale, fallbackLocale.locale)
     }
   }
 

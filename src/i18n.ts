@@ -1,7 +1,7 @@
 import { useMemo } from "react"
 import { useLocation } from "react-router"
 import { normalizeLocaleKey, type PathLocale } from "./config"
-import { config, defaultLocale, fallbackLocales, normalizeLocale, supportedLocales, } from "./runtime"
+import { config, defaultLocale, localeMapping, normalizeLocale, supportedLocales, } from "./runtime"
 
 /**
  * React hook that derives the active locale from the current URL path.
@@ -68,7 +68,7 @@ export function parseUrlLocale(url: string): PathLocale {
     // Support translation of nested locales, e.g. "en-US" -> "en"
     // Note that keys in fallbackLocales are stored as keys, not in canonical form,
     // but values are already canonical.
-    const resolvedLocale = fallbackLocales?.[normalizeLocaleKey(rawLocale)]
+    const resolvedLocale = localeMapping?.[normalizeLocaleKey(rawLocale)]
     if (resolvedLocale && supportedLocales.has(resolvedLocale)) {
       return { locale: resolvedLocale, rawLocale, pathname, excluded: false }
     }

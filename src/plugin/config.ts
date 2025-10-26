@@ -1,3 +1,4 @@
+import type { LinguiConfigNormalized } from "@lingui/conf"
 import type { RedirectBehavior } from "../config"
 
 export type LinguiRouterPluginConfigFull = {
@@ -19,6 +20,21 @@ export type LinguiRouterPluginConfigFull = {
    * - "never": Never redirect to detected locale.
    */
   redirect: RedirectBehavior
+  /**
+   * Mapping of locale codes to fallback locale codes, used for locale detection and redirection.
+   *
+   * For example, `{ "fr-CA": "fr", "es-MX": "es" }`,
+   * where in lingui config are `["fr", "es"]` only.
+   *
+   * It's also possible to map to a different locale, e.g. `{ "de": "en" }`.
+   */
+  localeMapping: Record<string, string>
+  /**
+   * Explicit Lingui configuration to use.
+   *
+   * If not provided, the plugin will attempt to load the Lingui config from the project root.
+   */
+  linguiConfig?: Readonly<LinguiConfigNormalized>
 }
 
 /**
