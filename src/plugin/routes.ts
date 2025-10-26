@@ -1,35 +1,4 @@
 import type { LinguiConfig } from "@lingui/conf"
-import { route, type RouteConfigEntry } from "@react-router/dev/routes"
-import { allLocales } from "./cldr"
-import { normalizeLocaleKey } from "../config"
-
-const LOCAL_PATH_REGEX = /^(?:\.\/)?/
-
-export function localeRoutes(config: Readonly<LinguiConfig>) {
-  const locales = buildAllLocalesList(config.locales)
-  const routePrefixes = [""].concat(locales.map(loc => loc + "/"))
-
-  return {
-    /**
-     * Create localized route entries for a given path and file.
-     * For example, `route("products", "routes/products.tsx")` will generate entries
-     * for each locale as `["en/products", "pseudo/products", ...]`
-     */
-    route(path: string, file: string, children?: RouteConfigEntry[]): RouteConfigEntry[] {
-      return routePrefixes
-        .filter(p => p + path)
-        .map(p => route(p + path, file, { id: file.replace(LOCAL_PATH_REGEX, p) }, children))
-    },
-    /**
-     * Create index routes for every locale root ("/en", "/cs", etc.).
-     */
-    index(file: string, children?: RouteConfigEntry[]): RouteConfigEntry[] {
-      return locales.map(loc =>
-        route(loc, file, { id: file.replace(LOCAL_PATH_REGEX, loc + "/") }, children)
-      )
-    },
-  }
-}
 
 /**
  * Generate all locale-specific paths for a given base path.
@@ -51,14 +20,4 @@ export function localePaths(
     result.push(path)
   }
   return result
-}
-
-function buildAllLocalesList(locales: string[]): string[] {
-  const possibleParents = allLocales.map(normalizeLocaleKey)
-
-  const parentsList = locales.flatMap(l =>
-    possibleParents.filter(al => al.startsWith(normalizeLocaleKey(l) + "-"))
-  )
-
-  return Array.from(new Set([...locales, ...parentsList])).sort()
 }
