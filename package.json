@@ -70,6 +70,7 @@
     "@types/negotiator": "^0.6.4",
     "@types/node": "^22.18.12",
     "@types/react": "^19.2.2",
+    "cldr-core": "^47.0.0",
     "prettier": "^3.6.2",
     "prettier-plugin-organize-imports": "^4.3.0",
     "rollup": "^4.52.5",

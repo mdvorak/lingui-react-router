@@ -1,10 +1,12 @@
 import type { LinguiConfig } from "@lingui/conf"
 import { route, type RouteConfigEntry } from "@react-router/dev/routes"
+import { allLocales } from "./cldr"
+import { normalizeLocaleKey } from "./config"
 
 const LOCAL_PATH_REGEX = /^(?:\.\/)?/
 
 export function localeRoutes(config: Readonly<LinguiConfig>) {
-  const locales = config.locales
+  const locales = buildAllLocalesList(config.locales)
   const routePrefixes = [""].concat(locales.map(loc => loc + "/"))
 
   return {
@@ -49,4 +51,14 @@ export function localePaths(
     result.push(path)
   }
   return result
+}
+
+function buildAllLocalesList(locales: string[]): string[] {
+  const possibleParents = allLocales.map(normalizeLocaleKey)
+
+  const parentsList = locales.flatMap(l =>
+    possibleParents.filter(al => al.startsWith(normalizeLocaleKey(l) + "-"))
+  )
+
+  return Array.from(new Set([...locales, ...parentsList])).sort()
 }

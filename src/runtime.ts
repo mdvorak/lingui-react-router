@@ -1,9 +1,10 @@
 import type { Messages } from "@lingui/core"
 import * as loader from "virtual:lingui-router-loader"
-import type { LinguiRouterConfig } from "./config"
+import { type LinguiRouterConfig, normalizeLocaleKey } from "./config"
 
 export const config: LinguiRouterConfig = loader.config
-export const defaultLocale = loader.config.defaultLocale
+export const defaultLocale: string = loader.config.defaultLocale
+export const parentLocaleMap: Record<string, string> = loader.parentLocaleMap
 export const localeLoaders: Record<string, () => Promise<{ messages: Messages }>> =
   loader.localeLoaders
 /**
@@ -22,12 +23,8 @@ export async function loadLocaleCatalog(locale: string): Promise<Messages> {
 }
 
 const localeNamesMap = new Map<string, string>(
-  Array.from(supportedLocales).map(locale => [normalizedKey(locale), locale])
+  Array.from(supportedLocales).map(locale => [normalizeLocaleKey(locale), locale])
 )
-
-function normalizedKey(locale: string): string {
-  return locale.toLowerCase().replace(/_/g, "-")
-}
 
 /**
  * Normalize a locale code to its canonical form.
@@ -42,5 +39,5 @@ function normalizedKey(locale: string): string {
  * @returns The normalized locale code.
  */
 export function normalizeLocale(locale: string): string {
-  return localeNamesMap.get(normalizedKey(locale)) ?? locale
+  return localeNamesMap.get(normalizeLocaleKey(locale)) ?? locale
 }
