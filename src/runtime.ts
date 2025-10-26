@@ -7,12 +7,9 @@ export const defaultLocale = loader.config.defaultLocale
 export const localeLoaders: Record<string, () => Promise<{ messages: Messages }>> =
   loader.localeLoaders
 /**
- * A set of all supported locales (primary and secondary).
+ * A set of all supported locales.
  */
-export const allLocales = new Set<string>([
-  ...loader.config.locales,
-  ...Object.keys(loader.config.secondaryLocales),
-])
+export const supportedLocales = new Set<string>(loader.config.locales)
 
 export async function loadLocaleCatalog(locale: string): Promise<Messages> {
   const loaderFunc = loader.localeLoaders[locale]
@@ -25,10 +22,10 @@ export async function loadLocaleCatalog(locale: string): Promise<Messages> {
 }
 
 const localeNamesMap = new Map<string, string>(
-  Array.from(allLocales).map(locale => [normalizationKey(locale), locale])
+  Array.from(supportedLocales).map(locale => [normalizedKey(locale), locale])
 )
 
-function normalizationKey(locale: string): string {
+function normalizedKey(locale: string): string {
   return locale.toLowerCase().replace(/_/g, "-")
 }
 
@@ -45,5 +42,5 @@ function normalizationKey(locale: string): string {
  * @returns The normalized locale code.
  */
 export function normalizeLocale(locale: string): string {
-  return localeNamesMap.get(normalizationKey(locale)) ?? locale
+  return localeNamesMap.get(normalizedKey(locale)) ?? locale
 }

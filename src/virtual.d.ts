@@ -11,7 +11,7 @@ declare module "virtual:lingui-router-locale-*" {
 
 declare module "virtual:lingui-router-loader" {
   import type { I18n, Messages } from "@lingui/core"
-  import type { LinguiRouterConfig, PathLocale } from "./config"
+  import type { LinguiRouterConfig } from "./config"
 
   export const config: LinguiRouterConfig
   export const localeLoaders: Record<string, () => Promise<{ messages: Messages }>>

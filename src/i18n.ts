@@ -1,7 +1,7 @@
 import { useMemo } from "react"
 import { useLocation } from "react-router"
 import type { PathLocale } from "./config"
-import { allLocales, config, defaultLocale, normalizeLocale } from "./runtime"
+import { config, defaultLocale, normalizeLocale, supportedLocales } from "./runtime"
 
 /**
  * React hook that derives the active locale from the current URL path.
@@ -56,11 +56,11 @@ export function parseUrlLocale(url: string): PathLocale {
 
   const match = LOCALE_PATH_REGEX.exec(url)
   if (match) {
-    const [, l, p] = match
-    const locale = normalizeLocale(l)
-    if (allLocales.has(locale)) {
-      return { locale: locale, pathname: p, excluded: false }
-    } else if (config.exclude.includes(l)) {
+    const [, rawLocale, pathname] = match
+    const locale = normalizeLocale(rawLocale)
+    if (supportedLocales.has(locale)) {
+      return { locale, rawLocale, pathname, excluded: false }
+    } else if (config.exclude.includes(rawLocale)) {
       return { locale: undefined, pathname: url, excluded: true }
     }
   }

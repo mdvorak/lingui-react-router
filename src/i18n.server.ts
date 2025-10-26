@@ -8,8 +8,8 @@ import {
   type RouterContextProvider,
 } from "react-router"
 import { $detectLocale, $getI18nInstance } from "virtual:lingui-router-loader"
-import { config } from "./runtime"
 import { parseUrlLocale } from "./i18n" // Assert this is included only on server
+import { config } from "./runtime"
 
 // Assert this is included only on server
 if (globalThis.window) {
@@ -83,10 +83,18 @@ export async function localeMiddleware(
   next: () => Promise<Response>
 ): Promise<Response> {
   const url = new URL(request.url)
-  const { locale, pathname, excluded } = parseUrlLocale(url.pathname)
+  const { locale, rawLocale, pathname, excluded } = parseUrlLocale(url.pathname)
   let selectedLocale = locale
 
-  if (!selectedLocale) {
+  if (selectedLocale) {
+    if (selectedLocale !== rawLocale) {
+      // Redirect to normalized locale URL
+      // Note that this intentionally ignores redirect config, but we might add a new option later
+      // Without this, pre-rendered URLs would not match
+      throw redirect(`/${selectedLocale}${pathname}${url.search}${url.hash}`)
+    }
+  } else {
+    // Detect locale from request headers
     selectedLocale = handleRequestLocale(request, url, pathname, excluded)
   }
 

@@ -1,11 +1,10 @@
-import type { FallbackLocales, LinguiConfig } from "@lingui/conf"
+import type { LinguiConfig } from "@lingui/conf"
 import { route, type RouteConfigEntry } from "@react-router/dev/routes"
-import { getSecondaryLocales } from "./config"
 
 const LOCAL_PATH_REGEX = /^(?:\.\/)?/
 
 export function localeRoutes(config: Readonly<LinguiConfig>) {
-  const locales = buildAllLocalesList(config.locales, config.fallbackLocales)
+  const locales = config.locales
   const routePrefixes = [""].concat(locales.map(loc => loc + "/"))
 
   return {
@@ -45,31 +44,9 @@ export function localePaths(
   path: string,
   withDefault: boolean = true
 ): string[] {
-  const locales = buildAllLocalesList(config.locales, config.fallbackLocales)
-  const result = locales.map(loc => `/${loc}${path}`)
+  const result = config.locales.map(loc => `/${loc}${path}`)
   if (withDefault) {
     result.push(path)
   }
   return result
-}
-
-/**
- * Builds a sorted, de-duplicated list of all known locale codes.
- *
- * Combines the primary `locales` with keys from `fallbackLocales`
- * (excluding the reserved `"default"` key).
- *
- * @param locales - Primary supported locales in priority order.
- * @param fallbackLocales - Optional mapping of locales to their fallbacks. Only its keys are considered; `"default"` is ignored.
- * @returns An array of all known locale codes.
- *
- * @example
- * // returns ["en", "fr", "it"]
- * buildAllLocalesList(["en", "it"], { default: "en", fr: ["en"] })
- */
-function buildAllLocalesList(
-  locales: string[],
-  fallbackLocales?: FallbackLocales | false
-): string[] {
-  return [...locales, ...Object.keys(getSecondaryLocales(locales, fallbackLocales))]
 }
