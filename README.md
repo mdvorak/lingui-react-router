@@ -42,166 +42,167 @@ Note that since this library is always inlined, it's only required as a dev depe
 
 1. Configure vite and react router
 
-Enable React Router, Lingui, and macros in Vite for SSR and catalog compilation during development.
-Path alias resolution via tsconfigPaths is recommended for clean imports and consistent
-server/client builds.
+   Enable React Router, Lingui, and macros in Vite for SSR and catalog compilation during
+   development.
+   Path alias resolution via tsconfigPaths is recommended for clean imports and consistent
+   server/client builds.
 
-```typescript
-// vite.config.ts
-import { lingui } from "@lingui/vite-plugin"
-import { reactRouter } from "@react-router/dev/vite"
-import { linguiRouterPlugin } from "lingui-react-router/plugin"
-import { defineConfig } from "vite"
-import macrosPlugin from "vite-plugin-babel-macros"
-import tsconfigPaths from "vite-tsconfig-paths"
+    ```ts
+    // vite.config.ts
+    import { lingui } from "@lingui/vite-plugin"
+    import { reactRouter } from "@react-router/dev/vite"
+    import { linguiRouterPlugin } from "lingui-react-router/plugin"
+    import { defineConfig } from "vite"
+    import macrosPlugin from "vite-plugin-babel-macros"
+    import tsconfigPaths from "vite-tsconfig-paths"
 
-export default defineConfig({
-  plugins: [
-    reactRouter(),
-    macrosPlugin(),
-    lingui(),
-    linguiRouterPlugin({
-      // Exclude paths that should not be treated as localized pages (optional)
-      exclude: ["api", "health"],
-    }),
-    tsconfigPaths(),
-  ],
-})
-```
+    export default defineConfig({
+       plugins: [
+         reactRouter(),
+         macrosPlugin(),
+         lingui(),
+         linguiRouterPlugin({
+           // Exclude paths that should not be treated as localized pages (optional)
+           exclude: ["api", "health"],
+         }),
+         tsconfigPaths(),
+       ],
+    })
+    ```
 
-Enable SSR and v8-style middleware in the React Router config to support server-side i18n
-initialization and redirects.
-This aligns server middleware with the app's route modules and the I18nApp layout for consistent SSR
-hydration.
-Configure prerendering for localized routes if needed.
+   Enable SSR and v8-style middleware in the React Router config to support server-side i18n
+   initialization and redirects.
+   This aligns server middleware with the app's route modules and the I18nApp layout for consistent
+   SSR
+   hydration.
+   Configure prerendering for localized routes if needed.
 
-```ts
-// react-router.config.ts
-import type { Config } from "@react-router/dev/config"
-import { localePaths } from "lingui-react-router/routes"
-import linguiConfig from "./lingui.config"
+    ```ts
+    // react-router.config.ts
+    import type { Config } from "@react-router/dev/config"
+    import { localePaths } from "lingui-react-router/routes"
+    import linguiConfig from "./lingui.config"
 
-export default {
-  future: {
-    v8_middleware: true,
-  },
-  prerender: ["/hello"].flatMap(path => localePaths(linguiConfig, path)),
-} satisfies Config
-```
+    export default {
+      future: {
+        v8_middleware: true,
+      },
+      prerender: ["/hello"].flatMap(path => localePaths(linguiConfig, path)),
+    } satisfies Config
+    ```
 
 2. Add server middleware and wrap the app with I18nApp in the root layout route module.
    The middleware sets up the server-side i18n context, and the I18nApp provides hydration-safe i18n
    on the client and server.
 
-```tsx
-// app/root.tsx
-import { useLingui } from "@lingui/react/macro"
-import { I18nApp, LocalePreload } from "lingui-react-router"
-import { localeMiddleware } from "lingui-react-router/server"
-import { type ReactNode } from "react"
-import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router"
+    ```tsx
+    // app/root.tsx
+    import { useLingui } from "@lingui/react/macro"
+    import { I18nApp, LocalePreload } from "lingui-react-router"
+    import { localeMiddleware } from "lingui-react-router/server"
+    import { type ReactNode } from "react"
+    import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router"
 
-export const middleware = [localeMiddleware]
+    export const middleware = [localeMiddleware]
 
-function RootLayout({ children }: { children: ReactNode }) {
-  const { i18n } = useLingui()
+    function RootLayout({ children }: { children: ReactNode }) {
+      const { i18n } = useLingui()
 
-  return (
-    <html lang={i18n.locale}>
-      <head>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <Meta />
-        <Links />
-        <LocalePreload />
-      </head>
-      <body>
+      return (
+        <html lang={i18n.locale}>
+        <head>
+          <meta charSet="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <Meta />
+          <Links />
+          <LocalePreload />
+        </head>
+        <body>
         {children}
         <ScrollRestoration />
         <Scripts />
-      </body>
-    </html>
-  )
-}
+        </body>
+        </html>
+      )
+    }
 
-export function Layout({ children }: { children: ReactNode }) {
-  return (
-    <I18nApp>
-      <RootLayout>{children}</RootLayout>
-    </I18nApp>
-  )
-}
+    export function Layout({ children }: { children: ReactNode }) {
+      return (
+        <I18nApp>
+          <RootLayout>{children}</RootLayout>
+        </I18nApp>
+      )
+    }
 
-export default function App() {
-  return <Outlet />
-}
-```
+    export default function App() {
+      return <Outlet />
+    }
+    ```
 
 3. Bootstrap the client by preloading the initial locale before hydrating the router.
    This ensures the correct messages are available at first paint and avoids hydration warnings.
 
-```tsx
-// app/entry.client.tsx
-import { loadInitialLocale } from "lingui-react-router/client"
-import { startTransition, StrictMode } from "react"
-import { hydrateRoot } from "react-dom/client"
-import { HydratedRouter } from "react-router/dom"
+    ```tsx
+    // app/entry.client.tsx
+    import { loadInitialLocale } from "lingui-react-router/client"
+    import { startTransition, StrictMode } from "react"
+    import { hydrateRoot } from "react-dom/client"
+    import { HydratedRouter } from "react-router/dom"
 
-startTransition(async () => {
-  await loadInitialLocale(location.pathname)
+    startTransition(async () => {
+      await loadInitialLocale(location.pathname)
 
-  hydrateRoot(
-    document,
-    <StrictMode>
-      <HydratedRouter />
-    </StrictMode>
-  )
-})
-```
+      hydrateRoot(
+        document,
+        <StrictMode>
+          <HydratedRouter />
+        </StrictMode>
+      )
+    })
+    ```
 
 4. Generate localized routes from the i18n config with the prefix helper.
-   Define the default root and locale-scoped routes using React Router's prefix helper with an optional locale parameter.
+   Define the default root and locale-scoped routes using React Router's prefix helper with an
+   optional locale parameter.
 
-```ts
-// app/routes.ts
-import { index, prefix, route, type RouteConfig } from "@react-router/dev/routes"
+    ```ts
+    // app/routes.ts
+    import { index, prefix, route, type RouteConfig } from "@react-router/dev/routes"
 
-export default [
-  index("./routes/_index.tsx"),
-  ...prefix(":locale?", [
-    index("./routes/_index.tsx", { id: "locale-index" }),
-    route("hello", "./routes/hello.tsx"),
-  ]),
-] satisfies RouteConfig
- ```
+    export default [
+      index("./routes/_index.tsx"),
+      ...prefix(":locale?", [
+        index("./routes/_index.tsx", { id: "locale-index" }),
+        route("hello", "./routes/hello.tsx"),
+      ]),
+    ] satisfies RouteConfig
+    ```
 
 5. Use the locale-aware link and runtime hooks for current locale, request locale, and config.
    LocaleLink automatically prefixes the active locale and should receive locale-less paths for
    correctness.
 
-```tsx
-import { LocaleLink, usePathLocale, config } from "lingui-react-router"
+    ```tsx
+    import { LocaleLink, usePathLocale, config } from "lingui-react-router"
 
-function Header() {
-  const { locale, requestLocale } = usePathLocale()
-  return (
-    <nav>
-      <LocaleLink to="/hello">Hello</LocaleLink>
-      <span>
-        Active: {locale} (from URL: {requestLocale || "-"})
-      </span>
-      <span>Supported: {config.locales.join(", ")}</span>
-    </nav>
-  )
-}
-```
-
-Notes about LocaleLink:
-
-- Pass locale-less paths such as `to="/hello"` or an object pathname without a locale, and the
-  locale prefix will be added automatically based on the current request locale.
-- If the current URL has no locale segment (e.g., the default root), LocaleLink renders a normal
-  Link without modification to preserve expected navigation.
+    function Header() {
+      const { locale, requestLocale } = usePathLocale()
+      return (
+        <nav>
+          <LocaleLink to="/hello">Hello</LocaleLink>
+          <span>
+            Active: {locale} (from URL: {requestLocale || "-"})
+          </span>
+          <span>Supported: {config.locales.join(", ")}</span>
+        </nav>
+      )
+    }
+    ```
+   Notes about LocaleLink:
+   - Pass locale-less paths such as `to="/hello"` or an object pathname without a locale, and the
+     locale prefix will be added automatically based on the current request locale.
+   - If the current URL has no locale segment (e.g., the default root), LocaleLink renders a normal
+     Link without modification to preserve expected navigation.
 
 6. Access server-side i18n and locale-aware redirects in loaders and actions with `useLinguiServer`.
    Redirects thrown from this helper are automatically prefixed with the current locale for
@@ -254,7 +255,8 @@ Notes about LocaleLink:
 
 ## Plugin Configuration
 
-The `linguiRouterPlugin` accepts an optional configuration object to customize its behavior. All options are optional and have sensible defaults.
+The `linguiRouterPlugin` accepts an optional configuration object to customize its behavior. All
+options are optional and have sensible defaults.
 
 ### Options
 
@@ -262,24 +264,30 @@ The `linguiRouterPlugin` accepts an optional configuration object to customize i
 
 - **Type:** `string | string[]`
 - **Default:** `[]`
-- **Description:** One or more root-level path prefixes that should NOT be treated as locales. This is useful for API routes, health check endpoints, or other non-localized paths.
+- **Description:** One or more root-level path prefixes that should NOT be treated as locales. This
+  is useful for API routes, health check endpoints, or other non-localized paths.
 
 #### `detectLocale`
 
 - **Type:** `boolean`
 - **Default:** `true`
-- **Description:** Whether to detect the user's preferred locale from the `Accept-Language` HTTP header. When enabled, the server middleware will attempt to determine the best matching locale based on the user's browser settings.
+- **Description:** Whether to detect the user's preferred locale from the `Accept-Language` HTTP
+  header. When enabled, the server middleware will attempt to determine the best matching locale
+  based on the user's browser settings.
 
 #### `redirect`
 
 - **Type:** `"auto" | "always" | "never"`
 - **Default:** `"auto"`
-- **Description:** Controls the redirect behavior when a locale is detected from the `Accept-Language` header.
+- **Description:** Controls the redirect behavior when a locale is detected from the
+  `Accept-Language` header.
 
 **Values:**
 
-- `"auto"`: Redirect to the detected locale only if it's not the default locale. This provides a clean UX where the default locale doesn't require a URL prefix, but other locales do.
-- `"always"`: Always redirect to the detected locale, even if it's the default locale. All users will see locale-prefixed URLs.
+- `"auto"`: Redirect to the detected locale only if it's not the default locale. This provides a
+  clean UX where the default locale doesn't require a URL prefix, but other locales do.
+- `"always"`: Always redirect to the detected locale, even if it's the default locale. All users
+  will see locale-prefixed URLs.
 - `"never"`: Never redirect based on detected locale. Users remain on the URL they requested.
 
 ### Complete Example
