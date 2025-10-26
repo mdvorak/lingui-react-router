@@ -51,7 +51,10 @@
     }
   },
   "files": [
-    "dist/"
+    "dist/",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
   ],
   "scripts": {
     "typecheck": "tsc --noEmit --strict",
