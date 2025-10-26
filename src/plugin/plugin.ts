@@ -116,7 +116,10 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
       }
 
       if (id === "\0" + VIRTUAL_LOADER) {
-        return await generateLoaderModule(normalizedConfig, linguiConfig, server)
+        const configObject = buildConfig(normalizedConfig, linguiConfig, server)
+        return server
+          ? await generateLoaderModuleServer(configObject, linguiConfig, normalizedConfig)
+          : await generateLoaderModuleClient(configObject, linguiConfig)
       }
 
       if (id.startsWith("\0" + VIRTUAL_PREFIX)) {
@@ -175,11 +178,8 @@ async function generateLocaleModule(
     const imports = catalogs.map(c => `import {messages as ${c.varName}} from '${c.path}'`)
     const catalogVars = catalogs.map(c => c.varName)
 
-    return `
-${imports.join("\n")}
-
-export const messages = Object.assign({}, ${catalogVars.join(", ")})
-`
+    return `${imports.join("\n")}
+export const messages = Object.assign({}, ${catalogVars.join(", ")})`
   } else if (catalogs.length === 1) {
     return `export * from '${catalogs[0].path}'`
   } else {
@@ -187,69 +187,77 @@ export const messages = Object.assign({}, ${catalogVars.join(", ")})
   }
 }
 
-async function generateLoaderModule(
-  pluginConfig: LinguiRouterPluginConfigFull,
+async function generateLoaderModuleServer(
+  configObject: LinguiRouterConfig,
   linguiConfig: LinguiConfigNormalized,
-  server: boolean
+  pluginConfig: LinguiRouterPluginConfigFull
 ): Promise<string> {
   const lines: string[] = []
-  const configObject = buildConfig(pluginConfig, linguiConfig, server)
 
-  lines.push(`export const config = ${JSON.stringify(configObject)}`)
+  lines.push(
+    `import { setupI18n } from "@lingui/core"`,
+    `export const config = ${JSON.stringify(configObject)}`
+  )
 
-  if (server) {
-    lines.push(`import { setupI18n } from "@lingui/core"`)
+  const loaderMap: string[] = []
+  const messagesMap: string[] = []
+  const bundleMap: string[] = []
 
-    const loaderMap: string[] = []
-    const messagesMap: string[] = []
-    const bundleMap: string[] = []
+  // For server builds, use static imports
+  for (const locale of linguiConfig.locales) {
+    const varName = `locale_${locale.replace(/-/g, "_")}`
+    lines.push(`import { messages as ${varName} } from '${VIRTUAL_PREFIX}${locale}'`)
 
-    // For server builds, use static imports
-    for (const locale of linguiConfig.locales) {
-      const varName = `locale_${locale.replace(/-/g, "_")}`
-      lines.push(`import { messages as ${varName} } from '${VIRTUAL_PREFIX}${locale}'`)
+    loaderMap.push(`  '${locale}': () => Promise.resolve({messages: ${varName}}),`)
+    messagesMap.push(`  '${locale}': ${varName},`)
+    bundleMap.push(`  '${locale}': setupI18n({ locale: '${locale}', messages: localeMessages }),`)
+  }
 
-      loaderMap.push(`  '${locale}': () => Promise.resolve({messages: ${varName}}),`)
-      messagesMap.push(`  '${locale}': ${varName},`)
-      bundleMap.push(`  '${locale}': setupI18n({ locale: '${locale}', messages: localeMessages }),`)
-    }
+  lines.push(
+    `export const localeLoaders = {`,
+    ...loaderMap,
+    `}`,
+    `const localeMessages = {`,
+    ...messagesMap,
+    `}`,
+    `const i18nInstances = {`,
+    ...bundleMap,
+    `}`,
+    generateGetI18nInstanceServer()
+  )
 
+  if (pluginConfig.detectLocale) {
     lines.push(
-      `export const localeLoaders = {`,
-      ...loaderMap,
-      `}`,
-      `const localeMessages = {`,
-      ...messagesMap,
-      `}`,
-      `const i18nInstances = {`,
-      ...bundleMap,
-      `}`,
-      generateGetI18nInstanceServer()
-    )
-
-    if (pluginConfig.detectLocale) {
-      lines.push(
-        `import { negotiateClientLocale } from "${NAME}/negotiate"`,
-        `export const $detectLocale = negotiateClientLocale`
-      )
-    } else {
-      lines.push(`export const $detectLocale = () => undefined`)
-    }
-
-    const fallbackLocaleMap: Record<string, string> = await findFallbackLocales(linguiConfig.locales)
-    lines.push(
-      `export const fallbackLocales = JSON.parse(\`${JSON.stringify(fallbackLocaleMap)}\`)`,
+      `import { negotiateClientLocale } from "${NAME}/negotiate"`,
+      `export const $detectLocale = negotiateClientLocale`
     )
   } else {
-    lines.push(`export const localeLoaders = {`)
-
-    // For client builds, use dynamic imports
-    for (const locale of linguiConfig.locales) {
-      lines.push(`  '${locale}': () => import('${VIRTUAL_PREFIX}${locale}'),`)
-    }
-
-    lines.push(`}`, generateGetI18nInstanceClient(), `export const fallbackLocales = undefined`)
+    lines.push(`export const $detectLocale = () => undefined`)
   }
+
+  const fallbackLocaleMap: Record<string, string> = await findFallbackLocales(linguiConfig.locales)
+  lines.push(`export const fallbackLocales = JSON.parse(\`${JSON.stringify(fallbackLocaleMap)}\`)`)
+
+  return lines.join("\n")
+}
+
+async function generateLoaderModuleClient(
+  configObject: LinguiRouterConfig,
+  linguiConfig: LinguiConfigNormalized
+): Promise<string> {
+  const lines: string[] = []
+
+  lines.push(
+    `export const config = ${JSON.stringify(configObject)}`,
+    `export const localeLoaders = {`
+  )
+
+  // For client builds, use dynamic imports
+  for (const locale of linguiConfig.locales) {
+    lines.push(`  '${locale}': () => import('${VIRTUAL_PREFIX}${locale}'),`)
+  }
+
+  lines.push(`}`, generateGetI18nInstanceClient(), `export const fallbackLocales = undefined`)
 
   return lines.join("\n")
 }
