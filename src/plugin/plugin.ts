@@ -290,7 +290,8 @@ async function findFallbackLocales(locales: string[]): Promise<Record<string, st
 
   // Convert current locales to normalized keys for comparison
   // This will help in matching more specific locales first
-  const localeKeys = locales.map(normalizeLocaleKey).sort().reverse()
+  // Sort locale keys by descending length to prioritize more specific locales first
+  const localeKeys = locales.map(normalizeLocaleKey).sort((a, b) => b.length - a.length)
 
   // Find all more specific locales for each defined locale
   for (const cldrLocale of allLocales) {
