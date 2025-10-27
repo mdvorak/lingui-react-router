@@ -37,8 +37,8 @@ importers:
         specifier: ^0.6.4
         version: 0.6.4
       '@types/node':
-        specifier: ^22.18.12
-        version: 22.18.12
+        specifier: ^24.9.1
+        version: 24.9.1
       '@types/react':
         specifier: ^19.2.2
         version: 19.2.2
@@ -62,7 +62,7 @@ importers:
         version: 3.6.1(typescript@5.9.3)
       vite:
         specifier: ^7.1.7
-        version: 7.1.12(@types/node@22.18.12)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.20.6)
+        version: 7.1.12(@types/node@24.9.1)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.20.6)
 
   test:
     dependencies:
@@ -2922,7 +2922,7 @@ snapshots:
       '@jest/schemas': 29.6.3
       '@types/istanbul-lib-coverage': 2.0.6
       '@types/istanbul-reports': 3.0.4
-      '@types/node': 22.18.12
+      '@types/node': 24.9.1
       '@types/yargs': 17.0.34
       chalk: 4.1.2
 
@@ -3449,6 +3449,7 @@ snapshots:
   '@types/node@22.18.12':
     dependencies:
       undici-types: 6.21.0
+    optional: true
 
   '@types/node@24.9.1':
     dependencies:
@@ -5047,7 +5048,8 @@ snapshots:
       - vue-sfc-transformer
       - vue-tsc
 
-  undici-types@6.21.0: {}
+  undici-types@6.21.0:
+    optional: true
 
   undici-types@7.16.0: {}
 
