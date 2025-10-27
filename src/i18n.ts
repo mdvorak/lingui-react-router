@@ -29,7 +29,7 @@ export function usePathLocale(): PathLocale {
 
   return useMemo(() => {
     const localeParam = params[config.localeParamName]
-    const { locale } = findPathLocale(localeParam)
+    const { locale } = findLocale(localeParam)
     // Use relative pathname only if locale was found
     const requestPathname = locale
       ? stripPathnameLocalePrefix(location.pathname, localeParam)
@@ -51,14 +51,14 @@ export function usePathLocale(): PathLocale {
  * - `locale` - The resolved locale code if found, otherwise undefined
  * - `excluded` - Boolean indicating if the path matches an excluded prefix
  */
-export function findPathLocale(localeParam: string | undefined): {
+export function findLocale(localeParam: string | undefined): {
   locale?: string
   excluded: boolean
 } {
-  return findPathLocaleImpl(localeParam, new Set<string>())
+  return findLocaleImpl(localeParam, new Set<string>())
 }
 
-function findPathLocaleImpl(
+function findLocaleImpl(
   localeParam: string | undefined,
   seen: Set<string>
 ): {
@@ -91,7 +91,7 @@ function findPathLocaleImpl(
   // Mapped locale
   const resolvedLocale = localeMapping?.[locale]
   if (resolvedLocale && resolvedLocale !== locale) {
-    return findPathLocaleImpl(resolvedLocale, seen)
+    return findLocaleImpl(resolvedLocale, seen)
   }
 
   return { excluded: false }
