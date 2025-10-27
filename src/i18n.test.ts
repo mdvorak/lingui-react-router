@@ -15,6 +15,9 @@ vi.mock("virtual:lingui-router-loader", () => ({
     a: "b",
     b: "en",
     english: "en-us",
+    // circular mapping to test cycle detection
+    c: "d",
+    d: "c",
   },
   // empty loaders are fine for these tests
   localeLoaders: {},
@@ -45,7 +48,7 @@ describe("findPathLocale", () => {
     expect(findPathLocale("de")).toEqual({ excluded: false })
   })
 
-  it("resolves mapping chains and does not infinite loop", () => {
+  it("resolves mapping chains", () => {
     expect(findPathLocale("a")).toEqual({ locale: "en", excluded: false })
   })
 
@@ -67,6 +70,12 @@ describe("findPathLocale", () => {
     testCases.forEach(({ input, expected }) => {
       expect(findPathLocale(input)).toEqual(expected)
     })
+  })
+
+  it("does not infinite loop on circular localeMapping", () => {
+    expect(() => findPathLocale("c")).toThrowError(
+      /Circular localeMapping detected/i
+    )
   })
 })
 
