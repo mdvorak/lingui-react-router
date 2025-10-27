@@ -1,6 +1,14 @@
 import type { LinguiConfigNormalized } from "@lingui/conf"
 import type { RedirectBehavior } from "../config"
 
+export const PLUGIN_NAME = "lingui-react-router"
+export const VIRTUAL_LOCALE_PREFIX = "virtual:lingui-router-locale-"
+export const VIRTUAL_MANIFEST = "virtual:lingui-router-manifest"
+export const VIRTUAL_LOADER = "virtual:lingui-router-loader"
+export const MANIFEST_PLACEHOLDER = "__$$_LINGUI_REACT_ROUTER_MANIFEST_PLACEHOLDER$$__"
+export const MANIFEST_CHUNK_NAME = "locale-manifest"
+export const LOCALE_MANIFEST_FILENAME = ".client-locale-manifest.json"
+
 export type LinguiRouterPluginConfigFull = {
   /**
    * One or more root-level path prefixes that should NOT be treated as locales.
