@@ -36,7 +36,7 @@ jobs:
         run: pnpm pack
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: matrix.node-version == 'lts/*'
         with:
           name: lingui-react-router
