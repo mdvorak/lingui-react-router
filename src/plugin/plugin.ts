@@ -74,7 +74,7 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
     config(config) {
       return {
         resolve: {
-          dedupe: (config.resolve?.dedupe ?? []).concat(PLUGIN_NAME),
+          dedupe: addToList(config.resolve?.dedupe, PLUGIN_NAME),
         },
         build: {
           rollupOptions: {
@@ -98,7 +98,7 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
           noExternal:
             config.ssr?.noExternal === true || addToList(config.ssr?.noExternal, PLUGIN_NAME),
           optimizeDeps: {
-            include: ["negotiator"].concat(config.ssr?.optimizeDeps?.include ?? []),
+            include: addToList(config.ssr?.optimizeDeps?.include, "negotiator"),
           },
         },
       } satisfies UserConfig

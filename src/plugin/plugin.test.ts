@@ -1,5 +1,11 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 import { addToList, linguiRouterPlugin } from "./plugin"
+import {
+  PLUGIN_NAME,
+  VIRTUAL_LOADER,
+  VIRTUAL_LOCALE_PREFIX,
+  VIRTUAL_MANIFEST,
+} from "./plugin-config"
 
 describe("addToList", () => {
   it("should create a new array with the value when list is undefined", () => {
@@ -38,7 +44,7 @@ describe("addToList", () => {
 
 describe("linguiRouterPlugin - configResolved", () => {
   const mockLinguiConfig = {
-    locales: ["zn", "es"],
+    locales: ["zh", "es"],
     pseudoLocale: "custom-PSEUDO",
   }
 
@@ -147,5 +153,212 @@ describe("linguiRouterPlugin - configResolved", () => {
     plugin.configResolved(config)
 
     expect(config.linguiRouterConfig.pseudoLocale).toBe("pseudo-locale")
+  })
+})
+
+describe("linguiRouterPlugin - config", () => {
+  it("should add plugin to dedupe list", () => {
+    const plugin = linguiRouterPlugin()
+    const userConfig = {} as any
+
+    const result = plugin.config(userConfig)
+
+    expect(result.resolve?.dedupe).toContain(PLUGIN_NAME)
+  })
+
+  it("should preserve existing dedupe entries", () => {
+    const plugin = linguiRouterPlugin()
+    const userConfig = {
+      resolve: {
+        dedupe: ["react", "react-dom"],
+      },
+    } as any
+
+    const result = plugin.config(userConfig)
+
+    expect(result.resolve?.dedupe).toEqual(["react", "react-dom", PLUGIN_NAME])
+  })
+
+  it("should configure manualChunks for locale and manifest modules", () => {
+    const plugin = linguiRouterPlugin()
+    const userConfig = {} as any
+
+    const result = plugin.config(userConfig)
+
+    expect(result.build?.rollupOptions?.output?.manualChunks).toBeDefined()
+  })
+
+  it("should include plugin in ssr.noExternal", () => {
+    const plugin = linguiRouterPlugin()
+    const userConfig = {} as any
+
+    const result = plugin.config(userConfig)
+
+    expect(result.ssr?.noExternal).toContain(PLUGIN_NAME)
+  })
+
+  it("should preserve existing ssr.noExternal array", () => {
+    const plugin = linguiRouterPlugin()
+    const userConfig = {
+      ssr: {
+        noExternal: ["other-package"],
+      },
+    } as any
+
+    const result = plugin.config(userConfig)
+
+    expect(result.ssr?.noExternal).toEqual(["other-package", PLUGIN_NAME])
+  })
+
+  it("should keep ssr.noExternal as true when already true", () => {
+    const plugin = linguiRouterPlugin()
+    const userConfig = {
+      ssr: {
+        noExternal: true,
+      },
+    } as any
+
+    const result = plugin.config(userConfig)
+
+    expect(result.ssr?.noExternal).toBe(true)
+  })
+
+  it("should include negotiator in ssr.optimizeDeps.include", () => {
+    const plugin = linguiRouterPlugin()
+    const userConfig = {} as any
+
+    const result = plugin.config(userConfig)
+
+    expect(result.ssr?.optimizeDeps?.include).toContain("negotiator")
+  })
+
+  it("should preserve existing ssr.optimizeDeps.include entries", () => {
+    const plugin = linguiRouterPlugin()
+    const userConfig = {
+      ssr: {
+        optimizeDeps: {
+          include: ["other-dep"],
+        },
+      },
+    } as any
+
+    const result = plugin.config(userConfig)
+
+    expect(result.ssr?.optimizeDeps?.include).toContain("negotiator")
+    expect(result.ssr?.optimizeDeps?.include).toContain("other-dep")
+  })
+
+  describe("manualChunks", () => {
+    it("should return manifest chunk name for virtual manifest module", () => {
+      const plugin = linguiRouterPlugin()
+      const userConfig = {} as any
+
+      const result = plugin.config(userConfig)
+      const manualChunks = result.build?.rollupOptions?.output?.manualChunks
+
+      const mockModuleInfo = {
+        importers: [],
+        dynamicImporters: [],
+      }
+      const getModuleInfo = vi.fn().mockReturnValue(mockModuleInfo)
+
+      const chunkName = manualChunks("\0" + VIRTUAL_MANIFEST, { getModuleInfo })
+
+      expect(getModuleInfo).toHaveBeenCalledWith("\0" + VIRTUAL_MANIFEST)
+      expect(chunkName).toBeDefined()
+    })
+
+    it("should return locale chunk name for virtual locale modules", () => {
+      const plugin = linguiRouterPlugin()
+      const userConfig = {} as any
+
+      const result = plugin.config(userConfig)
+      const manualChunks = result.build?.rollupOptions?.output?.manualChunks
+
+      const getModuleInfo = vi.fn()
+
+      expect(manualChunks("\0" + VIRTUAL_LOCALE_PREFIX + "en", { getModuleInfo })).toBe("locale-en")
+      expect(manualChunks("\0" + VIRTUAL_LOCALE_PREFIX + "fr", { getModuleInfo })).toBe("locale-fr")
+      expect(manualChunks("\0" + VIRTUAL_LOCALE_PREFIX + "de-de", { getModuleInfo })).toBe(
+        "locale-de-de"
+      )
+      expect(manualChunks("\0" + VIRTUAL_LOCALE_PREFIX + "zh-CN", { getModuleInfo })).toBe(
+        "locale-zh-CN"
+      )
+    })
+
+    it("should return undefined for non-virtual modules", () => {
+      const plugin = linguiRouterPlugin()
+      const userConfig = {} as any
+
+      const result = plugin.config(userConfig)
+      const manualChunks = result.build?.rollupOptions?.output?.manualChunks
+
+      const getModuleInfo = vi.fn()
+
+      expect(manualChunks("react", { getModuleInfo })).toBeUndefined()
+      expect(manualChunks("./some-file.ts", { getModuleInfo })).toBeUndefined()
+      expect(manualChunks("@lingui/react", { getModuleInfo })).toBeUndefined()
+    })
+
+    it("should throw error when module info not found for manifest", () => {
+      const plugin = linguiRouterPlugin()
+      const userConfig = {} as any
+
+      const result = plugin.config(userConfig)
+      const manualChunks = result.build?.rollupOptions?.output?.manualChunks
+
+      const getModuleInfo = vi.fn().mockReturnValue(null)
+
+      expect(() => {
+        manualChunks("\0" + VIRTUAL_MANIFEST, { getModuleInfo })
+      }).toThrow(`Module info not found for \\0${VIRTUAL_MANIFEST}`)
+    })
+  })
+})
+
+describe("linguiRouterPlugin - resolveId", () => {
+  it("should resolve virtual manifest module", () => {
+    const plugin = linguiRouterPlugin()
+
+    const result = plugin.resolveId(VIRTUAL_MANIFEST)
+
+    expect(result).toBe("\0" + VIRTUAL_MANIFEST)
+  })
+
+  it("should resolve virtual loader module", () => {
+    const plugin = linguiRouterPlugin()
+
+    const result = plugin.resolveId(VIRTUAL_LOADER)
+
+    expect(result).toBe("\0" + VIRTUAL_LOADER)
+  })
+
+  it("should resolve virtual locale modules", () => {
+    const plugin = linguiRouterPlugin()
+
+    const result = plugin.resolveId(VIRTUAL_LOCALE_PREFIX + "en")
+
+    expect(result).toBe("\0" + VIRTUAL_LOCALE_PREFIX + "en")
+  })
+
+  it("should resolve locale modules with different locales", () => {
+    const plugin = linguiRouterPlugin()
+
+    expect(plugin.resolveId(VIRTUAL_LOCALE_PREFIX + "fr")).toBe("\0" + VIRTUAL_LOCALE_PREFIX + "fr")
+    expect(plugin.resolveId(VIRTUAL_LOCALE_PREFIX + "de-de")).toBe(
+      "\0" + VIRTUAL_LOCALE_PREFIX + "de-de"
+    )
+    expect(plugin.resolveId(VIRTUAL_LOCALE_PREFIX + "zh-CN")).toBe(
+      "\0" + VIRTUAL_LOCALE_PREFIX + "zh-CN"
+    )
+  })
+
+  it("should not resolve non-virtual modules", () => {
+    const plugin = linguiRouterPlugin()
+
+    expect(plugin.resolveId("react")).toBeUndefined()
+    expect(plugin.resolveId("./some-file.ts")).toBeUndefined()
+    expect(plugin.resolveId("@lingui/react")).toBeUndefined()
   })
 })
