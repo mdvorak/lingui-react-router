@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest"
-import { findPathLocale, stripPathnameLocalePrefix } from "./i18n"
+import { findLocale, stripPathnameLocalePrefix } from "./i18n"
 
 // Mock the virtual loader used by runtime.ts before importing the tested module.
 // This is shorter and more direct than mocking ./runtime.
@@ -10,7 +10,7 @@ vi.mock("virtual:lingui-router-loader", () => ({
     locales: ["en", "fr", "en-us", "en-us-x-twain"],
     localeParamName: "locale",
   },
-  // localeMapping keys should be normalized keys as findPathLocale looks up by normalized locale
+  // localeMapping keys should be normalized keys as findLocale looks up by normalized locale
   localeMapping: {
     a: "b",
     b: "en",
@@ -23,38 +23,38 @@ vi.mock("virtual:lingui-router-loader", () => ({
   localeLoaders: {},
 }))
 
-describe("findPathLocale", () => {
+describe("findLocale", () => {
   it("returns no locale when localeParam is undefined", () => {
-    expect(findPathLocale(undefined)).toEqual({ excluded: false })
+    expect(findLocale(undefined)).toEqual({ excluded: false })
   })
 
   it("finds a simple locale", () => {
-    expect(findPathLocale("en")).toEqual({ locale: "en", excluded: false })
+    expect(findLocale("en")).toEqual({ locale: "en", excluded: false })
   })
 
   it("finds a country-code locale (normalized)", () => {
-    expect(findPathLocale("en-US")).toEqual({ locale: "en-us", excluded: false })
+    expect(findLocale("en-US")).toEqual({ locale: "en-us", excluded: false })
   })
 
   it("normalizes locale keys during search", () => {
-    expect(findPathLocale("en_US")).toEqual({ locale: "en-us", excluded: false })
+    expect(findLocale("en_US")).toEqual({ locale: "en-us", excluded: false })
   })
 
   it("marks excluded prefixes as excluded", () => {
-    expect(findPathLocale("api")).toEqual({ excluded: true })
+    expect(findLocale("api")).toEqual({ excluded: true })
   })
 
   it("returns undefined-like result (no locale) for unknown locale", () => {
-    expect(findPathLocale("de")).toEqual({ excluded: false })
+    expect(findLocale("de")).toEqual({ excluded: false })
   })
 
   it("resolves mapping chains", () => {
-    expect(findPathLocale("a")).toEqual({ locale: "en", excluded: false })
+    expect(findLocale("a")).toEqual({ locale: "en", excluded: false })
   })
 
   it("handles long/extended locale codes", () => {
     const longLocale = "en-US-x-twain"
-    expect(findPathLocale(longLocale)).toEqual({ locale: "en-us-x-twain", excluded: false })
+    expect(findLocale(longLocale)).toEqual({ locale: "en-us-x-twain", excluded: false })
   })
 
   it("handles edge-case inputs and returns expected results", () => {
@@ -68,12 +68,12 @@ describe("findPathLocale", () => {
     ]
 
     testCases.forEach(({ input, expected }) => {
-      expect(findPathLocale(input)).toEqual(expected)
+      expect(findLocale(input)).toEqual(expected)
     })
   })
 
   it("does not infinite loop on circular localeMapping", () => {
-    expect(() => findPathLocale("c")).toThrowError(
+    expect(() => findLocale("c")).toThrowError(
       /Circular localeMapping detected/i
     )
   })

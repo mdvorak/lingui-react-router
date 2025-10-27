@@ -1,5 +1,5 @@
 import { i18n } from "@lingui/core"
-import { findPathLocale } from "../i18n"
+import { findLocale } from "../i18n"
 import { defaultLocale, loadLocaleCatalog } from "../runtime"
 import "./assert-client"
 
@@ -48,7 +48,7 @@ function parseUrlLocale(pathname: string): string | undefined {
   const match = /^\/+([^/]+)\/?.*$/.exec(pathname)
   if (match) {
     const [, localeParam] = match
-    const { locale } = findPathLocale(localeParam)
+    const { locale } = findLocale(localeParam)
     return locale
   }
 }

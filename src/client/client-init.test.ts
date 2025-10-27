@@ -11,7 +11,7 @@ vi.mock("@lingui/core", () => ({
 }))
 
 vi.mock("../i18n", () => ({
-  findPathLocale: vi.fn(),
+  findLocale: vi.fn(),
 }))
 
 vi.mock("../runtime", () => ({
@@ -28,8 +28,8 @@ describe("loadInitialLocale", () => {
     vi.clearAllMocks()
   })
 
-  it("should extract first pathname segment and pass to findPathLocale", async () => {
-    vi.mocked(i18nModule.findPathLocale).mockReturnValue({
+  it("should extract first pathname segment and pass to findLocale", async () => {
+    vi.mocked(i18nModule.findLocale).mockReturnValue({
       locale: "fr",
       excluded: false,
     })
@@ -38,7 +38,7 @@ describe("loadInitialLocale", () => {
     await loadInitialLocale("/fr/about")
 
     // Verify that 'fr' was extracted from '/fr/about'
-    expect(i18nModule.findPathLocale).toHaveBeenCalledWith("fr")
+    expect(i18nModule.findLocale).toHaveBeenCalledWith("fr")
     expect(runtimeModule.loadLocaleCatalog).toHaveBeenCalledWith("fr")
     expect(i18n.loadAndActivate).toHaveBeenCalledWith({
       locale: "fr",
@@ -51,7 +51,7 @@ describe("loadInitialLocale", () => {
 
     await loadInitialLocale("/")
 
-    expect(i18nModule.findPathLocale).not.toHaveBeenCalled()
+    expect(i18nModule.findLocale).not.toHaveBeenCalled()
     expect(runtimeModule.loadLocaleCatalog).toHaveBeenCalledWith("en")
     expect(i18n.loadAndActivate).toHaveBeenCalledWith({
       locale: "en",
@@ -59,8 +59,8 @@ describe("loadInitialLocale", () => {
     })
   })
 
-  it("should use default locale when findPathLocale returns undefined", async () => {
-    vi.mocked(i18nModule.findPathLocale).mockReturnValue({
+  it("should use default locale when findLocale returns undefined", async () => {
+    vi.mocked(i18nModule.findLocale).mockReturnValue({
       locale: undefined,
       excluded: false,
     })
@@ -68,8 +68,8 @@ describe("loadInitialLocale", () => {
 
     await loadInitialLocale("/about")
 
-    // Verify that 'about' was extracted and passed to findPathLocale
-    expect(i18nModule.findPathLocale).toHaveBeenCalledWith("about")
+    // Verify that 'about' was extracted and passed to findLocale
+    expect(i18nModule.findLocale).toHaveBeenCalledWith("about")
     expect(runtimeModule.loadLocaleCatalog).toHaveBeenCalledWith("en")
     expect(i18n.loadAndActivate).toHaveBeenCalledWith({
       locale: "en",
@@ -78,7 +78,7 @@ describe("loadInitialLocale", () => {
   })
 
   it("should extract locale from pathname with trailing slash", async () => {
-    vi.mocked(i18nModule.findPathLocale).mockReturnValue({
+    vi.mocked(i18nModule.findLocale).mockReturnValue({
       locale: "es",
       excluded: false,
     })
@@ -87,7 +87,7 @@ describe("loadInitialLocale", () => {
     await loadInitialLocale("/es/contact/")
 
     // Verify that 'es' was extracted from '/es/contact/'
-    expect(i18nModule.findPathLocale).toHaveBeenCalledWith("es")
+    expect(i18nModule.findLocale).toHaveBeenCalledWith("es")
     expect(runtimeModule.loadLocaleCatalog).toHaveBeenCalledWith("es")
     expect(i18n.loadAndActivate).toHaveBeenCalledWith({
       locale: "es",
@@ -96,7 +96,7 @@ describe("loadInitialLocale", () => {
   })
 
   it("should extract locale from pathname with multiple segments", async () => {
-    vi.mocked(i18nModule.findPathLocale).mockReturnValue({
+    vi.mocked(i18nModule.findLocale).mockReturnValue({
       locale: "it",
       excluded: false,
     })
@@ -105,7 +105,7 @@ describe("loadInitialLocale", () => {
     await loadInitialLocale("/it/products/categories/electronics")
 
     // Verify that only 'it' (first segment) was extracted
-    expect(i18nModule.findPathLocale).toHaveBeenCalledWith("it")
+    expect(i18nModule.findLocale).toHaveBeenCalledWith("it")
     expect(runtimeModule.loadLocaleCatalog).toHaveBeenCalledWith("it")
     expect(i18n.loadAndActivate).toHaveBeenCalledWith({
       locale: "it",
@@ -114,7 +114,7 @@ describe("loadInitialLocale", () => {
   })
 
   it("should handle pathname with multiple leading slashes", async () => {
-    vi.mocked(i18nModule.findPathLocale).mockReturnValue({
+    vi.mocked(i18nModule.findLocale).mockReturnValue({
       locale: "de",
       excluded: false,
     })
@@ -123,7 +123,7 @@ describe("loadInitialLocale", () => {
     await loadInitialLocale("///de/page")
 
     // Verify that 'de' was extracted despite multiple leading slashes
-    expect(i18nModule.findPathLocale).toHaveBeenCalledWith("de")
+    expect(i18nModule.findLocale).toHaveBeenCalledWith("de")
     expect(runtimeModule.loadLocaleCatalog).toHaveBeenCalledWith("de")
     expect(i18n.loadAndActivate).toHaveBeenCalledWith({
       locale: "de",
@@ -132,7 +132,7 @@ describe("loadInitialLocale", () => {
   })
 
   it("should extract locale from locale-only pathname", async () => {
-    vi.mocked(i18nModule.findPathLocale).mockReturnValue({
+    vi.mocked(i18nModule.findLocale).mockReturnValue({
       locale: "pt",
       excluded: false,
     })
@@ -141,7 +141,7 @@ describe("loadInitialLocale", () => {
     await loadInitialLocale("/pt")
 
     // Verify that 'pt' was extracted from '/pt'
-    expect(i18nModule.findPathLocale).toHaveBeenCalledWith("pt")
+    expect(i18nModule.findLocale).toHaveBeenCalledWith("pt")
     expect(runtimeModule.loadLocaleCatalog).toHaveBeenCalledWith("pt")
     expect(i18n.loadAndActivate).toHaveBeenCalledWith({
       locale: "pt",
@@ -155,7 +155,7 @@ describe("loadInitialLocale", () => {
     await loadInitialLocale("no-leading-slash")
 
     // Pathname doesn't start with '/', regex won't match, no locale extracted
-    expect(i18nModule.findPathLocale).not.toHaveBeenCalled()
+    expect(i18nModule.findLocale).not.toHaveBeenCalled()
     expect(runtimeModule.loadLocaleCatalog).toHaveBeenCalledWith("en")
     expect(i18n.loadAndActivate).toHaveBeenCalledWith({
       locale: "en",
@@ -164,7 +164,7 @@ describe("loadInitialLocale", () => {
   })
 
   it("should extract first segment containing special characters", async () => {
-    vi.mocked(i18nModule.findPathLocale).mockReturnValue({
+    vi.mocked(i18nModule.findLocale).mockReturnValue({
       locale: undefined,
       excluded: false,
     })
@@ -172,13 +172,13 @@ describe("loadInitialLocale", () => {
 
     await loadInitialLocale("/en-US/page")
 
-    // Verify that 'en-US' was extracted and passed to findPathLocale
-    expect(i18nModule.findPathLocale).toHaveBeenCalledWith("en-US")
+    // Verify that 'en-US' was extracted and passed to findLocale
+    expect(i18nModule.findLocale).toHaveBeenCalledWith("en-US")
     expect(runtimeModule.loadLocaleCatalog).toHaveBeenCalledWith("en")
   })
 
   it("should handle empty first segment", async () => {
-    vi.mocked(i18nModule.findPathLocale).mockReturnValue({
+    vi.mocked(i18nModule.findLocale).mockReturnValue({
       locale: undefined,
       excluded: false,
     })
@@ -187,7 +187,7 @@ describe("loadInitialLocale", () => {
     await loadInitialLocale("//page")
 
     // Multiple slashes are normalized, 'page' is extracted as first segment
-    expect(i18nModule.findPathLocale).toHaveBeenCalledWith("page")
+    expect(i18nModule.findLocale).toHaveBeenCalledWith("page")
     expect(runtimeModule.loadLocaleCatalog).toHaveBeenCalledWith("en")
   })
 })
