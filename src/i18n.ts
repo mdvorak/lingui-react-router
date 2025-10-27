@@ -55,6 +55,16 @@ export function findPathLocale(localeParam: string | undefined): {
   locale?: string
   excluded: boolean
 } {
+  return findPathLocaleImpl(localeParam, new Set<string>())
+}
+
+function findPathLocaleImpl(
+  localeParam: string | undefined,
+  seen: Set<string>
+): {
+  locale?: string
+  excluded: boolean
+} {
   // No locale segment
   if (!localeParam) {
     return { excluded: false }
@@ -62,6 +72,12 @@ export function findPathLocale(localeParam: string | undefined): {
 
   // Normalize locale key
   const locale = normalizeLocaleKey(localeParam)
+
+  // Cycle detection: if we've already attempted this normalized key, bail out
+  if (seen.has(locale)) {
+    throw new Error(`Circular localeMapping detected for locale "${locale}"`)
+  }
+  seen.add(locale)
 
   // Direct match
   if (supportedLocales.has(locale)) {
@@ -75,7 +91,7 @@ export function findPathLocale(localeParam: string | undefined): {
   // Mapped locale
   const resolvedLocale = localeMapping?.[locale]
   if (resolvedLocale && resolvedLocale !== locale) {
-    return findPathLocale(resolvedLocale)
+    return findPathLocaleImpl(resolvedLocale, seen)
   }
 
   return { excluded: false }
