@@ -112,7 +112,7 @@ export function buildConfig(
   }
 }
 
-async function buildLocaleMapping(
+export async function buildLocaleMapping(
   locales: string[],
   localeMap: Record<string, string>
 ): Promise<Record<string, string>> {

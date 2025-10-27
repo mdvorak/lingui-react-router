@@ -2,6 +2,7 @@
 node_modules/
 .swc/
 dist/
+coverage/
 
 # React Router
 .react-router/
