@@ -6,8 +6,5 @@ export default {
   future: {
     v8_middleware: true,
   },
-  prerender: [
-    ...["/hello"].flatMap(path => localePaths(linguiConfig, path)),
-    "/static/hello",
-  ],
+  prerender: [...["/hello"].flatMap(path => localePaths(linguiConfig, path)), "/static/hello"],
 } satisfies Config

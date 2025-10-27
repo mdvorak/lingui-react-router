@@ -1,5 +1,5 @@
 import { Trans, useLingui } from "@lingui/react/macro"
-import { I18nApp, LocalePreload, LocaleLink } from "lingui-react-router"
+import { I18nApp, LocaleLink, LocalePreload } from "lingui-react-router"
 import { localeMiddleware } from "lingui-react-router/server"
 import { type ReactNode } from "react"
 import { isRouteErrorResponse, Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router"
