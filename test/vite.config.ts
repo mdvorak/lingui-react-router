@@ -13,12 +13,10 @@ export default defineConfig({
     macrosPlugin(),
     lingui(),
     linguiRouterPlugin({
+      localeParamName: "locale",
       localeMapping: {
-        "de": "en",
+        de: "en",
       },
-      // These are defaults
-      detectLocale: true,
-      redirect: "auto",
     }),
     tsconfigPaths(),
   ],

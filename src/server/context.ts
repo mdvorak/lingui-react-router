@@ -1,32 +1,31 @@
 import { type I18n } from "@lingui/core"
-import { type I18nContext } from "@lingui/react"
-import { createContext, redirect, type RedirectFunction, type RouterContextProvider } from "react-router"
+import { createContext, redirect, type RedirectFunction, type RouterContextProvider, } from "react-router"
+import type { PathLocale } from "../i18n"
 import "./assert-server"
 
 /**
  * A utility type for server-side i18n context.
  */
-type I18nRequestContext = {
+export type I18nRequestContext = PathLocale & {
   /** The internationalization processing object, which manages locale-specific content and configurations. */
   i18n: I18n
+  /** The translation function bound to the current i18n instance. */
+  _: I18n["_"]
   /** The URL object for the current request, representing its full path and query parameters. */
   url: URL
-  /** An optional string indicating the locale explicitly requested. */
-  requestLocale?: string
-  /** The pathname of the current request, can be used to build locale-specific urls. */
-  requestPathname: string
 }
+
+/**
+ * Context to hold server-side i18n information.
+ */
+export const LocaleContext = createContext<I18nRequestContext>()
 
 /**
  * Server-side i18n context with additional properties.
  */
-export type I18nRouterContext = I18nContext &
-  I18nRequestContext & {
-    pathnamePrefix: string
-    redirect: RedirectFunction
-  }
-
-export const LocaleContext = createContext<I18nRequestContext>()
+export type I18nRouterContext = I18nRequestContext & {
+  redirect: RedirectFunction
+}
 
 /**
  * Hook to access the server-side i18n context. Use only in loaders and actions.
@@ -48,8 +47,6 @@ export function useLinguiServer(context: Readonly<RouterContextProvider>): I18nR
 
     return {
       ...serverContext,
-      _: serverContext.i18n._.bind(serverContext.i18n),
-      pathnamePrefix,
       redirect: (to, init) => redirect(`${pathnamePrefix}${to}`, init),
     }
   } catch (err: unknown) {

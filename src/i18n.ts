@@ -3,47 +3,39 @@ import { useLocation, useParams } from "react-router"
 import { normalizeLocaleKey } from "./config"
 import { config, defaultLocale, localeMapping, supportedLocales } from "./runtime"
 
+export type PathLocale = {
+  /** The resolved locale code (falls back to defaultLocale). */
+  locale: string
+  /** An optional string indicating the locale explicitly requested. */
+  requestLocale?: string
+  /** The pathname of the current request, can be used to build locale-specific urls. */
+  requestPathname: string
+}
+
 /**
  * React hook that derives the active locale from the current URL path.
  *
  * @returns An object containing:
- * - `requestLocale` - The locale code parsed from the URL pathname (e.g., "en" from "/en/..."), or undefined if not present
- * - `locale` - The effective locale code (falls back to defaultLocale when requestLocale is not present)
- * - `pathname` - The remaining URL path after the locale prefix
- * - `excluded` - Boolean indicating if the path matches an excluded prefix
- *
- * @example
- * ```tsx
- * const { locale, requestLocale, pathname } = useLocale();
- * // URL: "/en/products"
- * // => { locale: "en", requestLocale: "en", pathname: "/products", excluded: false }
- *
- * // URL: "/products" (no locale prefix)
- * // => { locale: "en", requestLocale: undefined, pathname: "/products", excluded: false }
- * ```
+ * - `locale` - The resolved locale code (falls back to defaultLocale)
+ * - `requestLocale` - The locale code extracted from the URL path, if any
+ * - `requestPathname` - The pathname without the locale prefix
  */
-export function usePathLocale(): {
-  locale: string
-  requestLocale?: string
-  pathname: string
-  excluded: boolean
-} {
+export function usePathLocale(): PathLocale {
   const location = useLocation()
   const params = useParams()
 
   return useMemo(() => {
     const localeParam = params[config.localeParamName]
-    const { locale, excluded } = findPathLocale(localeParam)
+    const { locale } = findPathLocale(localeParam)
     // Use relative pathname only if locale was found
-    const pathname = locale
+    const requestPathname = locale
       ? parseLocalePathname(location.pathname, localeParam)
       : location.pathname
 
     return {
       requestLocale: locale,
       locale: locale || defaultLocale,
-      pathname,
-      excluded,
+      requestPathname,
     }
   }, [params[config.localeParamName], location.pathname])
 }
