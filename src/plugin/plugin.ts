@@ -47,7 +47,7 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
 
     configResolved(config) {
       const linguiConfig = pluginConfig.linguiConfig ?? getConfig({ cwd: config.root })
-      const locales = pluginConfig.locales ?? linguiConfig.locales
+      const locales = pluginConfig.locales ?? linguiConfig.locales ?? []
       const pseudoLocale = pluginConfig.pseudoLocale ?? linguiConfig.pseudoLocale
 
       // Build plugin config with defaults and normalization
