@@ -26,9 +26,10 @@ export type PathLocale = {
 export function usePathLocale(): PathLocale {
   const location = useLocation()
   const params = useParams()
+  const localeParamName = config.localeParamName
 
   return useMemo(() => {
-    const localeParam = params[config.localeParamName]
+    const localeParam = params[localeParamName]
     const { locale } = findLocale(localeParam)
     // Use relative pathname only if locale was found
     const requestPathname = locale
@@ -40,7 +41,7 @@ export function usePathLocale(): PathLocale {
       locale: locale || defaultLocale,
       requestPathname,
     }
-  }, [params[config.localeParamName], location.pathname])
+  }, [params[localeParamName], location.pathname])
 }
 
 /**
