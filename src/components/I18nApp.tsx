@@ -11,19 +11,16 @@ import { loadLocaleCatalog } from "../runtime"
  * It is recommended to split Layout into two components, otherwise useLingui() won't work
  * properly.
  *
- * @example root.tsx
- * import i18nConfig from "../i18n.config"
- *
- * function RootLayout({ children }: { children: ReactNode }) {
+ * @example
+ * // root.tsx
+ * function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
  *   const { i18n } = useLingui()
- *
  *   return (
  *     <html lang={i18n.locale}>
  *       <head>
- *         <meta charSet="utf-8" />
- *         <meta name="viewport" content="width=device-width, initial-scale=1" />
  *         <Meta />
  *         <Links />
+ *         <LocalePreload />
  *       </head>
  *       <body>
  *         {children}
@@ -34,9 +31,9 @@ import { loadLocaleCatalog } from "../runtime"
  *   )
  * }
  *
- * export function Layout({ children }: { children: ReactNode }) {
+ * export function Layout({ children }: Readonly<{ children: ReactNode }>) {
  *   return (
- *     <I18nApp config={i18nConfig}>
+ *     <I18nApp>
  *       <RootLayout>{children}</RootLayout>
  *     </I18nApp>
  *   )
@@ -56,13 +53,12 @@ export function I18nApp({ children }: Readonly<{ children: React.ReactNode }>) {
       if (locale in i18n.messages) {
         i18n.activate(locale)
       } else {
-        loadLocaleCatalog(locale).then(messages => i18n.loadAndActivate({ locale, messages }))
+        loadLocaleCatalog(locale)
+          .then(messages => i18n.loadAndActivate({ locale, messages }))
+          .catch(err => console.error("Failed to load locale ", locale, " catalog:", err))
       }
     }
-  }, [locale])
+  }, [i18n, locale])
 
-  // @ts-ignore
-  const childrenRender = typeof children === "function" ? children(i18n) : children
-
-  return <I18nProvider i18n={i18n}>{childrenRender}</I18nProvider>
+  return <I18nProvider i18n={i18n}>{children}</I18nProvider>
 }

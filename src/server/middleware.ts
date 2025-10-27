@@ -4,7 +4,7 @@ import { $detectLocale, $getI18nInstance } from "virtual:lingui-router-loader"
 import { config } from "../runtime"
 import "./assert-server"
 import { LocaleContext } from "./context"
-import { findPathLocale, parseLocalePathname } from "../i18n"
+import { findPathLocale, stripPathnameLocalePrefix } from "../i18n"
 
 /**
  * Locale middleware implementation. Determines the locale from the URL or the
@@ -23,7 +23,7 @@ export async function localeMiddleware(
   const paramsMap = params as Record<string, string | undefined>
   const localeParam = paramsMap[config.localeParamName]
   const { locale, excluded } = findPathLocale(localeParam)
-  const requestPathname = locale ? parseLocalePathname(url.pathname, localeParam) : url.pathname
+  const requestPathname = locale ? stripPathnameLocalePrefix(url.pathname, localeParam) : url.pathname
 
   let requestLocale = locale
 

@@ -32,7 +32,7 @@ export function usePathLocale(): PathLocale {
     const { locale } = findPathLocale(localeParam)
     // Use relative pathname only if locale was found
     const requestPathname = locale
-      ? parseLocalePathname(location.pathname, localeParam)
+      ? stripPathnameLocalePrefix(location.pathname, localeParam)
       : location.pathname
 
     return {
@@ -46,7 +46,7 @@ export function usePathLocale(): PathLocale {
 /**
  * Finds and resolves the locale from a URL path segment.
  *
- * @param localeParam The locale segment extracted from the URL path.
+ * @param localeParam The locale segment extracted from the URL path. Should not be normalized.
  * @returns An object containing:
  * - `locale` - The resolved locale code if found, otherwise undefined
  * - `excluded` - Boolean indicating if the path matches an excluded prefix
@@ -88,7 +88,10 @@ export function findPathLocale(localeParam: string | undefined): {
  * @param localeParam The locale segment extracted from the URL path (e.g., "en")
  * @returns The pathname without the locale prefix (e.g., "/products")
  */
-export function parseLocalePathname(pathname: string, localeParam: string | undefined): string {
+export function stripPathnameLocalePrefix(
+  pathname: string,
+  localeParam: string | undefined
+): string {
   if (localeParam && pathname.startsWith(`/${localeParam}`)) {
     return pathname.slice(localeParam.length + 1) || "/"
   }
