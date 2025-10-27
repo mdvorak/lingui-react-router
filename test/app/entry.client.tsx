@@ -5,7 +5,6 @@ import { HydratedRouter } from "react-router/dom"
 
 startTransition(async () => {
   await loadInitialLocale(location.pathname)
-
   hydrateRoot(
     document,
     <StrictMode>

@@ -9,25 +9,22 @@ import "./assert-client"
  * Use `react-router reveal entry.client`, if the file is missing in your project
  *
  * @example entry.client.tsx
- * import { setupLingui } from "lingui-react-router/client"
+ * import { loadInitialLocale } from "lingui-react-router/client"
  * import { startTransition, StrictMode } from "react"
  * import { hydrateRoot } from "react-dom/client"
  * import { HydratedRouter } from "react-router/dom"
  *
  * startTransition(async () => {
  *   await loadInitialLocale(location.pathname)
- *
  *   hydrateRoot(
  *     document,
  *     <StrictMode>
  *       <HydratedRouter />
- *     </StrictMode>)
+ *     </StrictMode>
+ *   )
  * })
  *
- * @param config Imported extended lingui config
  * @param pathname A `location.pathname` value.
- */
-/**
  * @returns The initialized I18n instance bound to the detected locale.
  */
 export async function loadInitialLocale(pathname: string) {
@@ -45,7 +42,7 @@ export async function loadInitialLocale(pathname: string) {
  */
 function parseUrlLocale(pathname: string): string | undefined {
   if (pathname === "/") {
-    return
+    return undefined
   }
 
   const match = /^\/+([^/]+)\/?.*$/.exec(pathname)

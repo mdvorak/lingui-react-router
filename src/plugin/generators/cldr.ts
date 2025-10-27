@@ -3,6 +3,8 @@ import { createRequire } from "node:module"
 
 const require = createRequire(import.meta.url)
 
+// Note we are returning `any` on purpose here, since its internal method,
+// and we need it to cast to any anyway
 async function loadModuleJson(path: string): Promise<any> {
   const data = await fs.readFile(require.resolve(path), "utf-8")
   return JSON.parse(data)
