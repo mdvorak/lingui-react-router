@@ -30,6 +30,11 @@ export type LinguiRouterPluginConfigFull = {
    */
   localeMapping: Record<string, string>
   /**
+   * Name of the URL parameter used to specify the locale.
+   * Defaults to "locale", e.g. `"/:locale?/*"`.
+   */
+  localeParamName: string
+  /**
    * Explicit Lingui configuration to use.
    *
    * If not provided, the plugin will attempt to load the Lingui config from the project root.
