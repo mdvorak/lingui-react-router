@@ -163,7 +163,7 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
  * @param value The value to add to the list
  * @returns A new array containing the original values plus the new value
  */
-function addToList<T>(list: T | T[] | undefined, value: T): T[] {
+export function addToList<T>(list: T | T[] | undefined, value: T): T[] {
   if (!list) {
     return [value]
   }
