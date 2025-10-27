@@ -146,20 +146,30 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
   } satisfies Plugin
 }
 
+function resolveLocale(locale: string, locales: string[]): string {
+  const normalizedLocale = normalizeLocaleKey(locale)
+  const resolved = locales.find(l => normalizeLocaleKey(l) === normalizedLocale)
+  if (!resolved) {
+    throw new Error(`Locale '${locale}' not found in Lingui configuration locales: ${locales}`)
+  }
+  return resolved
+}
+
 async function generateLocaleModule(
   locale: string,
   config: LinguiConfigNormalized
 ): Promise<string> {
   const catalogs: { varName: string; path: string }[] = []
-
   let importIndex = 0
+
+  // Use original lingui format for import
+  const linguiLocale = resolveLocale(locale, config.locales)
 
   // Note: catalogs are never empty in the normalized parsed config
   for (const catalogConfig of config.catalogs!) {
     let catalogPath = catalogConfig.path
       .replace(/<rootDir>/g, config.rootDir || process.cwd())
-      // TODO use original lingui format for import
-      .replace(/\{locale}/g, locale)
+      .replace(/\{locale}/g, linguiLocale)
       .replace(/\{name}/g, "*")
 
     // Add .po extension for glob pattern
@@ -214,7 +224,9 @@ async function generateLoaderModuleServer(
 
     loaderMap.push(`  '${normalizedLocale}': () => Promise.resolve({messages: ${varName}}),`)
     messagesMap.push(`  '${normalizedLocale}': ${varName},`)
-    bundleMap.push(`  '${normalizedLocale}': setupI18n({ locale: '${normalizedLocale}', messages: localeMessages }),`)
+    bundleMap.push(
+      `  '${normalizedLocale}': setupI18n({ locale: '${normalizedLocale}', messages: localeMessages }),`
+    )
   }
 
   lines.push(
@@ -283,13 +295,17 @@ function buildConfig(
 
   return {
     locales: linguiConfig.locales.map(normalizeLocaleKey),
-    pseudoLocale: linguiConfig.pseudoLocale ? normalizeLocaleKey(linguiConfig.pseudoLocale) : undefined,
-    sourceLocale: linguiConfig.sourceLocale ? normalizeLocaleKey(linguiConfig.sourceLocale) : undefined,
+    pseudoLocale: linguiConfig.pseudoLocale
+      ? normalizeLocaleKey(linguiConfig.pseudoLocale)
+      : undefined,
+    sourceLocale: linguiConfig.sourceLocale
+      ? normalizeLocaleKey(linguiConfig.sourceLocale)
+      : undefined,
     defaultLocale: normalizeLocaleKey(defaultLocale || linguiConfig.locales[0] || "en"),
     exclude,
     redirect: pluginConfig.redirect ?? "auto",
     runtimeEnv: server ? "server" : "client",
-    localeParamName: pluginConfig.localeParamName
+    localeParamName: pluginConfig.localeParamName,
   }
 }
 
@@ -300,7 +316,9 @@ async function buildLocaleMapping(
   const knownLocales = await getAllLocales()
 
   // Add existing locales to the result (all normalized)
-  const result = new Map<string, string>(locales.map(l => [normalizeLocaleKey(l), normalizeLocaleKey(l)]))
+  const result = new Map<string, string>(
+    locales.map(l => [normalizeLocaleKey(l), normalizeLocaleKey(l)])
+  )
 
   // Add user-defined fallback locales
   for (const [locale, fallback] of Object.entries(localeMap)) {
@@ -324,7 +342,10 @@ async function buildLocaleMapping(
   // Sort locale keys by descending length to prioritize more specific locales first
   const definedLocales = [...locales]
     .sort((a, b) => b.length - a.length)
-    .map(locale => ({ locale: normalizeLocaleKey(locale), prefix: normalizeLocaleKey(locale) + "-" }))
+    .map(locale => ({
+      locale: normalizeLocaleKey(locale),
+      prefix: normalizeLocaleKey(locale) + "-",
+    }))
 
   // Find all more specific locales for each defined locale
   for (const cldrLocale of knownLocales) {
