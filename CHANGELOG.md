@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.0.0](https://github.com/mdvorak/lingui-react-router/compare/v0.3.2...v1.0.0) (2025-10-27)
+
+
+### ⚠ BREAKING CHANGES
+
+* removed localeRoutes from lingui-react-router
+
+### Features
+
+* add locale mapping configuration for improved locale detection ([d2c7527](https://github.com/mdvorak/lingui-react-router/commit/d2c752748d3e301a587ef39e415d75b7b6fea99a))
+* add locale normalization and parent locale mapping ([9037056](https://github.com/mdvorak/lingui-react-router/commit/90370564e3c95786ee8b51a75ef078f4d81e7983))
+* add locale parameter name configuration for improved locale handling ([5cf9615](https://github.com/mdvorak/lingui-react-router/commit/5cf961587cf816ba8e6c70f698c74afd3110c491))
+* enhance locale handling and configuration ([edece57](https://github.com/mdvorak/lingui-react-router/commit/edece5783432d21a2b7097e30f3de0ba28ed9b38))
+* enhance localization support and configuration ([b19722a](https://github.com/mdvorak/lingui-react-router/commit/b19722ad41ccc04c4be56609fdbc6e63e4fc5531)), closes [#22](https://github.com/mdvorak/lingui-react-router/issues/22)
+* removed localeRoutes from lingui-react-router ([828313c](https://github.com/mdvorak/lingui-react-router/commit/828313ce8106951276fe375d8556785fde7715e2))
+* support fallback locales ([96ca054](https://github.com/mdvorak/lingui-react-router/commit/96ca054b91e6b40baaf0682c90f67f04b8b0ec92))
+
+
+### Bug Fixes
+
+* add cycle detection to localeMapping resolution ([b252432](https://github.com/mdvorak/lingui-react-router/commit/b2524322d7d5bfb499203d247723d6bda616d46a))
+* don't add user defined locales  to fallbackLocales ([6d70822](https://github.com/mdvorak/lingui-react-router/commit/6d708229bcdd2752f80a608ecdb114c1746dd223))
+* resolve catalog path properly ([ff114aa](https://github.com/mdvorak/lingui-react-router/commit/ff114aa53a0a5fa078a19a6caee3539111f98cac))
+
 ## [0.3.2](https://github.com/mdvorak/lingui-react-router/compare/v0.3.1...v0.3.2) (2025-10-24)
 
 ### ⚠ BREAKING CHANGES
