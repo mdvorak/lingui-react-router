@@ -33,6 +33,10 @@ export type LinguiRouterConfig = {
    * Current execution environment.
    */
   runtimeEnv: "client" | "server"
+  /**
+   * Locale path parameter name (e.g., "locale" for `/:locale?/*`).
+   */
+  localeParamName: string
 }
 
 /**

@@ -27,6 +27,7 @@ const DEFAULT_CONFIG: LinguiRouterPluginConfigFull = {
   exclude: [],
   detectLocale: true,
   redirect: "auto",
+  localeParamName: "locale",
   localeMapping: {},
 }
 
@@ -285,6 +286,7 @@ function buildConfig(
     exclude,
     redirect: pluginConfig.redirect ?? "auto",
     runtimeEnv: server ? "server" : "client",
+    localeParamName: pluginConfig.localeParamName
   }
 }
 

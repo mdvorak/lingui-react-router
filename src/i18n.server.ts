@@ -79,12 +79,18 @@ export function useLinguiServer(context: Readonly<RouterContextProvider>): I18nR
  * AsyncLocalStorage context containing i18n and request metadata.
  */
 export async function localeMiddleware(
-  { request, context }: { request: Request; context: Readonly<RouterContextProvider> },
+  {
+    request,
+    context,
+    params,
+  }: { request: Request; context: Readonly<RouterContextProvider>; params: unknown },
   next: () => Promise<Response>
 ): Promise<Response> {
   const url = new URL(request.url)
   const { locale, rawLocale, pathname, excluded } = parseUrlLocale(url.pathname)
-  let selectedLocale = locale
+  let selectedLocale: string | undefined = locale ?? (params as any)[config.localeParamName]
+
+  // TODO normalize and fallback?
 
   if (selectedLocale) {
     if (selectedLocale !== rawLocale) {
