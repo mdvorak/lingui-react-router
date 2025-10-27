@@ -15,6 +15,7 @@ export async function generateLocaleModule(
   pluginConfig: Readonly<LinguiRouterPluginConfigFull>
 ): Promise<string> {
   const linguiConfig = pluginConfig.linguiConfig
+  const rootDir = linguiConfig.rootDir || process.cwd()
   const catalogs: { varName: string; path: string }[] = []
   let importIndex = 0
 
@@ -24,7 +25,7 @@ export async function generateLocaleModule(
   // Note: catalogs are never empty in the normalized parsed config
   for (const catalogConfig of linguiConfig.catalogs!) {
     let catalogPath = catalogConfig.path
-      .replace(/<rootDir>/g, linguiConfig.rootDir || process.cwd())
+      .replace(/<rootDir>/g, rootDir)
       .replace(/\{locale}/g, linguiLocale)
       .replace(/\{name}/g, "*")
 
@@ -32,13 +33,13 @@ export async function generateLocaleModule(
     const globPattern = `${catalogPath}.po`
 
     const poFiles = await fg(globPattern, {
-      cwd: linguiConfig.rootDir || process.cwd(),
+      cwd: rootDir,
     })
 
     for (const poFile of poFiles) {
       const varName = `catalog${importIndex++}`
       // Resolve to an absolute path for import
-      const absolutePath = path.resolve(linguiConfig.rootDir || process.cwd(), poFile)
+      const absolutePath = path.resolve(rootDir, poFile)
       catalogs.push({ varName, path: absolutePath })
     }
   }

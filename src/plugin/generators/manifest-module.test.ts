@@ -45,7 +45,7 @@ describe("manifest-module", () => {
 
   describe("getManifestChunkName", () => {
     it("should return chunk name when module contains non-empty code", () => {
-      // Note: we define only the properties we need for the test
+      // Note: We define only the properties we need for the test
       const info = {
         id: "test-module",
         code: "const manifest = JSON.parse(`...`)\nexport default manifest",
@@ -57,7 +57,7 @@ describe("manifest-module", () => {
     })
 
     it("should return undefined when module contains empty default export", () => {
-      // Note: we define only the properties we need for the test
+      // Note: We define only the properties we need for the test
       const info = {
         id: "test-module",
         code: "export default {}",
@@ -69,7 +69,7 @@ describe("manifest-module", () => {
     })
 
     it("should return chunk name when module has no code", () => {
-      // Note: we define only the properties we need for the test
+      // Note: We define only the properties we need for the test
       const info = {
         id: "test-module",
         code: null,
