@@ -1,5 +1,5 @@
 import { getConfig } from "@lingui/conf"
-import type { Plugin, SSROptions, UserConfig } from "vite"
+import type { Plugin, UserConfig } from "vite"
 import { normalizeLocaleKey } from "../config"
 import {
   buildConfig,
@@ -10,7 +10,6 @@ import { generateLocaleModule } from "./generators/locale-module"
 import {
   type LinguiRouterPluginConfig,
   type LinguiRouterPluginConfigFull,
-  MANIFEST_CHUNK_NAME,
   PLUGIN_NAME,
   VIRTUAL_LOADER,
   VIRTUAL_LOCALE_PREFIX,
@@ -20,10 +19,14 @@ import {
   generateBundleClient,
   generateBundleServer,
   generateManifestModule,
+  getManifestChunkName,
 } from "./generators/manifest-module"
+
+const SERVER_ENVIRONMENT_NAME = "ssr"
 
 declare module "vite" {
   interface ResolvedConfig {
+    /** Lingui Router plugin configuration */
     linguiRouterConfig: Readonly<LinguiRouterPluginConfigFull>
   }
 }
@@ -79,10 +82,8 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
               manualChunks(id, { getModuleInfo }) {
                 if (id === "\0" + VIRTUAL_MANIFEST) {
                   const info = getModuleInfo(id)
-                  // Don't split an empty chunk
-                  if (!info?.code?.includes("export default {}")) {
-                    return MANIFEST_CHUNK_NAME
-                  }
+                  if (!info) throw new Error(`Module info not found for \\0${VIRTUAL_MANIFEST}`)
+                  return getManifestChunkName(info)
                 }
                 if (id.startsWith("\0" + VIRTUAL_LOCALE_PREFIX)) {
                   const locale = id.replace("\0" + VIRTUAL_LOCALE_PREFIX, "")
@@ -93,7 +94,9 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
           },
         },
         ssr: {
-          noExternal: addToNoExternal(config.ssr?.noExternal, PLUGIN_NAME),
+          // This library must be included, otherwise virtual imports won't work
+          noExternal:
+            config.ssr?.noExternal === true || addToList(config.ssr?.noExternal, PLUGIN_NAME),
           optimizeDeps: {
             include: ["negotiator"].concat(config.ssr?.optimizeDeps?.include ?? []),
           },
@@ -116,12 +119,12 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
     },
 
     async load(id) {
-      const server = this.environment.name === "ssr"
+      const server = this.environment.name === SERVER_ENVIRONMENT_NAME
       const { linguiRouterConfig } = this.environment.config
       if (!linguiRouterConfig) throw new Error("linguiRouterConfig not loaded")
 
       if (id === "\0" + VIRTUAL_MANIFEST) {
-        return generateManifestModule(server && this.environment.mode !== "dev")
+        return generateManifestModule(server, this.environment.mode)
       }
 
       if (id === "\0" + VIRTUAL_LOADER) {
@@ -153,16 +156,21 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
   } satisfies Plugin
 }
 
-function addToNoExternal(userNoExternal: SSROptions["noExternal"], name: string) {
-  let noExternal = userNoExternal ?? []
-
-  // This library must be included, otherwise virtual imports won't work
-  if (noExternal !== true) {
-    if (Array.isArray(noExternal)) {
-      noExternal = [...noExternal, name]
-    } else {
-      noExternal = [noExternal, name]
-    }
+/**
+ * Add a value to a list, initializing or converting as necessary.
+ *
+ * @param list The existing list, which may be undefined, a single value, or an array
+ * @param value The value to add to the list
+ * @returns A new array containing the original values plus the new value
+ */
+function addToList<T>(list: T | T[] | undefined, value: T): T[] {
+  if (!list) {
+    return [value]
   }
-  return noExternal
+
+  if (Array.isArray(list)) {
+    return [...list, value]
+  } else {
+    return [list, value]
+  }
 }

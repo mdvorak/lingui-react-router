@@ -3,6 +3,13 @@ import path from "node:path"
 import { normalizeLocaleKey } from "../../config"
 import type { LinguiRouterPluginConfigFull } from "../plugin-config"
 
+/**
+ * Generate the locale module code for a specific locale.
+ *
+ * @param locale Normalized locale key (e.g., "en", "en-us")
+ * @param pluginConfig Plugin configuration
+ * @returns The generated module code as a string
+ */
 export async function generateLocaleModule(
   locale: string,
   pluginConfig: Readonly<LinguiRouterPluginConfigFull>
