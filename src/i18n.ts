@@ -47,9 +47,10 @@ const localePathRegex = /^\/+([^/]+)(\/.*)?$/
  * Parses a URL pathname to extract the locale code and remaining path.
  *
  * @param url Pathname to parse. Must start with a slash.
+ * @param localeParam Optional locale parameter value, if available, for server-side usage.
  * @returns An object containing path information.
  */
-export function parseUrlLocale(url: string): PathLocale {
+export function parseUrlLocale(url: string, localeParam?: string): PathLocale {
   if (url === "/") {
     return { locale: undefined, pathname: "/", excluded: false }
   }

@@ -25,19 +25,19 @@
       "require": "./dist/index.cjs"
     },
     "./client": {
-      "types": "./dist/i18n.client.d.ts",
-      "import": "./dist/i18n.client.mjs",
-      "require": "./dist/i18n.client.cjs"
+      "types": "./dist/client/index.d.ts",
+      "import": "./dist/client/index.mjs",
+      "require": "./dist/client/index.cjs"
     },
     "./server": {
-      "types": "./dist/i18n.server.d.ts",
-      "import": "./dist/i18n.server.mjs",
-      "require": "./dist/i18n.server.cjs"
+      "types": "./dist/server/index.d.ts",
+      "import": "./dist/server/index.mjs",
+      "require": "./dist/server/index.cjs"
     },
     "./negotiate": {
-      "types": "./dist/negotiate.d.ts",
-      "import": "./dist/negotiate.mjs",
-      "require": "./dist/negotiate.cjs"
+      "types": "./dist/server/negotiate.d.ts",
+      "import": "./dist/server/negotiate.mjs",
+      "require": "./dist/server/negotiate.cjs"
     },
     "./routes": {
       "types": "./dist/plugin/routes.d.ts",

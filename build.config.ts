@@ -4,9 +4,9 @@ export default defineBuildConfig({
   outDir: "dist",
   entries: [
     "src/index",
-    "src/i18n.client",
-    "src/i18n.server",
-    "src/negotiate",
+    "src/client/index",
+    "src/server/index",
+    "src/server/negotiate",
     "src/plugin/routes",
     "src/plugin/index",
   ],

@@ -1,9 +1,5 @@
 import Negotiator from "negotiator"
-
-// Assert this is included only on server
-if (globalThis.window) {
-  throw new Error("lingui-react-router/negotiate must be imported only on server")
-}
+import "./assert-server"
 
 /**
  * Parse the Accept-Language header and return the best language match.
