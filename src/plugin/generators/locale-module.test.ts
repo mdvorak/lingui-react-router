@@ -1,8 +1,8 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest"
 import type { LinguiConfigNormalized } from "@lingui/conf"
+import fg from "fast-glob"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import type { LinguiRouterPluginConfigFull } from "../plugin-config"
 import { generateLocaleModule } from "./locale-module"
-import fg from "fast-glob"
 
 vi.mock("fast-glob")
 
@@ -67,17 +67,20 @@ describe("locale-module", () => {
       ]
 
       vi.mocked(fg).mockResolvedValueOnce(["locales/en.po"])
-      vi.mocked(fg).mockResolvedValueOnce([
-        "components/Button/en.po",
-        "components/Modal/en.po",
-      ])
+      vi.mocked(fg).mockResolvedValueOnce(["components/Button/en.po", "components/Modal/en.po"])
 
       const result = await generateLocaleModule("en", mockPluginConfig)
 
       expect(result).toContain("import {messages as catalog0} from '/project/locales/en.po'")
-      expect(result).toContain("import {messages as catalog1} from '/project/components/Button/en.po'")
-      expect(result).toContain("import {messages as catalog2} from '/project/components/Modal/en.po'")
-      expect(result).toContain("export const messages = Object.assign({}, catalog0, catalog1, catalog2)")
+      expect(result).toContain(
+        "import {messages as catalog1} from '/project/components/Button/en.po'"
+      )
+      expect(result).toContain(
+        "import {messages as catalog2} from '/project/components/Modal/en.po'"
+      )
+      expect(result).toContain(
+        "export const messages = Object.assign({}, catalog0, catalog1, catalog2)"
+      )
     })
 
     it("should handle locale with hyphen", async () => {
@@ -88,10 +91,7 @@ describe("locale-module", () => {
       const result = await generateLocaleModule("en-us", mockPluginConfig)
 
       expect(result).toContain("export * from '/project/locales/en-US.po'")
-      expect(fg).toHaveBeenCalledWith(
-        "/project/locales/en-US.po",
-        expect.any(Object)
-      )
+      expect(fg).toHaveBeenCalledWith("/project/locales/en-US.po", expect.any(Object))
     })
 
     it("should handle locale with underscore in lingui config", async () => {
@@ -102,16 +102,13 @@ describe("locale-module", () => {
       const result = await generateLocaleModule("en-us", mockPluginConfig)
 
       expect(result).toBeTruthy()
-      expect(fg).toHaveBeenCalledWith(
-        "/project/locales/en_US.po",
-        expect.any(Object)
-      )
+      expect(fg).toHaveBeenCalledWith("/project/locales/en_US.po", expect.any(Object))
     })
 
     it("should throw error when locale not found in lingui config", async () => {
-      await expect(
-        generateLocaleModule("de", mockPluginConfig)
-      ).rejects.toThrow("Locale 'de' not found in Lingui configuration locales")
+      await expect(generateLocaleModule("de", mockPluginConfig)).rejects.toThrow(
+        "Locale 'de' not found in Lingui configuration locales"
+      )
     })
 
     it("should replace {name} with wildcard in catalog path", async () => {
@@ -122,17 +119,11 @@ describe("locale-module", () => {
         },
       ]
 
-      vi.mocked(fg).mockResolvedValue([
-        "components/Button/en.po",
-        "components/Input/en.po",
-      ])
+      vi.mocked(fg).mockResolvedValue(["components/Button/en.po", "components/Input/en.po"])
 
       await generateLocaleModule("en", mockPluginConfig)
 
-      expect(fg).toHaveBeenCalledWith(
-        "/project/components/*/en.po",
-        expect.any(Object)
-      )
+      expect(fg).toHaveBeenCalledWith("/project/components/*/en.po", expect.any(Object))
     })
 
     it("should replace <rootDir> placeholder in paths", async () => {
@@ -244,9 +235,7 @@ describe("locale-module", () => {
         },
       ]
 
-      vi.mocked(fg)
-        .mockResolvedValueOnce(["base/en.po"])
-        .mockResolvedValueOnce(["override/en.po"])
+      vi.mocked(fg).mockResolvedValueOnce(["base/en.po"]).mockResolvedValueOnce(["override/en.po"])
 
       const result = await generateLocaleModule("en", mockPluginConfig)
 
