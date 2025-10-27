@@ -1,4 +1,5 @@
 import type { LinguiConfig } from "@lingui/conf"
+import { normalizeLocaleKey } from "../config"
 
 /**
  * Generate all locale-specific paths for a given base path.
@@ -15,7 +16,7 @@ export function localePaths(
   path: string,
   withDefault: boolean = true
 ): string[] {
-  const result = config.locales.map(loc => `/${loc}${path}`)
+  const result = config.locales.map(loc => `/${normalizeLocaleKey(loc)}${path}`)
   if (withDefault) {
     result.push(path)
   }
