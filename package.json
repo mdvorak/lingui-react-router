@@ -62,6 +62,7 @@
     "dev": "pnpm run typecheck && unbuild --watch",
     "prepack": "pnpm run build",
     "pretest": "pnpm run build",
+    "coverage": "vitest run --coverage",
     "test": "vitest run && pnpm -F ./test build",
     "start": "pnpm run test && pnpm -F ./test start"
   },
