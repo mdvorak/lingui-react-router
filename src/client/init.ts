@@ -1,10 +1,7 @@
 import { i18n } from "@lingui/core"
-import { parseUrlLocale } from "./i18n"
-import { defaultLocale, loadLocaleCatalog } from "./runtime"
-
-if (globalThis.window === undefined) {
-  throw new Error("lingui-react-router/client must be imported only on client")
-}
+import { parseUrlLocale } from "../i18n"
+import { defaultLocale, loadLocaleCatalog } from "../runtime"
+import "./assert-client"
 
 /**
  * Setup lingui for client-side rendering.
