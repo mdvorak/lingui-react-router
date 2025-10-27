@@ -8,6 +8,12 @@ import {
 } from "./generators/loader-module"
 import { generateLocaleModule } from "./generators/locale-module"
 import {
+  generateBundleClient,
+  generateBundleServer,
+  generateManifestModule,
+  getManifestChunkName,
+} from "./generators/manifest-module"
+import {
   type LinguiRouterPluginConfig,
   type LinguiRouterPluginConfigFull,
   PLUGIN_NAME,
@@ -15,12 +21,6 @@ import {
   VIRTUAL_LOCALE_PREFIX,
   VIRTUAL_MANIFEST,
 } from "./plugin-config"
-import {
-  generateBundleClient,
-  generateBundleServer,
-  generateManifestModule,
-  getManifestChunkName,
-} from "./generators/manifest-module"
 
 const SERVER_ENVIRONMENT_NAME = "ssr"
 

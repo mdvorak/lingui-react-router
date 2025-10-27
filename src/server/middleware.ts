@@ -23,7 +23,9 @@ export async function localeMiddleware(
   const paramsMap = params as Record<string, string | undefined>
   const localeParam = paramsMap[config.localeParamName]
   const { locale, excluded } = findPathLocale(localeParam)
-  const requestPathname = locale ? stripPathnameLocalePrefix(url.pathname, localeParam) : url.pathname
+  const requestPathname = locale
+    ? stripPathnameLocalePrefix(url.pathname, localeParam)
+    : url.pathname
 
   let requestLocale = locale
 
