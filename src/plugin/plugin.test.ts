@@ -1,4 +1,5 @@
-import { describe, expect, it, vi } from "vitest"
+import { beforeEach, describe, expect, it, vi } from "vitest"
+import { generateBundleClient, generateBundleServer } from "./generators/manifest-module"
 import { addToList, linguiRouterPlugin } from "./plugin"
 import {
   PLUGIN_NAME,
@@ -6,6 +7,18 @@ import {
   VIRTUAL_LOCALE_PREFIX,
   VIRTUAL_MANIFEST,
 } from "./plugin-config"
+
+// Mock the generator modules
+vi.mock("./generators/manifest-module", () => ({
+  generateBundleClient: vi.fn(),
+  generateBundleServer: vi.fn(),
+  generateManifestModule: vi.fn(),
+  getManifestChunkName: vi.fn(() => "manifest-chunk"),
+}))
+
+beforeEach(() => {
+  vi.clearAllMocks()
+})
 
 describe("addToList", () => {
   it("should create a new array with the value when list is undefined", () => {
@@ -360,5 +373,97 @@ describe("linguiRouterPlugin - resolveId", () => {
     expect(plugin.resolveId("react")).toBeUndefined()
     expect(plugin.resolveId("./some-file.ts")).toBeUndefined()
     expect(plugin.resolveId("@lingui/react")).toBeUndefined()
+  })
+})
+
+describe("linguiRouterPlugin - generateBundle", () => {
+  it("should call generateBundleClient for client environment", async () => {
+    const plugin = linguiRouterPlugin()
+    const mockContext = {
+      environment: {
+        name: "client",
+        config: {
+          linguiRouterConfig: {
+            locales: ["en", "fr"],
+            defaultLocale: "en",
+          },
+        },
+      },
+    }
+    const mockBundle = {}
+
+    await plugin.generateBundle.call(mockContext, {}, mockBundle)
+
+    expect(generateBundleClient).toHaveBeenCalledTimes(1)
+    expect(generateBundleClient).toHaveBeenCalledWith(
+      mockContext,
+      mockContext.environment.config,
+      mockBundle
+    )
+  })
+
+  it("should call generateBundleServer for server environment", async () => {
+    const plugin = linguiRouterPlugin()
+    const mockContext = {
+      environment: {
+        name: "ssr",
+        config: {
+          linguiRouterConfig: {
+            locales: ["en", "fr"],
+            defaultLocale: "en",
+          },
+        },
+      },
+    }
+    const mockBundle = {}
+
+    await plugin.generateBundle.call(mockContext, {}, mockBundle)
+
+    expect(generateBundleServer).toHaveBeenCalledTimes(1)
+    expect(generateBundleServer).toHaveBeenCalledWith(
+      mockContext,
+      mockContext.environment.config,
+      mockBundle
+    )
+  })
+
+  it("should not call client generator for non-client environment", async () => {
+    const plugin = linguiRouterPlugin()
+    const mockContext = {
+      environment: {
+        name: "ssr",
+        config: {
+          linguiRouterConfig: {
+            locales: ["en"],
+            defaultLocale: "en",
+          },
+        },
+      },
+    }
+
+    await plugin.generateBundle.call(mockContext, {}, {})
+
+    expect(generateBundleClient).not.toHaveBeenCalled()
+    expect(generateBundleServer).toHaveBeenCalledTimes(1)
+  })
+
+  it("should not call server generator for client environment", async () => {
+    const plugin = linguiRouterPlugin()
+    const mockContext = {
+      environment: {
+        name: "client",
+        config: {
+          linguiRouterConfig: {
+            locales: ["en"],
+            defaultLocale: "en",
+          },
+        },
+      },
+    }
+
+    await plugin.generateBundle.call(mockContext, {}, {})
+
+    expect(generateBundleServer).not.toHaveBeenCalled()
+    expect(generateBundleClient).toHaveBeenCalledTimes(1)
   })
 })
