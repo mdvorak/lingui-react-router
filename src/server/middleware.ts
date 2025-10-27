@@ -46,7 +46,9 @@ export async function localeMiddleware(
 
   // Run the handler in the storage context
   context.set(LocaleContext, {
+    locale: i18n.locale,
     i18n,
+    _: i18n._.bind(i18n),
     url,
     requestLocale,
     requestPathname,
