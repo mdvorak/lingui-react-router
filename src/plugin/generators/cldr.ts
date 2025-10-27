@@ -21,6 +21,9 @@ async function loadAllLocales(): Promise<Set<string>> {
 // One-time loaded
 let cachedLocales: Promise<Set<string>> | undefined
 
+/**
+ * Get all available locales from CLDR data.
+ */
 export function getAllLocales(): Promise<Set<string>> {
   // cachedLocales ??= is a synchronous operation, so concurrent calls
   // will all receive the same Promise instance without race conditions

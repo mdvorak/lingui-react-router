@@ -3,6 +3,9 @@ import { useLocation, useParams } from "react-router"
 import { normalizeLocaleKey } from "./config"
 import { config, defaultLocale, localeMapping, supportedLocales } from "./runtime"
 
+/**
+ * Represents the locale information derived from the URL path.
+ */
 export type PathLocale = {
   /** The resolved locale code (falls back to defaultLocale). */
   locale: string

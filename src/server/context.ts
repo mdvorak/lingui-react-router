@@ -24,6 +24,13 @@ export const LocaleContext = createContext<I18nRequestContext>()
  * Server-side i18n context with additional properties.
  */
 export type I18nRouterContext = I18nRequestContext & {
+  /**
+   * Function to redirect to a different locale while preserving the current locale prefix.
+   *
+   * @param to The target URL or path to redirect to, without the locale prefix
+   * @param init Optional redirect initialization options
+   * @returns A redirect response to the specified URL with the current locale prefix
+   */
   redirect: RedirectFunction
 }
 

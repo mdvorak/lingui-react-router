@@ -1,26 +1,52 @@
 import fs from "node:fs/promises"
 import path from "node:path"
-import type { OutputBundle } from "rollup"
+import type { ModuleInfo, OutputBundle } from "rollup"
 import type { ConfigPluginContext, ResolvedConfig } from "vite"
-import {
-  LOCALE_MANIFEST_FILENAME,
-  MANIFEST_CHUNK_NAME,
-  MANIFEST_PLACEHOLDER,
-  VIRTUAL_LOCALE_PREFIX,
-} from "../plugin-config"
+import { VIRTUAL_LOCALE_PREFIX } from "../plugin-config"
 
-export function generateManifestModule(enabled: boolean) {
-  if (enabled) {
+const LOCALE_MANIFEST_FILENAME = ".client-locale-manifest.json"
+const MANIFEST_CHUNK_NAME = "locale-manifest"
+const MANIFEST_PLACEHOLDER = "__$$_LINGUI_REACT_ROUTER_MANIFEST_PLACEHOLDER_$$__"
+const EMPTY_DEFAULT_EXPORT = "export default {}"
+
+/**
+ * Generate the manifest module code for server builds in non-dev modes.
+ *
+ * @param server - Whether the build is for the server
+ * @param mode - The current build mode (e.g., "dev", "production")
+ * @returns The generated module code as a string
+ */
+export function generateManifestModule(server: boolean, mode: string) {
+  if (server && mode !== "dev") {
     //language=js
     return `const manifest = JSON.parse(\`${MANIFEST_PLACEHOLDER}\`)
 export default manifest
 `
   } else {
-    //language=js
-    return "export default {}"
+    return EMPTY_DEFAULT_EXPORT
   }
 }
 
+/**
+ * Determine the chunk name for the manifest module.
+ *
+ * @param info - Module information provided by Rollup
+ * @returns The chunk name if applicable, otherwise undefined
+ */
+export function getManifestChunkName(info: ModuleInfo): string | undefined {
+  // Don't split an empty chunk
+  if (!info.code?.includes(EMPTY_DEFAULT_EXPORT)) {
+    return MANIFEST_CHUNK_NAME
+  }
+}
+
+/**
+ * Generate the locale manifest for client builds.
+ *
+ * @param context - The Vite plugin context
+ * @param config - The resolved Vite config
+ * @param bundle - The Rollup output bundle
+ */
 export async function generateBundleClient(
   context: ConfigPluginContext,
   config: ResolvedConfig,
@@ -49,6 +75,13 @@ export async function generateBundleClient(
   await fs.writeFile(manifestPath, manifestJson, { encoding: "utf8" })
 }
 
+/**
+ * Generate the locale manifest for server builds.
+ *
+ * @param context - The Vite plugin context
+ * @param config - The resolved Vite config
+ * @param bundle - The Rollup output bundle
+ */
 export async function generateBundleServer(
   context: ConfigPluginContext,
   config: ResolvedConfig,

@@ -1,11 +1,13 @@
-import {
-  type LinguiRouterPluginConfigFull,
-  PLUGIN_NAME,
-  VIRTUAL_LOCALE_PREFIX,
-} from "../plugin-config"
+import { type LinguiRouterPluginConfigFull, PLUGIN_NAME, VIRTUAL_LOCALE_PREFIX, } from "../plugin-config"
 import { type LinguiRouterConfig, normalizeLocaleKey } from "../../config"
 import { getAllLocales } from "./cldr"
 
+/**
+ * Generate the loader module for server builds.
+ *
+ * @param pluginConfig Plugin configuration
+ * @param configObject Lingui router configuration object
+ */
 export async function generateLoaderModuleServer(
   pluginConfig: Readonly<LinguiRouterPluginConfigFull>,
   configObject: LinguiRouterConfig
@@ -62,6 +64,12 @@ export async function generateLoaderModuleServer(
   return lines.join("\n")
 }
 
+/**
+ * Generate the loader module for client builds.
+ *
+ * @param pluginConfig Plugin configuration
+ * @param configObject Lingui router configuration object
+ */
 export async function generateLoaderModuleClient(
   pluginConfig: Readonly<LinguiRouterPluginConfigFull>,
   configObject: LinguiRouterConfig
@@ -83,6 +91,12 @@ export async function generateLoaderModuleClient(
   return lines.join("\n")
 }
 
+/**
+ * Build the Lingui router configuration object.
+ *
+ * @param pluginConfig Plugin configuration
+ * @param server Whether the build is for server-side rendering
+ */
 export function buildConfig(
   pluginConfig: Readonly<LinguiRouterPluginConfigFull>,
   server: boolean
