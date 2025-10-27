@@ -27,7 +27,7 @@ msgid "From loader too!"
 msgstr "From loader too!"
 
 #. placeholder {0}: new Date().toLocaleDateString()
-#: app/routes/hello.tsx:22
+#: app/routes/hello.tsx:25
 msgid "Gray-colored text with a variable: {0}"
 msgstr "Gray-colored text with a variable: {0}"
 
@@ -52,7 +52,7 @@ msgstr "Lingui React Router integration example"
 msgid "Oops!"
 msgstr "Oops!"
 
-#: app/routes/hello.tsx:21
+#: app/routes/hello.tsx:22
 msgid "Special chars: \"'$.*+@!"
 msgstr "Special chars: \"'$.*+@!"
 

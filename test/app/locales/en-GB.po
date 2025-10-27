@@ -27,7 +27,7 @@ msgid "From loader too!"
 msgstr ""
 
 #. placeholder {0}: new Date().toLocaleDateString()
-#: app/routes/hello.tsx:22
+#: app/routes/hello.tsx:25
 msgid "Gray-colored text with a variable: {0}"
 msgstr "Grey-coloured text with a variable: {0}"
 
@@ -52,7 +52,7 @@ msgstr ""
 msgid "Oops!"
 msgstr ""
 
-#: app/routes/hello.tsx:21
+#: app/routes/hello.tsx:22
 msgid "Special chars: \"'$.*+@!"
 msgstr ""
 
