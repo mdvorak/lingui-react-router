@@ -6,7 +6,7 @@ export type LinguiRouterPluginConfigFull = {
    * One or more root-level path prefixes that should NOT be treated as locales.
    * For example, ["api"].
    */
-  exclude: string | string[]
+  exclude: string[]
   /**
    * Whether to detect locale from the Accept-Language header.
    * Defaults to true.
@@ -39,7 +39,25 @@ export type LinguiRouterPluginConfigFull = {
    *
    * If not provided, the plugin will attempt to load the Lingui config from the project root.
    */
-  linguiConfig?: Readonly<LinguiConfigNormalized>
+  linguiConfig: Readonly<LinguiConfigNormalized>
+  /**
+   * Default locale to use when no locale can be detected. Must be included in `locales`.
+   *
+   * By default, first locale from `locales` is used.
+   */
+  defaultLocale: string
+  /**
+   * Override locales list defined in Lingui config.
+   *
+   * Normally, you should not need to set this.
+   */
+  locales: string[]
+  /**
+   * Overrides the pseudo-locale defined in Lingui config.
+   *
+   * Normally, you should not need to set this.
+   */
+  pseudoLocale?: string
 }
 
 /**

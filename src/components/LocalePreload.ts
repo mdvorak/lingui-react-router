@@ -1,8 +1,6 @@
 import React from "react"
-import { useLocation } from "react-router"
 import manifest from "virtual:lingui-router-manifest"
-import { parseUrlLocale } from "../i18n"
-import { defaultLocale } from "../runtime"
+import { usePathLocale } from "../i18n"
 
 /**
  * Preloads the locale script on the client. Add to your HTML `<head>` section.
@@ -15,10 +13,9 @@ import { defaultLocale } from "../runtime"
  * </head>
  */
 export function LocalePreload() {
-  if ((import.meta as any).env.SSR) {
-    const { pathname } = useLocation()
-    const locale = parseUrlLocale(pathname).locale ?? defaultLocale
+  const { locale } = usePathLocale()
 
+  if ((import.meta as any).env.SSR) {
     if (locale && locale in manifest) {
       const href = ((import.meta as any).env.BASE_URL ?? "") + manifest[locale].replace(/^\//, "")
       return React.createElement("link", {

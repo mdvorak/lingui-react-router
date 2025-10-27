@@ -7,7 +7,7 @@ export default function SelectLanguage() {
   const { t } = useLingui()
   const navigate = useNavigate()
   const location = useLocation()
-  const { locale, pathname } = usePathLocale(location)
+  const { locale, pathname } = usePathLocale()
   const { locales, pseudoLocale } = config
 
   const onChange = (e: ChangeEvent<HTMLSelectElement>) => {

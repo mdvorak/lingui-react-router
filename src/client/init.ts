@@ -1,5 +1,5 @@
 import { i18n } from "@lingui/core"
-import { parseUrlLocale } from "../i18n"
+import { findPathLocale } from "../i18n"
 import { defaultLocale, loadLocaleCatalog } from "../runtime"
 import "./assert-client"
 
@@ -31,8 +31,27 @@ import "./assert-client"
  * @returns The initialized I18n instance bound to the detected locale.
  */
 export async function loadInitialLocale(pathname: string) {
-  const locale = parseUrlLocale(pathname).locale || defaultLocale
+  const locale = parseUrlLocale(pathname) || defaultLocale
   const messages = await loadLocaleCatalog(locale)
 
   i18n.loadAndActivate({ locale, messages })
+}
+
+/**
+ * Parses a URL pathname to extract the locale code and remaining path.
+ *
+ * @param pathname Pathname to parse. Must start with a slash.
+ * @returns An object containing path information.
+ */
+function parseUrlLocale(pathname: string): string | undefined {
+  if (pathname === "/") {
+    return
+  }
+
+  const match = /^\/+([^/]+)\/?.*$/.exec(pathname)
+  if (match) {
+    const [, localeParam] = match
+    const { locale } = findPathLocale(localeParam)
+    return locale
+  }
 }
