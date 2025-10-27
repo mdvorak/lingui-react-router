@@ -1,6 +1,6 @@
 export * from "./components/I18nApp"
 export * from "./components/LocaleLink"
 export * from "./components/LocalePreload"
-export type * from "./config"
+export * from "./config"
 export * from "./i18n"
 export { config, defaultLocale } from "./runtime"

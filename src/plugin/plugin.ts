@@ -158,6 +158,7 @@ async function generateLocaleModule(
   for (const catalogConfig of config.catalogs!) {
     let catalogPath = catalogConfig.path
       .replace(/<rootDir>/g, config.rootDir || process.cwd())
+      // TODO use original lingui format for import
       .replace(/\{locale}/g, locale)
       .replace(/\{name}/g, "*")
 
@@ -207,12 +208,13 @@ async function generateLoaderModuleServer(
 
   // For server builds, use static imports
   for (const locale of linguiConfig.locales) {
-    const varName = `locale_${locale.replace(/-/g, "_")}`
+    const normalizedLocale = normalizeLocaleKey(locale)
+    const varName = `locale_${normalizedLocale.replace(/-/g, "_")}`
     lines.push(`import { messages as ${varName} } from '${VIRTUAL_PREFIX}${locale}'`)
 
-    loaderMap.push(`  '${locale}': () => Promise.resolve({messages: ${varName}}),`)
-    messagesMap.push(`  '${locale}': ${varName},`)
-    bundleMap.push(`  '${locale}': setupI18n({ locale: '${locale}', messages: localeMessages }),`)
+    loaderMap.push(`  '${normalizedLocale}': () => Promise.resolve({messages: ${varName}}),`)
+    messagesMap.push(`  '${normalizedLocale}': ${varName},`)
+    bundleMap.push(`  '${normalizedLocale}': setupI18n({ locale: '${normalizedLocale}', messages: localeMessages }),`)
   }
 
   lines.push(
@@ -259,7 +261,8 @@ async function generateLoaderModuleClient(
 
   // For client builds, use dynamic imports
   for (const locale of linguiConfig.locales) {
-    lines.push(`  '${locale}': () => import('${VIRTUAL_PREFIX}${locale}'),`)
+    const normalizedLocale = normalizeLocaleKey(locale)
+    lines.push(`  '${normalizedLocale}': () => import('${VIRTUAL_PREFIX}${locale}'),`)
   }
 
   lines.push(`}`, generateGetI18nInstanceClient(), `export const localeMapping = undefined`)
@@ -279,10 +282,10 @@ function buildConfig(
     typeof fallbackLocales?.default === "string" ? fallbackLocales.default : undefined
 
   return {
-    locales: linguiConfig.locales,
-    pseudoLocale: linguiConfig.pseudoLocale,
-    sourceLocale: linguiConfig.sourceLocale,
-    defaultLocale: defaultLocale || linguiConfig.locales[0] || "en",
+    locales: linguiConfig.locales.map(normalizeLocaleKey),
+    pseudoLocale: linguiConfig.pseudoLocale ? normalizeLocaleKey(linguiConfig.pseudoLocale) : undefined,
+    sourceLocale: linguiConfig.sourceLocale ? normalizeLocaleKey(linguiConfig.sourceLocale) : undefined,
+    defaultLocale: normalizeLocaleKey(defaultLocale || linguiConfig.locales[0] || "en"),
     exclude,
     redirect: pluginConfig.redirect ?? "auto",
     runtimeEnv: server ? "server" : "client",
@@ -296,12 +299,13 @@ async function buildLocaleMapping(
 ): Promise<Record<string, string>> {
   const knownLocales = await getAllLocales()
 
-  // Add existing locales to the result
-  const result = new Map<string, string>(locales.map(l => [normalizeLocaleKey(l), l]))
+  // Add existing locales to the result (all normalized)
+  const result = new Map<string, string>(locales.map(l => [normalizeLocaleKey(l), normalizeLocaleKey(l)]))
 
   // Add user-defined fallback locales
   for (const [locale, fallback] of Object.entries(localeMap)) {
     const key = normalizeLocaleKey(locale)
+    const normalizedFallback = normalizeLocaleKey(fallback)
     // Validate
     if (result.has(key)) {
       throw new Error(`Mapped locale ${locale} is already defined in the Lingui configuration.`)
@@ -311,8 +315,8 @@ async function buildLocaleMapping(
         `Fallback locale ${fallback} for locale ${locale} is not defined in the Lingui configuration.`
       )
     }
-    // Add to result
-    result.set(key, fallback)
+    // Add to result (both key and value are normalized)
+    result.set(key, normalizedFallback)
   }
 
   // Convert current locales to normalized keys for comparison
@@ -320,15 +324,10 @@ async function buildLocaleMapping(
   // Sort locale keys by descending length to prioritize more specific locales first
   const definedLocales = [...locales]
     .sort((a, b) => b.length - a.length)
-    .map(locale => ({ locale, prefix: normalizeLocaleKey(locale) + "-" }))
+    .map(locale => ({ locale: normalizeLocaleKey(locale), prefix: normalizeLocaleKey(locale) + "-" }))
 
   // Find all more specific locales for each defined locale
   for (const cldrLocale of knownLocales) {
-    if (/\d/.test(cldrLocale)) {
-      // Skip locales with digits (e.g., en-150)
-      continue
-    }
-
     // We must compare normalized keys
     const specificLocale = normalizeLocaleKey(cldrLocale)
     if (result.has(specificLocale)) {
