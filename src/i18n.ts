@@ -1,6 +1,6 @@
 import { useMemo } from "react"
-import { useLocation } from "react-router"
-import { normalizeLocaleKey, type PathLocale } from "./config"
+import { useLocation, useParams } from "react-router"
+import { normalizeLocaleKey } from "./config"
 import { config, defaultLocale, localeMapping, supportedLocales } from "./runtime"
 
 /**
@@ -21,58 +21,81 @@ import { config, defaultLocale, localeMapping, supportedLocales } from "./runtim
  * // URL: "/products" (no locale prefix)
  * // => { locale: "en", requestLocale: undefined, pathname: "/products", excluded: false }
  * ```
- *
- * @see {@link I18nAppConfig['parseUrlLocale']} for the underlying URL parsing logic
  */
-export function usePathLocale(location = useLocation()): {
+export function usePathLocale(): {
   locale: string
   requestLocale?: string
   pathname: string
   excluded: boolean
 } {
+  const location = useLocation()
+  const params = useParams()
+
   return useMemo(() => {
-    const { locale: requestLocale, pathname, excluded } = parseUrlLocale(location.pathname)
+    const localeParam = params[config.localeParamName]
+    const { locale, excluded } = findPathLocale(localeParam)
+    // Use relative pathname only if locale was found
+    const pathname = locale
+      ? parseLocalePathname(location.pathname, localeParam)
+      : location.pathname
+
     return {
-      requestLocale,
-      locale: requestLocale || defaultLocale,
+      requestLocale: locale,
+      locale: locale || defaultLocale,
       pathname,
       excluded,
     }
-  }, [location.pathname])
+  }, [params[config.localeParamName], location.pathname])
 }
 
-const localePathRegex = /^\/+([^/]+)(\/.*)?$/
+/**
+ * Finds and resolves the locale from a URL path segment.
+ *
+ * @param localeParam The locale segment extracted from the URL path.
+ * @returns An object containing:
+ * - `locale` - The resolved locale code if found, otherwise undefined
+ * - `excluded` - Boolean indicating if the path matches an excluded prefix
+ */
+export function findPathLocale(localeParam: string | undefined): {
+  locale?: string
+  excluded: boolean
+} {
+  // No locale segment
+  if (!localeParam) {
+    return { excluded: false }
+  }
+
+  // Normalize locale key
+  const locale = normalizeLocaleKey(localeParam)
+
+  // Direct match
+  if (supportedLocales.has(locale)) {
+    return { locale, excluded: false }
+  }
+  // Excluded path
+  if (config.exclude.includes(localeParam)) {
+    return { excluded: true }
+  }
+
+  // Mapped locale
+  const resolvedLocale = localeMapping?.[locale]
+  if (resolvedLocale && resolvedLocale !== locale) {
+    return findPathLocale(resolvedLocale)
+  }
+
+  return { excluded: false }
+}
 
 /**
- * Parses a URL pathname to extract the locale code and remaining path.
+ * Parses the pathname to remove the locale prefix.
  *
- * @param url Pathname to parse. Must start with a slash.
- * @param localeParam Optional locale parameter value, if available, for server-side usage.
- * @returns An object containing path information.
+ * @param pathname The full URL pathname (e.g., "/en/products")
+ * @param localeParam The locale segment extracted from the URL path (e.g., "en")
+ * @returns The pathname without the locale prefix (e.g., "/products")
  */
-export function parseUrlLocale(url: string, localeParam?: string): PathLocale {
-  if (url === "/") {
-    return { locale: undefined, pathname: "/", excluded: false }
+export function parseLocalePathname(pathname: string, localeParam: string | undefined): string {
+  if (localeParam && pathname.startsWith(`/${localeParam}`)) {
+    return pathname.slice(localeParam.length + 1) || "/"
   }
-
-  const match = localePathRegex.exec(url)
-  if (match) {
-    const [, rawLocale, p] = match
-    const pathname = p ?? "/"
-    const normalizedLocale = normalizeLocaleKey(rawLocale)
-
-    if (supportedLocales.has(normalizedLocale)) {
-      return { locale: normalizedLocale, rawLocale, pathname, excluded: false }
-    } else if (config.exclude.includes(rawLocale)) {
-      return { locale: undefined, pathname: url, excluded: true }
-    }
-
-    // Support translation of nested locales, e.g. "en-US" -> "en"
-    // All keys and values in localeMapping are normalized
-    const resolvedLocale = localeMapping?.[normalizedLocale]
-    if (resolvedLocale && supportedLocales.has(resolvedLocale)) {
-      return { locale: resolvedLocale, rawLocale, pathname, excluded: false }
-    }
-  }
-  return { locale: undefined, pathname: url, excluded: false }
+  return pathname
 }

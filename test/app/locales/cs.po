@@ -17,7 +17,7 @@ msgstr ""
 msgid "An unexpected error occurred."
 msgstr "Nastala neočekávaná chyba."
 
-#: app/routes/_index.tsx:8
+#: app/routes/_index.tsx:19
 msgctxt "nav"
 msgid "Continue"
 msgstr "Pokračovat"

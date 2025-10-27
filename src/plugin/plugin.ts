@@ -1,4 +1,4 @@
-import { getConfig, type LinguiConfigNormalized } from "@lingui/conf"
+import { getConfig } from "@lingui/conf"
 
 import fg from "fast-glob"
 import * as fs from "node:fs/promises"
@@ -19,16 +19,8 @@ const LOCALE_MANIFEST_FILENAME = ".client-locale-manifest.json"
 
 declare module "vite" {
   interface ResolvedConfig {
-    linguiConfig?: Readonly<LinguiConfigNormalized>
+    linguiRouterConfig: Readonly<LinguiRouterPluginConfigFull>
   }
-}
-
-const DEFAULT_CONFIG: LinguiRouterPluginConfigFull = {
-  exclude: [],
-  detectLocale: true,
-  redirect: "auto",
-  localeParamName: "locale",
-  localeMapping: {},
 }
 
 /**
@@ -42,15 +34,33 @@ const DEFAULT_CONFIG: LinguiRouterPluginConfigFull = {
  * @returns Vite plugin object with hooks for build and dev server integration
  */
 export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}): any {
-  const normalizedConfig = {
-    ...DEFAULT_CONFIG,
-    ...pluginConfig,
-  }
   return {
     name: NAME,
 
     configResolved(config) {
-      config.linguiConfig = normalizedConfig.linguiConfig ?? getConfig({ cwd: config.root })
+      const linguiConfig = pluginConfig.linguiConfig ?? getConfig({ cwd: config.root })
+      const locales = pluginConfig.locales ?? linguiConfig.locales
+      const pseudoLocale = pluginConfig.pseudoLocale ?? linguiConfig.pseudoLocale
+
+      // Build plugin config with defaults and normalization
+      const localeMapping = Object.fromEntries(
+        Object.entries(pluginConfig.localeMapping ?? {}).map(([k, v]) => [
+          normalizeLocaleKey(k),
+          normalizeLocaleKey(v),
+        ])
+      )
+
+      config.linguiRouterConfig = {
+        linguiConfig,
+        exclude: pluginConfig.exclude ?? [],
+        detectLocale: pluginConfig.detectLocale ?? true,
+        redirect: pluginConfig.redirect ?? "auto",
+        localeMapping,
+        localeParamName: pluginConfig.localeParamName ?? "locale",
+        defaultLocale: normalizeLocaleKey(pluginConfig.defaultLocale ?? locales[0] ?? "und"),
+        locales: locales.map(normalizeLocaleKey),
+        pseudoLocale: pseudoLocale ? normalizeLocaleKey(pseudoLocale) : undefined,
+      }
     },
 
     config(config) {
@@ -103,8 +113,8 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
     async load(id) {
       const server = this.environment.name === "ssr"
       const config = this.environment.config
-      const linguiConfig = config.linguiConfig
-      if (!linguiConfig) throw new Error("linguiConfig not loaded")
+      const linguiRouterConfig = config.linguiRouterConfig
+      if (!linguiRouterConfig) throw new Error("linguiRouterConfig not loaded")
 
       if (id === "\0" + VIRTUAL_MANIFEST) {
         if (server && this.environment.mode !== "dev") {
@@ -118,15 +128,15 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
       }
 
       if (id === "\0" + VIRTUAL_LOADER) {
-        const configObject = buildConfig(normalizedConfig, linguiConfig, server)
+        const configObject = buildConfig(linguiRouterConfig, server)
         return server
-          ? await generateLoaderModuleServer(configObject, linguiConfig, normalizedConfig)
-          : await generateLoaderModuleClient(configObject, linguiConfig)
+          ? await generateLoaderModuleServer(linguiRouterConfig, configObject)
+          : await generateLoaderModuleClient(linguiRouterConfig, configObject)
       }
 
       if (id.startsWith("\0" + VIRTUAL_PREFIX)) {
         const locale = id.replace("\0" + VIRTUAL_PREFIX, "")
-        const module = await generateLocaleModule(locale, linguiConfig)
+        const module = await generateLocaleModule(locale, linguiRouterConfig)
         if (!module) {
           this.warn(
             `No message catalogs found for locale '${locale}'. Please check your Lingui configuration.`
@@ -147,63 +157,16 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
 }
 
 function resolveLocale(locale: string, locales: string[]): string {
-  const normalizedLocale = normalizeLocaleKey(locale)
-  const resolved = locales.find(l => normalizeLocaleKey(l) === normalizedLocale)
+  const resolved = locales.find(l => normalizeLocaleKey(l) === locale)
   if (!resolved) {
     throw new Error(`Locale '${locale}' not found in Lingui configuration locales: ${locales}`)
   }
   return resolved
 }
 
-async function generateLocaleModule(
-  locale: string,
-  config: LinguiConfigNormalized
-): Promise<string> {
-  const catalogs: { varName: string; path: string }[] = []
-  let importIndex = 0
-
-  // Use original lingui format for import
-  const linguiLocale = resolveLocale(locale, config.locales)
-
-  // Note: catalogs are never empty in the normalized parsed config
-  for (const catalogConfig of config.catalogs!) {
-    let catalogPath = catalogConfig.path
-      .replace(/<rootDir>/g, config.rootDir || process.cwd())
-      .replace(/\{locale}/g, linguiLocale)
-      .replace(/\{name}/g, "*")
-
-    // Add .po extension for glob pattern
-    const globPattern = `${catalogPath}.po`
-
-    const poFiles = await fg(globPattern, {
-      cwd: config.rootDir || process.cwd(),
-    })
-
-    for (const poFile of poFiles) {
-      const varName = `catalog${importIndex++}`
-      // Resolve to an absolute path for import
-      const absolutePath = path.resolve(config.rootDir || process.cwd(), poFile)
-      catalogs.push({ varName, path: absolutePath })
-    }
-  }
-
-  if (catalogs.length > 1) {
-    const imports = catalogs.map(c => `import {messages as ${c.varName}} from '${c.path}'`)
-    const catalogVars = catalogs.map(c => c.varName)
-
-    return `${imports.join("\n")}
-export const messages = Object.assign({}, ${catalogVars.join(", ")})`
-  } else if (catalogs.length === 1) {
-    return `export * from '${catalogs[0].path}'`
-  } else {
-    return ""
-  }
-}
-
 async function generateLoaderModuleServer(
-  configObject: LinguiRouterConfig,
-  linguiConfig: LinguiConfigNormalized,
-  pluginConfig: LinguiRouterPluginConfigFull
+  pluginConfig: Readonly<LinguiRouterPluginConfigFull>,
+  configObject: LinguiRouterConfig
 ): Promise<string> {
   const lines: string[] = []
 
@@ -217,15 +180,14 @@ async function generateLoaderModuleServer(
   const bundleMap: string[] = []
 
   // For server builds, use static imports
-  for (const locale of linguiConfig.locales) {
-    const normalizedLocale = normalizeLocaleKey(locale)
-    const varName = `locale_${normalizedLocale.replace(/-/g, "_")}`
+  for (const locale of pluginConfig.locales) {
+    const varName = `locale_${locale.replace(/-/g, "_")}`
     lines.push(`import { messages as ${varName} } from '${VIRTUAL_PREFIX}${locale}'`)
 
-    loaderMap.push(`  '${normalizedLocale}': () => Promise.resolve({messages: ${varName}}),`)
-    messagesMap.push(`  '${normalizedLocale}': ${varName},`)
+    loaderMap.push(`  '${locale}': () => Promise.resolve({messages: ${varName}}),`)
+    messagesMap.push(`  '${locale}': ${varName},`)
     bundleMap.push(
-      `  '${normalizedLocale}': setupI18n({ locale: '${normalizedLocale}', messages: localeMessages }),`
+      `  '${locale}': setupI18n({ locale: '${locale}', messages: localeMessages }),`
     )
   }
 
@@ -252,7 +214,7 @@ async function generateLoaderModuleServer(
   }
 
   const allLocaleMapping: Record<string, string> = await buildLocaleMapping(
-    linguiConfig.locales,
+    pluginConfig.locales,
     pluginConfig.localeMapping
   )
   lines.push(`export const localeMapping = JSON.parse(\`${JSON.stringify(allLocaleMapping)}\`)`)
@@ -260,9 +222,55 @@ async function generateLoaderModuleServer(
   return lines.join("\n")
 }
 
+async function generateLocaleModule(
+  locale: string,
+  pluginConfig: Readonly<LinguiRouterPluginConfigFull>
+): Promise<string> {
+  const linguiConfig = pluginConfig.linguiConfig
+  const catalogs: { varName: string; path: string }[] = []
+  let importIndex = 0
+
+  // Use original lingui format for import
+  const linguiLocale = resolveLocale(locale, linguiConfig.locales)
+
+  // Note: catalogs are never empty in the normalized parsed config
+  for (const catalogConfig of linguiConfig.catalogs!) {
+    let catalogPath = catalogConfig.path
+      .replace(/<rootDir>/g, linguiConfig.rootDir || process.cwd())
+      .replace(/\{locale}/g, linguiLocale)
+      .replace(/\{name}/g, "*")
+
+    // Add .po extension for glob pattern
+    const globPattern = `${catalogPath}.po`
+
+    const poFiles = await fg(globPattern, {
+      cwd: linguiConfig.rootDir || process.cwd(),
+    })
+
+    for (const poFile of poFiles) {
+      const varName = `catalog${importIndex++}`
+      // Resolve to an absolute path for import
+      const absolutePath = path.resolve(linguiConfig.rootDir || process.cwd(), poFile)
+      catalogs.push({ varName, path: absolutePath })
+    }
+  }
+
+  if (catalogs.length > 1) {
+    const imports = catalogs.map(c => `import {messages as ${c.varName}} from '${c.path}'`)
+    const catalogVars = catalogs.map(c => c.varName)
+
+    return `${imports.join("\n")}
+export const messages = Object.assign({}, ${catalogVars.join(", ")})`
+  } else if (catalogs.length === 1) {
+    return `export * from '${catalogs[0].path}'`
+  } else {
+    return ""
+  }
+}
+
 async function generateLoaderModuleClient(
-  configObject: LinguiRouterConfig,
-  linguiConfig: LinguiConfigNormalized
+  pluginConfig: Readonly<LinguiRouterPluginConfigFull>,
+  configObject: LinguiRouterConfig
 ): Promise<string> {
   const lines: string[] = []
 
@@ -272,9 +280,8 @@ async function generateLoaderModuleClient(
   )
 
   // For client builds, use dynamic imports
-  for (const locale of linguiConfig.locales) {
-    const normalizedLocale = normalizeLocaleKey(locale)
-    lines.push(`  '${normalizedLocale}': () => import('${VIRTUAL_PREFIX}${locale}'),`)
+  for (const locale of pluginConfig.locales) {
+    lines.push(`  '${locale}': () => import('${VIRTUAL_PREFIX}${locale}'),`)
   }
 
   lines.push(`}`, generateGetI18nInstanceClient(), `export const localeMapping = undefined`)
@@ -283,27 +290,15 @@ async function generateLoaderModuleClient(
 }
 
 function buildConfig(
-  pluginConfig: LinguiRouterPluginConfigFull,
-  linguiConfig: LinguiConfigNormalized,
+  pluginConfig: Readonly<LinguiRouterPluginConfigFull>,
   server: boolean
 ): LinguiRouterConfig {
-  const exclude =
-    typeof pluginConfig.exclude === "string" ? [pluginConfig.exclude] : pluginConfig.exclude || []
-  const fallbackLocales = linguiConfig.fallbackLocales
-  const defaultLocale =
-    typeof fallbackLocales?.default === "string" ? fallbackLocales.default : undefined
-
   return {
-    locales: linguiConfig.locales.map(normalizeLocaleKey),
-    pseudoLocale: linguiConfig.pseudoLocale
-      ? normalizeLocaleKey(linguiConfig.pseudoLocale)
-      : undefined,
-    sourceLocale: linguiConfig.sourceLocale
-      ? normalizeLocaleKey(linguiConfig.sourceLocale)
-      : undefined,
-    defaultLocale: normalizeLocaleKey(defaultLocale || linguiConfig.locales[0] || "en"),
-    exclude,
-    redirect: pluginConfig.redirect ?? "auto",
+    locales: pluginConfig.locales,
+    pseudoLocale: pluginConfig.pseudoLocale,
+    defaultLocale: pluginConfig.defaultLocale,
+    exclude: pluginConfig.exclude,
+    redirect: pluginConfig.redirect,
     runtimeEnv: server ? "server" : "client",
     localeParamName: pluginConfig.localeParamName,
   }
@@ -316,16 +311,12 @@ async function buildLocaleMapping(
   const knownLocales = await getAllLocales()
 
   // Add existing locales to the result (all normalized)
-  const result = new Map<string, string>(
-    locales.map(l => [normalizeLocaleKey(l), normalizeLocaleKey(l)])
-  )
+  const result = new Map<string, string>(locales.map(l => [l, l]))
 
   // Add user-defined fallback locales
   for (const [locale, fallback] of Object.entries(localeMap)) {
-    const key = normalizeLocaleKey(locale)
-    const normalizedFallback = normalizeLocaleKey(fallback)
     // Validate
-    if (result.has(key)) {
+    if (result.has(locale)) {
       throw new Error(`Mapped locale ${locale} is already defined in the Lingui configuration.`)
     }
     if (!locales.includes(fallback)) {
@@ -333,8 +324,8 @@ async function buildLocaleMapping(
         `Fallback locale ${fallback} for locale ${locale} is not defined in the Lingui configuration.`
       )
     }
-    // Add to result (both key and value are normalized)
-    result.set(key, normalizedFallback)
+    // Add to result
+    result.set(locale, fallback)
   }
 
   // Convert current locales to normalized keys for comparison
@@ -343,8 +334,8 @@ async function buildLocaleMapping(
   const definedLocales = [...locales]
     .sort((a, b) => b.length - a.length)
     .map(locale => ({
-      locale: normalizeLocaleKey(locale),
-      prefix: normalizeLocaleKey(locale) + "-",
+      locale,
+      prefix: locale + "-",
     }))
 
   // Find all more specific locales for each defined locale

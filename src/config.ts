@@ -17,10 +17,6 @@ export type LinguiRouterConfig = {
    */
   pseudoLocale?: string
   /**
-   * Locale code of the source (authoring) language.
-   */
-  sourceLocale?: string
-  /**
    * One or more top-level path segments that must not be treated as locales.
    * For example, ["api"].
    */
@@ -37,20 +33,6 @@ export type LinguiRouterConfig = {
    * Locale path parameter name (e.g., "locale" for `/:locale?/*`).
    */
   localeParamName: string
-}
-
-/**
- * Result of extracting locale information from a URL path.
- */
-export type PathLocale = {
-  /** Remainder of the path after removing the locale or excluded segment. */
-  pathname: string
-  /** Detected locale code, if present, in its canonical form. */
-  locale?: string
-  /** Detected raw locale segment from the URL, before normalization. */
-  rawLocale?: string
-  /** True if the first segment matched an excluded prefix, not a locale. */
-  excluded: boolean
 }
 
 /**

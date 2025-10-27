@@ -6,4 +6,5 @@ export default [
     index("./routes/_index.tsx", { id: "locale-index" }),
     route("hello", "./routes/hello.tsx"),
   ]),
+  route("static/hello", "./routes/static-hello.tsx"),
 ] satisfies RouteConfig

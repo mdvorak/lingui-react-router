@@ -1,6 +1,5 @@
 import { I18nProvider } from "@lingui/react"
 import React, { useEffect } from "react"
-import { useLocation } from "react-router"
 import { $getI18nInstance } from "virtual:lingui-router-loader"
 import { usePathLocale } from "../i18n"
 import { loadLocaleCatalog } from "../runtime"
@@ -47,8 +46,7 @@ import { loadLocaleCatalog } from "../runtime"
  * @param props.children - The child components to be rendered within the i18n context
  */
 export function I18nApp({ children }: Readonly<{ children: React.ReactNode }>) {
-  const location = useLocation()
-  const { locale } = usePathLocale(location)
+  const { locale } = usePathLocale()
   const i18n = $getI18nInstance(locale)
 
   useEffect(() => {
