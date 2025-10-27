@@ -1,2 +1,2 @@
-export type { LinguiRouterPluginConfig } from "./config"
-export * from "./plugin"
+export { linguiRouterPlugin } from "./plugin"
+export type { LinguiRouterPluginConfig } from "./plugin-config"
