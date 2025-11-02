@@ -19,7 +19,9 @@ export default defineConfig({
       exclude: ["**/*.test.*"],
     },
   ],
-  format: "po",
+  formatOptions: {
+    lineNumbers: false,
+  },
 })
 
 export const linguiRouterConfig = defineLinguiRouterConfig({
