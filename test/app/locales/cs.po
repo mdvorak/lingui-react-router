@@ -13,49 +13,49 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
-#: app/root.tsx:74
+#: app/root.tsx
 msgid "An unexpected error occurred."
 msgstr "Nastala neočekávaná chyba."
 
-#: app/routes/_index.tsx:11
+#: app/routes/_index.tsx
 msgctxt "nav"
 msgid "Continue"
 msgstr "Pokračovat"
 
-#: app/routes/hello.tsx:8
+#: app/routes/hello.tsx
 msgid "From loader too!"
 msgstr "Také z loaderu!"
 
 #. placeholder {0}: new Date().toLocaleDateString()
-#: app/routes/hello.tsx:25
+#: app/routes/hello.tsx
 msgid "Gray-colored text with a variable: {0}"
 msgstr "Šedě zbarvený text s proměnnou: {0}"
 
-#: app/routes/hello.tsx:18
+#: app/routes/hello.tsx
 msgid "Hello, World!"
 msgstr "Ahoj světe!"
 
-#: app/root.tsx:44
+#: app/root.tsx
 msgctxt "nav"
 msgid "Home"
 msgstr "Hlavní stránka"
 
-#: app/root.tsx:24
+#: app/root.tsx
 msgid "Lingui React Router App"
 msgstr "Lingui React Router Aplikace"
 
-#: app/root.tsx:25
+#: app/root.tsx
 msgid "Lingui React Router integration example"
 msgstr "Příklad integrace Lingui React Router"
 
-#: app/root.tsx:73
+#: app/root.tsx
 msgid "Oops!"
 msgstr "Jejda!"
 
-#: app/routes/hello.tsx:22
+#: app/routes/hello.tsx
 msgid "Special chars: \"'$.*+@!"
 msgstr ""
 
-#: app/root.tsx:80
+#: app/root.tsx
 msgid "The requested page could not be found."
 msgstr "Požadovaná stránka nebyla nalezena."

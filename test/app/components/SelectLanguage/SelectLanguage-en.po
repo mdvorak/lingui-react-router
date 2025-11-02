@@ -13,6 +13,6 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
-#: app/components/SelectLanguage/SelectLanguage.tsx:21
+#: app/components/SelectLanguage/SelectLanguage.tsx
 msgid "Language"
 msgstr "Language"
