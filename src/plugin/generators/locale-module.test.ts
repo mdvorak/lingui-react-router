@@ -245,5 +245,51 @@ export const messages = Object.assign({}, catalog0, catalog1, catalog2)`)
       expect(catalog0Index).toBeLessThan(catalog1Index)
       expect(result).toContain("Object.assign({}, catalog0, catalog1)")
     })
+
+    it("should use custom catalog extension from format config", async () => {
+      mockLinguiConfig.format = {
+        catalogExtension: "json",
+      } as any
+
+      vi.mocked(fg).mockResolvedValue(["locales/en.json"])
+
+      const result = await generateLocaleModule("en", mockPluginConfig)
+
+      expect(result).toContain(`export * from '${normalizePath("/project/locales/en.json")}'`)
+      expect(fg).toHaveBeenCalledWith(
+        "/project/locales/en.json",
+        expect.objectContaining({ cwd: "/project" })
+      )
+    })
+
+    it("should default to .po extension when format is a string", async () => {
+      mockLinguiConfig.format = "po" as any
+
+      vi.mocked(fg).mockResolvedValue(["locales/en.po"])
+
+      const result = await generateLocaleModule("en", mockPluginConfig)
+
+      expect(result).toContain(`export * from '${normalizePath("/project/locales/en.po")}'`)
+      expect(fg).toHaveBeenCalledWith(
+        "/project/locales/en.po",
+        expect.objectContaining({ cwd: "/project" })
+      )
+    })
+
+    it("should default to .po extension when catalogExtension is not specified", async () => {
+      mockLinguiConfig.format = {
+        // catalogExtension not specified
+      } as any
+
+      vi.mocked(fg).mockResolvedValue(["locales/en.po"])
+
+      const result = await generateLocaleModule("en", mockPluginConfig)
+
+      expect(result).toContain(`export * from '${normalizePath("/project/locales/en.po")}'`)
+      expect(fg).toHaveBeenCalledWith(
+        "/project/locales/en.po",
+        expect.objectContaining({ cwd: "/project" })
+      )
+    })
   })
 })
