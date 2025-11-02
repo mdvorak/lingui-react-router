@@ -1,4 +1,5 @@
 import { defineConfig } from "@lingui/cli"
+import { defineLinguiRouterConfig } from "lingui-react-router/plugin"
 
 export default defineConfig({
   locales: ["en", "en-GB", "cs", "it", "pseudo"],
@@ -19,4 +20,12 @@ export default defineConfig({
     },
   ],
   format: "po",
+})
+
+export const linguiRouterConfig = defineLinguiRouterConfig({
+  exclude: ["api"],
+  localeParamName: "locale",
+  localeMapping: {
+    de: "en",
+  },
 })
