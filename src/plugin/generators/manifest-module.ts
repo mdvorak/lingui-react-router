@@ -3,6 +3,7 @@ import path from "node:path"
 import type { ModuleInfo, OutputBundle } from "rollup"
 import type { ConfigPluginContext, ResolvedConfig } from "vite"
 import { VIRTUAL_LOCALE_PREFIX } from "../plugin-config"
+import { resolveImportPath } from "./import-path"
 
 const LOCALE_MANIFEST_FILENAME = ".client-locale-manifest.json"
 const MANIFEST_CHUNK_NAME = "locale-manifest"
@@ -102,7 +103,5 @@ export async function generateBundleServer(
 
 function resolveManifestPath(config: ResolvedConfig): string {
   // outDir always consists of buildDirectory/consumer
-  return path
-    .resolve(config.root, config.build.outDir, "..", LOCALE_MANIFEST_FILENAME)
-    .replaceAll("\\", "/")
+  return resolveImportPath(config.root, config.build.outDir, "..", LOCALE_MANIFEST_FILENAME)
 }

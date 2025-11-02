@@ -1,14 +1,14 @@
 import fg from "fast-glob"
-import path from "node:path"
 import { normalizeLocaleKey } from "../../config"
 import type { LinguiRouterPluginConfigFull } from "../plugin-config"
+import { resolveImportPath } from "./import-path"
 
 /**
  * Generate the locale module code for a specific locale.
  *
  * @param locale Normalized locale key (e.g., "en", "en-us")
  * @param pluginConfig Plugin configuration
- * @returns The generated module code as a string
+ * @returns The generated modules code as a string
  */
 export async function generateLocaleModule(
   locale: string,
@@ -19,7 +19,7 @@ export async function generateLocaleModule(
   const catalogs: { varName: string; path: string }[] = []
   let importIndex = 0
 
-  // Use original lingui format for import
+  // Use the original lingui format for import
   const linguiLocale = resolveLocale(locale, linguiConfig.locales)
 
   // Note: catalogs are never empty in the normalized parsed config
@@ -31,7 +31,7 @@ export async function generateLocaleModule(
     const catalogExtension =
       (typeof linguiConfig.format === "object" && linguiConfig.format.catalogExtension) || "po"
 
-    // Add catalog extension for glob pattern
+    // Add catalog extension for the glob pattern
     const globPattern = `${catalogPath}.${catalogExtension}`
 
     const catalogFiles = await fg(globPattern, {
@@ -41,7 +41,7 @@ export async function generateLocaleModule(
     for (const catalogFile of catalogFiles) {
       const varName = `catalog${importIndex++}`
       // Resolve to an absolute path for import
-      const absolutePath = path.resolve(rootDir, catalogFile).replaceAll("\\", "/")
+      const absolutePath = resolveImportPath(rootDir, catalogFile)
       catalogs.push({ varName, path: absolutePath })
     }
   }
