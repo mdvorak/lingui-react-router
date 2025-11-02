@@ -1,5 +1,10 @@
 import { type I18n } from "@lingui/core"
-import { createContext, redirect, type RedirectFunction, type RouterContextProvider, } from "react-router"
+import {
+  createContext,
+  redirect,
+  type RedirectFunction,
+  type RouterContextProvider,
+} from "react-router"
 import type { PathLocale } from "../i18n"
 import "./assert-server"
 

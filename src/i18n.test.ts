@@ -73,9 +73,7 @@ describe("findLocale", () => {
   })
 
   it("does not infinite loop on circular localeMapping", () => {
-    expect(() => findLocale("c")).toThrowError(
-      /Circular localeMapping detected/i
-    )
+    expect(() => findLocale("c")).toThrowError(/Circular localeMapping detected/i)
   })
 })
 
