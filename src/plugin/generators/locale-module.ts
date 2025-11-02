@@ -28,18 +28,20 @@ export async function generateLocaleModule(
       .replaceAll("<rootDir>", rootDir)
       .replaceAll("{locale}", linguiLocale)
       .replaceAll("{name}", "*")
+    const catalogExtension =
+      (typeof linguiConfig.format === "object" && linguiConfig.format.catalogExtension) || "po"
 
-    // Add .po extension for glob pattern
-    const globPattern = `${catalogPath}.po`
+    // Add catalog extension for glob pattern
+    const globPattern = `${catalogPath}.${catalogExtension}`
 
-    const poFiles = await fg(globPattern, {
+    const catalogFiles = await fg(globPattern, {
       cwd: rootDir,
     })
 
-    for (const poFile of poFiles) {
+    for (const catalogFile of catalogFiles) {
       const varName = `catalog${importIndex++}`
       // Resolve to an absolute path for import
-      const absolutePath = path.resolve(rootDir, poFile).replaceAll("\\", "/")
+      const absolutePath = path.resolve(rootDir, catalogFile).replaceAll("\\", "/")
       catalogs.push({ varName, path: absolutePath })
     }
   }
