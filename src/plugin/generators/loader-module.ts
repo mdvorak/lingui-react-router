@@ -1,5 +1,9 @@
 import { type LinguiRouterConfig, normalizeLocaleKey } from "../../config"
-import { type LinguiRouterPluginConfigFull, PLUGIN_NAME, VIRTUAL_LOCALE_PREFIX, } from "../plugin-config"
+import {
+  type LinguiRouterPluginConfigFull,
+  PLUGIN_NAME,
+  VIRTUAL_LOCALE_PREFIX,
+} from "../plugin-config"
 import { getAllLocales } from "./cldr"
 
 /**

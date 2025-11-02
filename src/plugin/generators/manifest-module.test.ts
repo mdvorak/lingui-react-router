@@ -1,4 +1,5 @@
 import fs from "node:fs/promises"
+import path from "node:path"
 import type { ModuleInfo, OutputBundle, OutputChunk } from "rollup"
 import type { ConfigPluginContext, ResolvedConfig } from "vite"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
@@ -8,7 +9,6 @@ import {
   generateManifestModule,
   getManifestChunkName,
 } from "./manifest-module"
-import path from "node:path"
 
 vi.mock("node:fs/promises")
 
@@ -287,9 +287,12 @@ describe("manifest-module", () => {
 
       await generateBundleServer(mockContext, mockConfig, bundle)
 
-      expect(fs.readFile).toHaveBeenCalledWith(normalizePath("/project/build/.client-locale-manifest.json"), {
-        encoding: "utf8",
-      })
+      expect(fs.readFile).toHaveBeenCalledWith(
+        normalizePath("/project/build/.client-locale-manifest.json"),
+        {
+          encoding: "utf8",
+        }
+      )
     })
 
     it("should handle empty manifest", async () => {

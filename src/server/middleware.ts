@@ -1,10 +1,10 @@
 import { setI18n } from "@lingui/react/server"
-import { redirect, type RouterContextProvider, } from "react-router"
+import { redirect, type RouterContextProvider } from "react-router"
 import { $detectLocale, $getI18nInstance } from "virtual:lingui-router-loader"
+import { findLocale, stripPathnameLocalePrefix } from "../i18n"
 import { config } from "../runtime"
 import "./assert-server"
 import { LocaleContext } from "./context"
-import { findLocale, stripPathnameLocalePrefix } from "../i18n"
 
 /**
  * Locale middleware implementation. Determines the locale from the URL or the

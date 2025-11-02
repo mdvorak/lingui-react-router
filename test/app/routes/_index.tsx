@@ -1,5 +1,5 @@
-import { LocaleLink } from "lingui-react-router"
 import { Trans } from "@lingui/react/macro"
+import { LocaleLink } from "lingui-react-router"
 
 export default function Index() {
   return (
