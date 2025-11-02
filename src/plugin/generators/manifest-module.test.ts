@@ -8,8 +8,14 @@ import {
   generateManifestModule,
   getManifestChunkName,
 } from "./manifest-module"
+import path from "node:path"
 
 vi.mock("node:fs/promises")
+
+function normalizePath(p: string) {
+  p = path.resolve(p)
+  return path.sep !== "/" ? p.replaceAll(path.sep, "/") : p
+}
 
 describe("manifest-module", () => {
   describe("generateManifestModule", () => {
@@ -130,9 +136,9 @@ describe("manifest-module", () => {
 
       await generateBundleClient(mockContext, mockConfig, bundle)
 
-      expect(fs.mkdir).toHaveBeenCalledWith("/project/build", { recursive: true })
+      expect(fs.mkdir).toHaveBeenCalledWith(normalizePath("/project/build"), { recursive: true })
       expect(fs.writeFile).toHaveBeenCalledWith(
-        "/project/build/.client-locale-manifest.json",
+        normalizePath("/project/build/.client-locale-manifest.json"),
         expect.stringContaining('"en": "/locale-en-abc123.js"'),
         { encoding: "utf8" }
       )
@@ -281,7 +287,7 @@ describe("manifest-module", () => {
 
       await generateBundleServer(mockContext, mockConfig, bundle)
 
-      expect(fs.readFile).toHaveBeenCalledWith("/project/build/.client-locale-manifest.json", {
+      expect(fs.readFile).toHaveBeenCalledWith(normalizePath("/project/build/.client-locale-manifest.json"), {
         encoding: "utf8",
       })
     })

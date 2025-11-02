@@ -102,5 +102,7 @@ export async function generateBundleServer(
 
 function resolveManifestPath(config: ResolvedConfig): string {
   // outDir always consists of buildDirectory/consumer
-  return path.resolve(config.root, config.build.outDir, "..", LOCALE_MANIFEST_FILENAME)
+  return path
+    .resolve(config.root, config.build.outDir, "..", LOCALE_MANIFEST_FILENAME)
+    .replaceAll("\\", "/")
 }

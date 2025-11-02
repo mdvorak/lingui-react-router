@@ -25,7 +25,7 @@ export async function generateLoaderModuleServer(
 
   // For server builds, use static imports
   for (const locale of pluginConfig.locales) {
-    const varName = `locale_${locale.replace(/-/g, "_")}`
+    const varName = `locale_${locale.replaceAll("-", "_")}`
     lines.push(`import { messages as ${varName} } from '${VIRTUAL_LOCALE_PREFIX}${locale}'`)
 
     loaderMap.push(`  '${locale}': () => Promise.resolve({messages: ${varName}}),`)
