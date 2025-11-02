@@ -5,6 +5,7 @@ import { linguiRouterPlugin } from "lingui-react-router/plugin"
 import { defineConfig } from "vite"
 import macrosPlugin from "vite-plugin-babel-macros"
 import tsconfigPaths from "vite-tsconfig-paths"
+import { linguiRouterConfig } from "./lingui.config"
 
 export default defineConfig({
   plugins: [
@@ -12,18 +13,13 @@ export default defineConfig({
     reactRouter(),
     macrosPlugin(),
     lingui(),
-    linguiRouterPlugin({
-      localeParamName: "locale",
-      localeMapping: {
-        de: "en",
-      },
-    }),
+    linguiRouterPlugin(linguiRouterConfig),
     tsconfigPaths(),
   ],
   build: {
     minify: false,
   },
-  // Note this is not needed in the user application, here it's because we use the lib from workspace
+  // Note this is not needed in the user application. Here it's because we use the lib from a workspace
   ssr: {
     noExternal: ["negotiator"],
   },

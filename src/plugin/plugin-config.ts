@@ -20,9 +20,9 @@ export type LinguiRouterPluginConfigFull = {
   /**
    * Redirect behavior for detected locales.
    *
-   * - "auto": Redirect to detected locale only if it's not the default locale.
-   * - "always": Always redirect to detected locale, even if it's the default locale.
-   * - "never": Never redirect to detected locale.
+   * - "auto": Redirect to a detected locale only if it's not the default locale.
+   * - "always": Always redirect to a detected locale, even if it's the default locale.
+   * - "never": Never redirect to a detected locale.
    */
   redirect: RedirectBehavior
   /**
@@ -48,7 +48,7 @@ export type LinguiRouterPluginConfigFull = {
   /**
    * Default locale to use when no locale can be detected. Must be included in `locales`.
    *
-   * By default, first locale from `locales` is used.
+   * By default, the first locale from `locales` is used.
    */
   defaultLocale: string
   /**
@@ -69,3 +69,26 @@ export type LinguiRouterPluginConfigFull = {
  * Configuration passed from the consumer to wire up catalog loading and path exclusions.
  */
 export type LinguiRouterPluginConfig = Partial<LinguiRouterPluginConfigFull>
+
+/**
+ * Convenience function to define the Lingui React Router plugin configuration.
+ *
+ * This function is not needed when passing config to the `linguiRouterPlugin` function directly.
+ *
+ * @param config - Partial configuration for the Lingui React Router plugin.
+ * @returns The provided configuration object.
+ * @example
+ * ```ts
+ * import { defineLinguiRouterConfig } from "lingui-react-router/plugin"
+ *
+ * export default defineLinguiRouterConfig({
+ *   exclude: ["api"],
+ *   redirect: "auto",
+ * })
+ * ```
+ */
+export function defineLinguiRouterConfig(
+  config: LinguiRouterPluginConfig
+): LinguiRouterPluginConfig {
+  return config
+}
