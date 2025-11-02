@@ -1,10 +1,16 @@
 import type { LinguiConfigNormalized } from "@lingui/conf"
 import fg from "fast-glob"
+import path from "node:path"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import type { LinguiRouterPluginConfigFull } from "../plugin-config"
 import { generateLocaleModule } from "./locale-module"
 
 vi.mock("fast-glob")
+
+function normalizePath(p: string) {
+  p = path.resolve(p)
+  return path.sep !== "/" ? p.replaceAll(path.sep, "/") : p
+}
 
 describe("locale-module", () => {
   let mockPluginConfig: LinguiRouterPluginConfigFull
@@ -47,7 +53,7 @@ describe("locale-module", () => {
 
       const result = await generateLocaleModule("en", mockPluginConfig)
 
-      expect(result).toContain("export * from '/project/locales/en.po'")
+      expect(result).toContain(`export * from '${normalizePath("/project/locales/en.po")}'`)
       expect(fg).toHaveBeenCalledWith(
         "/project/locales/en.po",
         expect.objectContaining({ cwd: "/project" })
@@ -71,16 +77,11 @@ describe("locale-module", () => {
 
       const result = await generateLocaleModule("en", mockPluginConfig)
 
-      expect(result).toContain("import {messages as catalog0} from '/project/locales/en.po'")
-      expect(result).toContain(
-        "import {messages as catalog1} from '/project/components/Button/en.po'"
-      )
-      expect(result).toContain(
-        "import {messages as catalog2} from '/project/components/Modal/en.po'"
-      )
-      expect(result).toContain(
-        "export const messages = Object.assign({}, catalog0, catalog1, catalog2)"
-      )
+      expect(result)
+        .toEqual(`import {messages as catalog0} from '${normalizePath("/project/locales/en.po")}'
+import {messages as catalog1} from '${normalizePath("/project/components/Button/en.po")}'
+import {messages as catalog2} from '${normalizePath("/project/components/Modal/en.po")}'
+export const messages = Object.assign({}, catalog0, catalog1, catalog2)`)
     })
 
     it("should handle locale with hyphen", async () => {
@@ -90,7 +91,7 @@ describe("locale-module", () => {
 
       const result = await generateLocaleModule("en-us", mockPluginConfig)
 
-      expect(result).toContain("export * from '/project/locales/en-US.po'")
+      expect(result).toContain(`export * from '${normalizePath("/project/locales/en-US.po")}'`)
       expect(fg).toHaveBeenCalledWith("/project/locales/en-US.po", expect.any(Object))
     })
 
@@ -181,7 +182,7 @@ describe("locale-module", () => {
 
       const result = await generateLocaleModule("en", mockPluginConfig)
 
-      expect(result).toContain("/absolute/project/path/locales/en.po")
+      expect(result).toContain(normalizePath("/absolute/project/path/locales/en.po"))
     })
 
     it("should handle multiple catalog configs with wildcards", async () => {
@@ -220,7 +221,7 @@ describe("locale-module", () => {
 
       const result = await generateLocaleModule("en", mockPluginConfig)
 
-      expect(result).toContain("/project/i18n/en/messages.po")
+      expect(result).toContain(normalizePath("/project/i18n/en/messages.po"))
     })
 
     it("should process catalogs in order", async () => {

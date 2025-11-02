@@ -25,9 +25,9 @@ export async function generateLocaleModule(
   // Note: catalogs are never empty in the normalized parsed config
   for (const catalogConfig of linguiConfig.catalogs!) {
     let catalogPath = catalogConfig.path
-      .replace(/<rootDir>/g, rootDir)
-      .replace(/\{locale}/g, linguiLocale)
-      .replace(/\{name}/g, "*")
+      .replaceAll("<rootDir>", rootDir)
+      .replaceAll("{locale}", linguiLocale)
+      .replaceAll("{name}", "*")
 
     // Add .po extension for glob pattern
     const globPattern = `${catalogPath}.po`
@@ -39,7 +39,7 @@ export async function generateLocaleModule(
     for (const poFile of poFiles) {
       const varName = `catalog${importIndex++}`
       // Resolve to an absolute path for import
-      const absolutePath = path.resolve(rootDir, poFile)
+      const absolutePath = path.resolve(rootDir, poFile).replaceAll("\\", "/")
       catalogs.push({ varName, path: absolutePath })
     }
   }

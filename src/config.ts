@@ -61,5 +61,5 @@ export type RedirectBehavior = "auto" | "always" | "never"
  * @returns The normalized locale code (e.g., "en-us").
  */
 export function normalizeLocaleKey(locale: string): string {
-  return locale.toLowerCase().replace(/_/g, "-")
+  return locale.toLowerCase().replaceAll("_", "-")
 }
