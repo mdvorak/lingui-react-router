@@ -1,0 +1,62 @@
+name: Update Package Manager
+
+on:
+  schedule:
+    # Run every Monday at 9:00 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+  # Allow manual triggering from the GitHub Actions UI
+
+jobs:
+  update-package-manager:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+
+      - name: Install corepack
+        run: |
+          npm install -g corepack
+          corepack enable
+
+      - name: Get current packageManager version
+        id: current-version
+        run: |
+          echo "version=$(node -p "require('./package.json').packageManager")" >> $GITHUB_OUTPUT
+
+      - name: Update packageManager using corepack
+        run: corepack use pnpm@latest
+
+      - name: Get latest packageManager version
+        id: latest-version
+        run: |
+          echo "version=$(node -p "require('./package.json').packageManager")" >> $GITHUB_OUTPUT
+
+      - name: Create Pull Request
+        if: steps.latest-version.outputs.version != steps.current-version.outputs.version
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "chore(deps): update packageManager to latest stable version"
+          title: "chore(deps): update packageManager to latest stable version"
+          body: |
+            This PR updates the `packageManager` field in `package.json` to the latest stable version using Node.js corepack.
+
+            **Current version:** `${{ steps.current-version.outputs.version }}`
+            **Latest version:** `${{ steps.latest-version.outputs.version }}`
+
+            This update was automatically created by the Update Package Manager workflow.
+          branch: update/package-manager
+          delete-branch: true
+          labels: |
+            dependencies
