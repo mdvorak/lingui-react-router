@@ -253,6 +253,49 @@ Note that since this library is always inlined, it's only required as a dev depe
 - `useLinguiServer`: loader/action helper with i18n instance, request locale, localized redirect,
   and convenience values like pathnamePrefix.
 
+## Testing components
+
+This package provides a lightweight helper to test route modules and components with i18n and
+locale context set up exactly like your app does in production.
+
+- The `createLocaleRouteStub` test utility mounts your route under a localized parent route and
+  wraps it with `I18nApp` and the server `localeMiddleware`.
+- Import it from `lingui-react-router/test` and render with an initial URL such as `/hello` or
+  `/en/hello`.
+
+Install recommended testing deps (if you don't already use them):
+
+```bash
+npm install -D vitest @testing-library/react @testing-library/user-event
+```
+
+Example: route module test with loader and i18n messages
+
+```tsx
+// hello.test.tsx
+import { render } from "@testing-library/react"
+import { createLocaleRouteStub } from "lingui-react-router/test"
+import Hello, { loader as helloLoader } from "./hello"
+
+it("navigates to /hello and shows Hello and loader text", async () => {
+  const Stub = createLocaleRouteStub({
+    path: "hello",
+    Component: Hello,
+    loader: helloLoader,
+  })
+
+  render(<Stub initialEntries={["/hello"]} />)
+
+  await expect(screen.findByText(/Hello, World!/i)).resolves.toBeTruthy()
+  await expect(screen.findByText(/From loader too!/i)).resolves.toBeTruthy()
+})
+```
+
+Notes and tips:
+- Provide locale-less paths to `<LocaleLink>` in tests just like in your app; the active locale is
+  prefixed automatically.
+- To test a specific locale from the URL, render with `initialEntries={["/it/hello"]}`.
+
 ## Plugin Configuration
 
 The `linguiRouterPlugin` accepts an optional configuration object to customize its behavior. All

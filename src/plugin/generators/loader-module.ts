@@ -14,13 +14,13 @@ import { getAllLocales } from "./cldr"
  */
 export async function generateLoaderModuleServer(
   pluginConfig: Readonly<LinguiRouterPluginConfigFull>,
-  configObject: LinguiRouterConfig
+  configObject: LinguiRouterConfig,
 ): Promise<string> {
   const lines: string[] = []
 
   lines.push(
     `import { setupI18n } from "@lingui/core"`,
-    `export const config = ${JSON.stringify(configObject)}`
+    `export const config = ${JSON.stringify(configObject)}`,
   )
 
   const loaderMap: string[] = []
@@ -47,13 +47,13 @@ export async function generateLoaderModuleServer(
     `const i18nInstances = {`,
     ...bundleMap,
     `}`,
-    generateGetI18nInstanceServer()
+    generateGetI18nInstanceServer(),
   )
 
   if (pluginConfig.detectLocale) {
     lines.push(
       `import { negotiateClientLocale } from "${PLUGIN_NAME}/negotiate"`,
-      `export const $detectLocale = negotiateClientLocale`
+      `export const $detectLocale = negotiateClientLocale`,
     )
   } else {
     lines.push(`export const $detectLocale = () => undefined`)
@@ -61,7 +61,7 @@ export async function generateLoaderModuleServer(
 
   const allLocaleMapping: Record<string, string> = await buildLocaleMapping(
     pluginConfig.locales,
-    pluginConfig.localeMapping
+    pluginConfig.localeMapping,
   )
   lines.push(`export const localeMapping = JSON.parse(\`${JSON.stringify(allLocaleMapping)}\`)`)
 
@@ -76,13 +76,13 @@ export async function generateLoaderModuleServer(
  */
 export async function generateLoaderModuleClient(
   pluginConfig: Readonly<LinguiRouterPluginConfigFull>,
-  configObject: LinguiRouterConfig
+  configObject: LinguiRouterConfig,
 ): Promise<string> {
   const lines: string[] = []
 
   lines.push(
     `export const config = ${JSON.stringify(configObject)}`,
-    `export const localeLoaders = {`
+    `export const localeLoaders = {`,
   )
 
   // For client builds, use dynamic imports
@@ -90,7 +90,12 @@ export async function generateLoaderModuleClient(
     lines.push(`  '${locale}': () => import('${VIRTUAL_LOCALE_PREFIX}${locale}'),`)
   }
 
-  lines.push(`}`, generateGetI18nInstanceClient(), `export const localeMapping = undefined`)
+  lines.push(
+    `}`,
+    generateGetI18nInstanceClient(),
+    `export const localeMapping = undefined`,
+    `export const $detectLocale = () => undefined`,
+  )
 
   return lines.join("\n")
 }
@@ -103,7 +108,7 @@ export async function generateLoaderModuleClient(
  */
 export function buildConfig(
   pluginConfig: Readonly<LinguiRouterPluginConfigFull>,
-  server: boolean
+  server: boolean,
 ): LinguiRouterConfig {
   return {
     locales: pluginConfig.locales,
@@ -118,7 +123,7 @@ export function buildConfig(
 
 export async function buildLocaleMapping(
   locales: string[],
-  localeMap: Record<string, string>
+  localeMap: Record<string, string>,
 ): Promise<Record<string, string>> {
   const knownLocales = await getAllLocales()
 
@@ -133,7 +138,7 @@ export async function buildLocaleMapping(
     }
     if (!locales.includes(fallback)) {
       throw new Error(
-        `Fallback locale ${fallback} for locale ${locale} is not defined in the Lingui configuration.`
+        `Fallback locale ${fallback} for locale ${locale} is not defined in the Lingui configuration.`,
       )
     }
     // Add to result
@@ -181,9 +186,10 @@ export function $getI18nInstance(locale) {
 }
 
 function generateGetI18nInstanceClient() {
-  //language=js
-  return `
-import { i18n } from "@lingui/core"
+  // TODO support   runtimeConfigModule: {
+  //     i18n: ["@lingui/core", "i18n"],
+  //   },
+  return `import { i18n } from "@lingui/core"
 export function $getI18nInstance(_locale) {
   return i18n
 }`

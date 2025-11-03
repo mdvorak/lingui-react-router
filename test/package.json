@@ -6,9 +6,10 @@
     "extract": "lingui extract",
     "prebuild": "react-router typegen && tsc --noEmit --strict && lingui extract --clean",
     "build": "react-router build",
+    "postbuild": "vitest run",
     "dev": "react-router dev",
     "start": "react-router-serve ./build/server/index.js",
-    "test": "react-router build && vitest run"
+    "test": "vitest run"
   },
   "dependencies": {
     "@lingui/core": "^5.5.2",
@@ -26,9 +27,12 @@
     "@lingui/conf": "^5.5.2",
     "@lingui/vite-plugin": "^5.5.2",
     "@tailwindcss/vite": "^4.1.16",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^24.10.0",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
+    "happy-dom": "^20.0.10",
     "lingui-react-router": "workspace:*",
     "tailwindcss": "^4.1.16",
     "tsx": "^4.20.6",

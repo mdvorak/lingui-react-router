@@ -2,7 +2,7 @@ import { setI18n } from "@lingui/react/server"
 import { redirect, type RouterContextProvider } from "react-router"
 import { $detectLocale, $getI18nInstance } from "virtual:lingui-router-loader"
 import { findLocale, stripPathnameLocalePrefix } from "../i18n"
-import { config } from "../runtime"
+import { config, loadLocaleCatalog } from "../runtime"
 import "./assert-server"
 import { LocaleContext } from "./context"
 
@@ -17,7 +17,7 @@ export async function localeMiddleware(
     context,
     params,
   }: { request: Request; context: Readonly<RouterContextProvider>; params: unknown },
-  next: () => Promise<Response>
+  next: () => Promise<Response>,
 ): Promise<Response> {
   const url = new URL(request.url)
   const paramsMap = params as Record<string, string | undefined>
@@ -41,14 +41,21 @@ export async function localeMiddleware(
     requestLocale = handleRequestLocale(request, url, requestPathname, excluded)
   }
 
-  const i18n = $getI18nInstance(requestLocale || config.defaultLocale)
+  const resolvedLocale = requestLocale || config.defaultLocale
+  const i18n = $getI18nInstance(resolvedLocale)
   if (!i18n) {
-    throw new Error(`Missing i18n instance for ${requestLocale}`)
+    throw new Error(`Missing i18n instance for ${resolvedLocale}`)
   }
 
-  // Run the handler in the storage context
+  // This is needed only during testing, on the server it is a no-op
+  if (i18n.locale !== resolvedLocale) {
+    const messages = await loadLocaleCatalog(resolvedLocale)
+    i18n.loadAndActivate({ locale: resolvedLocale, messages })
+  }
+
+  // Set the locale context
   context.set(LocaleContext, {
-    locale: i18n.locale,
+    locale: resolvedLocale,
     i18n,
     _: i18n._.bind(i18n),
     url,
@@ -57,9 +64,13 @@ export async function localeMiddleware(
   })
 
   setI18n(i18n)
+
+  // Run the next middleware / route handler
   const response = await next()
-  response.headers.set("Content-Language", i18n.locale)
+
+  response.headers.set("Content-Language", resolvedLocale)
   response.headers.append("Vary", "Accept-Language")
+
   return response
 }
 
@@ -67,7 +78,7 @@ function handleRequestLocale(
   request: Request,
   url: URL,
   pathname: string,
-  excluded: boolean
+  excluded: boolean,
 ): string | undefined {
   const detectedLocale = $detectLocale(getRequestHeaders(request.headers), config.locales)
   const preferredLocale = detectedLocale || config.defaultLocale

@@ -9,6 +9,7 @@ export default defineBuildConfig({
     "src/server/negotiate",
     "src/plugin/routes",
     "src/plugin/index",
+    "src/test/index",
   ],
   externals: [
     "virtual:lingui-router-loader",
