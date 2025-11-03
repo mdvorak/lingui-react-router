@@ -51,7 +51,7 @@ export function getManifestChunkName(info: ModuleInfo): string | undefined {
 export async function generateBundleClient(
   context: ConfigPluginContext,
   config: ResolvedConfig,
-  bundle: OutputBundle
+  bundle: OutputBundle,
 ) {
   const manifestPath = resolveManifestPath(config)
   const base = config.base
@@ -86,7 +86,7 @@ export async function generateBundleClient(
 export async function generateBundleServer(
   context: ConfigPluginContext,
   config: ResolvedConfig,
-  bundle: OutputBundle
+  bundle: OutputBundle,
 ) {
   // Parse and stringify to validate the JSON
   const manifestPath = resolveManifestPath(config)

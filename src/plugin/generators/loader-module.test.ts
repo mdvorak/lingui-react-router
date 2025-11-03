@@ -4,8 +4,10 @@ import type { LinguiRouterPluginConfigFull } from "../plugin-config"
 import {
   buildConfig,
   buildLocaleMapping,
+  generateDetectLocale,
   generateLoaderModuleClient,
   generateLoaderModuleServer,
+  generateLocaleMapping,
 } from "./loader-module"
 
 vi.mock("./cldr", () => ({
@@ -31,7 +33,7 @@ vi.mock("./cldr", () => ({
         "zh-Hans",
         "zh-Hans-CN",
         "zh-Hans-SG",
-      ])
+      ]),
   ),
 }))
 
@@ -68,48 +70,23 @@ describe("loader-module", () => {
     it("should generate server loader module with static imports", async () => {
       const result = await generateLoaderModuleServer(
         mockPluginConfig,
-        buildConfig(mockPluginConfig, true)
+        buildConfig(mockPluginConfig, true),
       )
 
-      expect(result).toContain('import { setupI18n } from "@lingui/core"')
+      expect(result).toContain("import { setupI18n } from \"@lingui/core\"")
       expect(result).toContain(
-        "import { messages as locale_en } from 'virtual:lingui-router-locale-en'"
-      )
-      expect(result).toContain(
-        "import { messages as locale_fr } from 'virtual:lingui-router-locale-fr'"
+        "import { messages as locale_en } from 'virtual:lingui-router-locale-en'",
       )
       expect(result).toContain(
-        "import { messages as locale_es } from 'virtual:lingui-router-locale-es'"
+        "import { messages as locale_fr } from 'virtual:lingui-router-locale-fr'",
       )
-      expect(result).toContain("export const config =")
-      expect(result).toContain("export const localeLoaders = {")
-      expect(result).toContain("export function $getI18nInstance(locale)")
-    })
-
-    it("should include locale detection when detectLocale is true", async () => {
-      mockPluginConfig.detectLocale = true
-
-      const result = await generateLoaderModuleServer(
-        mockPluginConfig,
-        buildConfig(mockPluginConfig, true)
-      )
-
       expect(result).toContain(
-        'import { negotiateClientLocale } from "lingui-react-router/negotiate"'
-      )
-      expect(result).toContain("export const $detectLocale = negotiateClientLocale")
-    })
-
-    it("should exclude locale detection when detectLocale is false", async () => {
-      mockPluginConfig.detectLocale = false
-
-      const result = await generateLoaderModuleServer(
-        mockPluginConfig,
-        buildConfig(mockPluginConfig, true)
+        "import { messages as locale_es } from 'virtual:lingui-router-locale-es'",
       )
 
-      expect(result).not.toContain("negotiateClientLocale")
-      expect(result).toContain("export const $detectLocale = () => undefined")
+      expect(result.some(s => s.includes("export const config ="))).toBeTruthy()
+      expect(result.some(s => s.includes("export const localeLoaders = {"))).toBeTruthy()
+      expect(result.some(s => s.includes("export function $getI18nInstance(locale)"))).toBeTruthy()
     })
 
     it("should handle locales with hyphens correctly", async () => {
@@ -118,109 +95,34 @@ describe("loader-module", () => {
 
       const result = await generateLoaderModuleServer(
         mockPluginConfig,
-        buildConfig(mockPluginConfig, true)
+        buildConfig(mockPluginConfig, true),
       )
 
-      expect(result).toContain("locale_en_US")
-      expect(result).toContain("locale_fr_CA")
-      expect(result).toContain("virtual:lingui-router-locale-en-US")
-      expect(result).toContain("virtual:lingui-router-locale-fr-CA")
+      expect(result.some(s => s.includes("locale_en_US"))).toBeTruthy()
+      expect(result.some(s => s.includes("locale_fr_CA"))).toBeTruthy()
+      expect(result.some(s => s.includes("virtual:lingui-router-locale-en-US"))).toBeTruthy()
+      expect(result.some(s => s.includes("virtual:lingui-router-locale-fr-CA"))).toBeTruthy()
     })
 
     it("should generate localeLoaders with Promise.resolve wrappers", async () => {
       const result = await generateLoaderModuleServer(
         mockPluginConfig,
-        buildConfig(mockPluginConfig, true)
+        buildConfig(mockPluginConfig, true),
       )
 
-      expect(result).toContain("'en': () => Promise.resolve({messages: locale_en})")
-      expect(result).toContain("'fr': () => Promise.resolve({messages: locale_fr})")
-      expect(result).toContain("'es': () => Promise.resolve({messages: locale_es})")
+      expect(result.some(s => s.includes("'en': () => Promise.resolve({messages: locale_en})"))).toBeTruthy()
+      expect(result.some(s => s.includes("'fr': () => Promise.resolve({messages: locale_fr})"))).toBeTruthy()
+      expect(result.some(s => s.includes("'es': () => Promise.resolve({messages: locale_es})"))).toBeTruthy()
     })
 
     it("should generate i18nInstances map", async () => {
       const result = await generateLoaderModuleServer(
         mockPluginConfig,
-        buildConfig(mockPluginConfig, true)
+        buildConfig(mockPluginConfig, true),
       )
 
-      expect(result).toContain("const i18nInstances = {")
-      expect(result).toContain("setupI18n({ locale: 'en', messages: localeMessages })")
-    })
-
-    it("should generate locale mapping with CLDR fallbacks", async () => {
-      mockPluginConfig.locales = ["en", "fr"]
-      mockPluginConfig.localeMapping = {}
-
-      const result = await generateLoaderModuleServer(
-        mockPluginConfig,
-        buildConfig(mockPluginConfig, true)
-      )
-
-      expect(result).toContain("export const localeMapping = JSON.parse")
-      const localeMapMatch = result.match(/export const localeMapping = JSON\.parse\(`([^`]+)`\)/)
-      expect(localeMapMatch).toBeTruthy()
-
-      const localeMap = JSON.parse(localeMapMatch![1])
-      expect(localeMap.en).toBe("en")
-      expect(localeMap.fr).toBe("fr")
-      expect(localeMap["en-us"]).toBe("en")
-      expect(localeMap["fr-ca"]).toBe("fr")
-    })
-
-    it("should respect custom locale mappings", async () => {
-      mockPluginConfig.locales = ["en", "fr"]
-      mockPluginConfig.localeMapping = { de: "en" }
-
-      const result = await generateLoaderModuleServer(
-        mockPluginConfig,
-        buildConfig(mockPluginConfig, true)
-      )
-
-      const localeMapMatch = result.match(/export const localeMapping = JSON\.parse\(`([^`]+)`\)/)
-      const localeMap = JSON.parse(localeMapMatch![1])
-      // Custom mapping should be present
-
-      // CLDR fallbacks should still be present
-      expect(localeMap.en).toBe("en")
-      expect(localeMap.fr).toBe("fr")
-      expect(localeMap["en-us"]).toBe("en")
-      expect(localeMap["fr-ca"]).toBe("fr")
-      expect(localeMap.de).toBe("en")
-    })
-
-    it("should throw error when mapped locale is already defined", async () => {
-      mockPluginConfig.locales = ["en", "fr"]
-      mockPluginConfig.localeMapping = { en: "fr" }
-
-      await expect(
-        generateLoaderModuleServer(mockPluginConfig, buildConfig(mockPluginConfig, true))
-      ).rejects.toThrow("Mapped locale en is already defined")
-    })
-
-    it("should throw error when fallback locale is not defined", async () => {
-      mockPluginConfig.locales = ["en"]
-      mockPluginConfig.localeMapping = { de: "fr" }
-
-      await expect(
-        generateLoaderModuleServer(mockPluginConfig, buildConfig(mockPluginConfig, true))
-      ).rejects.toThrow("Fallback locale fr for locale de is not defined")
-    })
-
-    it("should prioritize more specific locales in CLDR mapping", async () => {
-      mockPluginConfig.locales = ["en", "en-gb"]
-      mockPluginConfig.localeMapping = {}
-
-      const result = await generateLoaderModuleServer(
-        mockPluginConfig,
-        buildConfig(mockPluginConfig, true)
-      )
-
-      const localeMapMatch = result.match(/export const localeMapping = JSON\.parse\(`([^`]+)`\)/)
-      const localeMap = JSON.parse(localeMapMatch![1])
-
-      expect(localeMap["en-gb"]).toBe("en-gb")
-      expect(localeMap["en-us"]).toBe("en")
+      expect(result.some(s => s.includes("const i18nInstances = {"))).toBeTruthy()
+      expect(result.some(s => s.includes("setupI18n({ locale: 'en', messages: localeMessages })"))).toBeTruthy()
     })
   })
 
@@ -228,47 +130,35 @@ describe("loader-module", () => {
     it("should generate client loader module with dynamic imports", async () => {
       const result = await generateLoaderModuleClient(
         mockPluginConfig,
-        buildConfig(mockPluginConfig, false)
+        buildConfig(mockPluginConfig, false),
       )
 
-      expect(result).toContain("export const config =")
-      expect(result).toContain("export const localeLoaders = {")
-      expect(result).toContain("'en': () => import('virtual:lingui-router-locale-en')")
-      expect(result).toContain("'fr': () => import('virtual:lingui-router-locale-fr')")
-      expect(result).toContain("'es': () => import('virtual:lingui-router-locale-es')")
-    })
-
-    it("should not include locale detection imports", async () => {
-      const result = await generateLoaderModuleClient(
-        mockPluginConfig,
-        buildConfig(mockPluginConfig, false)
-      )
-
-      expect(result).not.toContain("negotiateClientLocale")
-      expect(result).toContain("export const $detectLocale = () => undefined")
+      expect(result.some(s => s.includes("export const config ="))).toBeTruthy()
+      expect(result.some(s => s.includes("export const localeLoaders = {"))).toBeTruthy()
+      expect(result.some(s => s.includes("  'en': () => import('virtual:lingui-router-locale-en')"))).toBeTruthy()
+      expect(result.some(s => s.includes("  'fr': () => import('virtual:lingui-router-locale-fr')"))).toBeTruthy()
+      expect(result.some(s => s.includes("  'es': () => import('virtual:lingui-router-locale-es')"))).toBeTruthy()
     })
 
     it("should use client i18n instance", async () => {
       const result = await generateLoaderModuleClient(
         mockPluginConfig,
-        buildConfig(mockPluginConfig, false)
+        buildConfig(mockPluginConfig, false),
       )
 
-      expect(result).toContain(`import { i18n } from "@lingui/core"`)
-      expect(result).toContain(`export function $getI18nInstance(_locale) {
+      expect(result.some(s => s.includes(`import { i18n } from "@lingui/core"`))).toBeTruthy()
+      expect(result.some(s => s.includes(`export function $getI18nInstance(_locale) {
   return i18n
-}`)
-      expect(result).toContain("export const localeMapping = undefined")
-      expect(result).toContain("export const $detectLocale = () => undefined")
+}`))).toBeTruthy()
     })
 
     it("should set localeMapping to undefined", async () => {
       const result = await generateLoaderModuleClient(
         mockPluginConfig,
-        buildConfig(mockPluginConfig, false)
+        buildConfig(mockPluginConfig, false),
       )
 
-      expect(result).toContain("export const localeMapping = undefined")
+      expect(result).not.toContain(/export const localeMapping/)
     })
 
     it("should handle locales with hyphens", async () => {
@@ -276,11 +166,11 @@ describe("loader-module", () => {
 
       const result = await generateLoaderModuleClient(
         mockPluginConfig,
-        buildConfig(mockPluginConfig, false)
+        buildConfig(mockPluginConfig, false),
       )
 
-      expect(result).toContain("'en-US': () => import('virtual:lingui-router-locale-en-US')")
-      expect(result).toContain("'fr-CA': () => import('virtual:lingui-router-locale-fr-CA')")
+      expect(result.some(s => s.includes("  'en-US': () => import('virtual:lingui-router-locale-en-US')"))).toBeTruthy()
+      expect(result.some(s => s.includes("  'fr-CA': () => import('virtual:lingui-router-locale-fr-CA')"))).toBeTruthy()
     })
   })
 
@@ -335,13 +225,13 @@ describe("loader-module", () => {
 
     it("should throw error when mapped locale is already defined", async () => {
       await expect(buildLocaleMapping(["en", "fr"], { en: "fr" })).rejects.toThrow(
-        "Mapped locale en is already defined"
+        "Mapped locale 'en' is already defined",
       )
     })
 
     it("should throw error when fallback locale is not defined", async () => {
       await expect(buildLocaleMapping(["en"], { de: "fr" })).rejects.toThrow(
-        "Fallback locale fr for locale de is not defined"
+        "Fallback locale 'fr' for locale 'de' is not defined",
       )
     })
 
@@ -386,7 +276,7 @@ describe("loader-module", () => {
 
     it("should validate custom mappings before processing CLDR fallbacks", async () => {
       await expect(buildLocaleMapping(["en"], { fr: "de" })).rejects.toThrow(
-        "Fallback locale de for locale fr is not defined"
+        "Fallback locale 'de' for locale 'fr' is not defined",
       )
     })
 
@@ -473,6 +363,64 @@ describe("loader-module", () => {
       const config = buildConfig(mockPluginConfig, true)
 
       expect(config.exclude).toEqual(["api", "admin", "static"])
+    })
+  })
+
+  describe("generateLocaleMapping", () => {
+    it("should generate locale mapping when no mappings defined", async () => {
+      mockPluginConfig.localeMapping = {}
+
+      const result = await generateLocaleMapping(
+        mockPluginConfig,
+      )
+
+      expect(result).toHaveLength(1)
+
+      const localeMapMatch = result[0].match(/export const localeMapping = JSON\.parse\(`([^`]+)`\)/)
+      const localeMap = JSON.parse(localeMapMatch![1])
+
+      expect(localeMap).toMatchObject({
+        "fr-ca": "fr",
+        "en-gb": "en",
+      })
+    })
+
+    it("should generate correct locale mapping code", async () => {
+      mockPluginConfig.localeMapping = {
+        de: "fr",
+        "en-gb": "en",
+      }
+
+      const result = await generateLocaleMapping(
+        mockPluginConfig,
+      )
+
+      expect(result).toHaveLength(1)
+
+      const localeMapMatch = result[0].match(/export const localeMapping = JSON\.parse\(`([^`]+)`\)/)
+      const localeMap = JSON.parse(localeMapMatch![1])
+
+      expect(localeMap).toMatchObject({
+        ...mockPluginConfig.localeMapping,
+        "fr-ca": "fr",
+      })
+    })
+  })
+
+  describe("generateDetectLocale", () => {
+    it("should generate detection import and export when enabled", () => {
+      const result = generateDetectLocale(true)
+
+      expect(result).toHaveLength(2)
+      expect(result[0]).toBe("import { negotiateClientLocale } from \"lingui-react-router/negotiate\"")
+      expect(result[1]).toBe("export const $detectLocale = negotiateClientLocale")
+    })
+
+    it("should return noop detect function when disabled", () => {
+      const result = generateDetectLocale(false)
+
+      expect(result).toHaveLength(1)
+      expect(result[0]).toBe("export const $detectLocale = () => undefined")
     })
   })
 })

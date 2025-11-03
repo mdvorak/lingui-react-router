@@ -12,7 +12,7 @@ import { resolveImportPath } from "./import-path"
  */
 export async function generateLocaleModule(
   locale: string,
-  pluginConfig: Readonly<LinguiRouterPluginConfigFull>
+  pluginConfig: Readonly<LinguiRouterPluginConfigFull>,
 ): Promise<string> {
   const linguiConfig = pluginConfig.linguiConfig
   const rootDir = linguiConfig.rootDir || process.cwd()

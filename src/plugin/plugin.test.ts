@@ -1,5 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { generateBundleClient, generateBundleServer } from "./generators/manifest-module"
+import {
+  generateLoaderModuleClient,
+  generateLoaderModuleServer,
+  generateLocaleMapping,
+  generateDetectLocale,
+} from "./generators/loader-module"
 import { addToList, linguiRouterPlugin } from "./plugin"
 import {
   PLUGIN_NAME,
@@ -14,6 +20,15 @@ vi.mock("./generators/manifest-module", () => ({
   generateBundleServer: vi.fn(),
   generateManifestModule: vi.fn(),
   getManifestChunkName: vi.fn(() => "manifest-chunk"),
+}))
+
+// Mock loader-module so we can assert generateLocaleMapping / generateDetectLocale
+vi.mock("./generators/loader-module", () => ({
+  generateLoaderModuleClient: vi.fn().mockResolvedValue(["CLIENT_LOADER_LINE"]),
+  generateLoaderModuleServer: vi.fn().mockResolvedValue(["SERVER_LOADER_LINE"]),
+  generateLocaleMapping: vi.fn().mockResolvedValue(["LOCALE_MAPPING_LINE"]),
+  generateDetectLocale: vi.fn().mockReturnValue(["DETECT_LOCALE_LINE"]),
+  buildConfig: vi.fn().mockReturnValue({}),
 }))
 
 beforeEach(() => {
@@ -293,10 +308,10 @@ describe("linguiRouterPlugin - config", () => {
       expect(manualChunks("\0" + VIRTUAL_LOCALE_PREFIX + "en", { getModuleInfo })).toBe("locale-en")
       expect(manualChunks("\0" + VIRTUAL_LOCALE_PREFIX + "fr", { getModuleInfo })).toBe("locale-fr")
       expect(manualChunks("\0" + VIRTUAL_LOCALE_PREFIX + "de-de", { getModuleInfo })).toBe(
-        "locale-de-de"
+        "locale-de-de",
       )
       expect(manualChunks("\0" + VIRTUAL_LOCALE_PREFIX + "zh-CN", { getModuleInfo })).toBe(
-        "locale-zh-CN"
+        "locale-zh-CN",
       )
     })
 
@@ -360,10 +375,10 @@ describe("linguiRouterPlugin - resolveId", () => {
 
     expect(plugin.resolveId(VIRTUAL_LOCALE_PREFIX + "fr")).toBe("\0" + VIRTUAL_LOCALE_PREFIX + "fr")
     expect(plugin.resolveId(VIRTUAL_LOCALE_PREFIX + "de-de")).toBe(
-      "\0" + VIRTUAL_LOCALE_PREFIX + "de-de"
+      "\0" + VIRTUAL_LOCALE_PREFIX + "de-de",
     )
     expect(plugin.resolveId(VIRTUAL_LOCALE_PREFIX + "zh-CN")).toBe(
-      "\0" + VIRTUAL_LOCALE_PREFIX + "zh-CN"
+      "\0" + VIRTUAL_LOCALE_PREFIX + "zh-CN",
     )
   })
 
@@ -398,7 +413,7 @@ describe("linguiRouterPlugin - generateBundle", () => {
     expect(generateBundleClient).toHaveBeenCalledWith(
       mockContext,
       mockContext.environment.config,
-      mockBundle
+      mockBundle,
     )
   })
 
@@ -423,7 +438,7 @@ describe("linguiRouterPlugin - generateBundle", () => {
     expect(generateBundleServer).toHaveBeenCalledWith(
       mockContext,
       mockContext.environment.config,
-      mockBundle
+      mockBundle,
     )
   })
 
@@ -465,5 +480,100 @@ describe("linguiRouterPlugin - generateBundle", () => {
 
     expect(generateBundleServer).not.toHaveBeenCalled()
     expect(generateBundleClient).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe("linguiRouterPlugin - load", () => {
+  it("should load server loader and include locale mapping and detect lines", async () => {
+    const plugin = linguiRouterPlugin()
+
+    const mockConfig = {
+      linguiRouterConfig: {
+        locales: ["en"],
+        defaultLocale: "en",
+        detectLocale: true,
+      },
+    }
+
+    const mockContext: any = {
+      environment: {
+        name: "ssr",
+        mode: "production",
+        config: mockConfig,
+      },
+      warn: vi.fn(),
+    }
+
+    const result = await plugin.load.call(mockContext, "\0" + VIRTUAL_LOADER)
+
+    expect(generateLoaderModuleServer).toHaveBeenCalledTimes(1)
+    expect(generateLocaleMapping).toHaveBeenCalledTimes(1)
+    expect(generateDetectLocale).toHaveBeenCalledWith(true)
+    expect(result).toContain("SERVER_LOADER_LINE")
+    expect(result).toContain("LOCALE_MAPPING_LINE")
+    expect(result).toContain("DETECT_LOCALE_LINE")
+  })
+
+  it("should load client loader in production and not include locale mapping but include detect noop", async () => {
+    const plugin = linguiRouterPlugin()
+
+    const mockConfig = {
+      linguiRouterConfig: {
+        locales: ["en"],
+        defaultLocale: "en",
+        detectLocale: true,
+      },
+    }
+
+    const mockContext: any = {
+      environment: {
+        name: "client",
+        mode: "production",
+        config: mockConfig,
+      },
+      warn: vi.fn(),
+    }
+
+    const result = await plugin.load.call(mockContext, "\0" + VIRTUAL_LOADER)
+
+    expect(generateLoaderModuleClient).toHaveBeenCalledTimes(1)
+    // Not called because not server and not dev
+    expect(generateLocaleMapping).not.toHaveBeenCalled()
+    // server && detectLocale -> false
+    expect(generateDetectLocale).toHaveBeenCalledWith(false)
+    expect(result).toContain("CLIENT_LOADER_LINE")
+    expect(result).toContain("DETECT_LOCALE_LINE")
+  })
+
+  it("should include locale mapping for client dev mode", async () => {
+    const plugin = linguiRouterPlugin()
+
+    const mockConfig = {
+      linguiRouterConfig: {
+        locales: ["en"],
+        defaultLocale: "en",
+        detectLocale: false,
+      },
+    }
+
+    const mockContext: any = {
+      environment: {
+        name: "client",
+        mode: "dev",
+        config: mockConfig,
+      },
+      warn: vi.fn(),
+    }
+
+    const result = await plugin.load.call(mockContext, "\0" + VIRTUAL_LOADER)
+
+    expect(generateLoaderModuleClient).toHaveBeenCalledTimes(1)
+    // mode === 'dev' -> locale mapping included
+    expect(generateLocaleMapping).toHaveBeenCalledTimes(1)
+    // server && detectLocale -> false
+    expect(generateDetectLocale).toHaveBeenCalledWith(false)
+    expect(result).toContain("CLIENT_LOADER_LINE")
+    expect(result).toContain("LOCALE_MAPPING_LINE")
+    expect(result).toContain("DETECT_LOCALE_LINE")
   })
 })

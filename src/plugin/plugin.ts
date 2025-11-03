@@ -3,8 +3,10 @@ import type { Plugin, UserConfig } from "vite"
 import { normalizeLocaleKey } from "../config"
 import {
   buildConfig,
+  generateDetectLocale,
   generateLoaderModuleClient,
   generateLoaderModuleServer,
+  generateLocaleMapping,
 } from "./generators/loader-module"
 import { generateLocaleModule } from "./generators/locale-module"
 import {
@@ -55,7 +57,7 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
         Object.entries(pluginConfig.localeMapping ?? {}).map(([k, v]) => [
           normalizeLocaleKey(k),
           normalizeLocaleKey(v),
-        ])
+        ]),
       )
 
       config.linguiRouterConfig = {
@@ -129,9 +131,16 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
 
       if (id === "\0" + VIRTUAL_LOADER) {
         const configObject = buildConfig(linguiRouterConfig, server)
-        return server
+        const lines = server
           ? await generateLoaderModuleServer(linguiRouterConfig, configObject)
           : await generateLoaderModuleClient(linguiRouterConfig, configObject)
+
+        if (server || this.environment.mode === "dev") {
+          lines.push(...await generateLocaleMapping(linguiRouterConfig))
+        }
+        lines.push(...generateDetectLocale(server && linguiRouterConfig.detectLocale))
+
+        return lines.join("\n")
       }
 
       if (id.startsWith("\0" + VIRTUAL_LOCALE_PREFIX)) {
@@ -139,7 +148,7 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
         const module = await generateLocaleModule(locale, linguiRouterConfig)
         if (!module) {
           this.warn(
-            `No message catalogs found for locale '${locale}'. Please check your Lingui configuration.`
+            `No message catalogs found for locale '${locale}'. Please check your Lingui configuration.`,
           )
         }
         return module

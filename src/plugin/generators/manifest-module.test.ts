@@ -139,16 +139,16 @@ describe("manifest-module", () => {
       expect(fs.mkdir).toHaveBeenCalledWith(normalizePath("/project/build"), { recursive: true })
       expect(fs.writeFile).toHaveBeenCalledWith(
         normalizePath("/project/build/.client-locale-manifest.json"),
-        expect.stringContaining('"en": "/locale-en-abc123.js"'),
-        { encoding: "utf8" }
+        expect.stringContaining("\"en\": \"/locale-en-abc123.js\""),
+        { encoding: "utf8" },
       )
       expect(fs.writeFile).toHaveBeenCalledWith(
         expect.any(String),
-        expect.stringContaining('"fr": "/locale-fr-def456.js"'),
-        expect.any(Object)
+        expect.stringContaining("\"fr\": \"/locale-fr-def456.js\""),
+        expect.any(Object),
       )
       expect(mockContext.info).toHaveBeenCalledWith(
-        expect.stringContaining(".client-locale-manifest.json")
+        expect.stringContaining(".client-locale-manifest.json"),
       )
     })
 
@@ -171,8 +171,8 @@ describe("manifest-module", () => {
 
       expect(fs.writeFile).toHaveBeenCalledWith(
         expect.any(String),
-        expect.stringContaining('"/app/locale-en-abc123.js"'),
-        expect.any(Object)
+        expect.stringContaining("\"/app/locale-en-abc123.js\""),
+        expect.any(Object),
       )
     })
 
@@ -190,8 +190,8 @@ describe("manifest-module", () => {
 
       expect(fs.writeFile).toHaveBeenCalledWith(
         expect.any(String),
-        expect.stringContaining('"en-us": "/locale-en-us-abc123.js"'),
-        expect.any(Object)
+        expect.stringContaining("\"en-us\": \"/locale-en-us-abc123.js\""),
+        expect.any(Object),
       )
     })
 
@@ -265,10 +265,10 @@ describe("manifest-module", () => {
 
       const chunk = bundle["locale-manifest-xyz.js"] as OutputChunk
       expect(chunk.code).not.toContain("__$$_LINGUI_REACT_ROUTER_MANIFEST_PLACEHOLDER_$$__")
-      expect(chunk.code).toContain('"en":"/locale-en-abc123.js"')
-      expect(chunk.code).toContain('"fr":"/locale-fr-def456.js"')
+      expect(chunk.code).toContain("\"en\":\"/locale-en-abc123.js\"")
+      expect(chunk.code).toContain("\"fr\":\"/locale-fr-def456.js\"")
       expect(mockContext.info).toHaveBeenCalledWith(
-        expect.stringContaining(".client-locale-manifest.json")
+        expect.stringContaining(".client-locale-manifest.json"),
       )
     })
 
@@ -291,7 +291,7 @@ describe("manifest-module", () => {
         normalizePath("/project/build/.client-locale-manifest.json"),
         {
           encoding: "utf8",
-        }
+        },
       )
     })
 

@@ -12,7 +12,7 @@ import "./assert-server"
  */
 export function negotiateClientLocale(
   headers: Record<string, string | undefined>,
-  locales: readonly string[]
+  locales: readonly string[],
 ): string | undefined {
   const accept = new Negotiator({ headers }).languages(locales.slice())
   return accept[0]

@@ -67,7 +67,8 @@
     "dev": "pnpm run typecheck && unbuild --watch",
     "prepack": "pnpm run build",
     "coverage": "vitest run --coverage",
-    "test": "pnpm run typecheck && vitest run && unbuild && pnpm -F ./test build",
+    "test": "pnpm run typecheck && vitest run",
+    "test:all": "pnpm run test && unbuild && pnpm -F ./test build",
     "start": "pnpm run test && pnpm -F ./test start"
   },
   "dependencies": {
