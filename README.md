@@ -199,10 +199,11 @@ Note that since this library is always inlined, it's only required as a dev depe
     }
     ```
    Notes about LocaleLink:
-   - Pass locale-less paths such as `to="/hello"` or an object pathname without a locale, and the
-     locale prefix will be added automatically based on the current request locale.
-   - If the current URL has no locale segment (e.g., the default root), LocaleLink renders a normal
-     Link without modification to preserve expected navigation.
+
+- Pass locale-less paths such as `to="/hello"` or an object pathname without a locale, and the
+  locale prefix will be added automatically based on the current request locale.
+- If the current URL has no locale segment (e.g., the default root), LocaleLink renders a normal
+  Link without modification to preserve expected navigation.
 
 6. Access server-side i18n and locale-aware redirects in loaders and actions with `useLinguiServer`.
    Redirects thrown from this helper are automatically prefixed with the current locale for
@@ -266,8 +267,39 @@ locale context set up exactly like your app does in production.
 Install recommended testing deps (if you don't already use them):
 
 ```bash
-npm install -D vitest @testing-library/react @testing-library/user-event
+npm install -D vitest @testing-library/react @testing-library/user-event happy-dom
 ```
+
+Configure Vitest with the required plugins to support Lingui macros and locale routing:
+
+```ts
+// vitest.config.ts
+import { lingui } from "@lingui/vite-plugin"
+import { linguiRouterPlugin } from "lingui-react-router/plugin"
+import { defineConfig } from "vitest/config"
+import macrosPlugin from "vite-plugin-babel-macros"
+import tsconfigPaths from "vite-tsconfig-paths"
+
+export default defineConfig({
+  plugins: [
+    macrosPlugin(),
+    lingui(),
+    linguiRouterPlugin({
+      // It's recommended to share the same plugin config as your main app
+      exclude: ["api", "health"],
+    }),
+    tsconfigPaths(),
+  ],
+  test: {
+    globals: true,
+    environment: "happy-dom",
+    exclude: ["**/node_modules/**", "build/**", ".react-router/**"],
+  },
+})
+```
+
+**Important:** The same Vite plugins used in your main app except for `reactRouter`, must be
+included in your Vitest config to ensure i18n messages compile correctly during tests.
 
 Example: route module test with loader and i18n messages
 
@@ -292,6 +324,7 @@ it("navigates to /hello and shows Hello and loader text", async () => {
 ```
 
 Notes and tips:
+
 - Provide locale-less paths to `<LocaleLink>` in tests just like in your app; the active locale is
   prefixed automatically.
 - To test a specific locale from the URL, render with `initialEntries={["/it/hello"]}`.

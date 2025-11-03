@@ -39,4 +39,23 @@ describe("/:locale?/hello", () => {
     await expect(screen.findByText("Caratteri speciali: \"'$.*+@!")).resolves.toBeTruthy()
     await expect(screen.findByText(/Testo di colore grigio con una variabile:/)).resolves.toBeTruthy()
   })
+
+  it("should redirect from mapped locale /de/hello to /en/hello", async () => {
+    const url = "/de/hello"
+    render(<Stub initialEntries={[url]} />)
+
+    // Redirected to /en/hello
+    await expect(screen.findByText(/Hello, World!/i)).resolves.toBeTruthy()
+    await expect(screen.findByText(/From loader too!/i)).resolves.toBeTruthy()
+  })
+
+  // TODO fix middleware behavior
+  // it("should fail on unknown locale /xx/hello", async () => {
+  //   const url = "/xx/hello"
+  //   render(<Stub initialEntries={[url]} />)
+  //
+  //   // Should fail
+  //   await expect(screen.findByText(/Hello, World!/i)).rejects.toBeTruthy()
+  //   await expect(screen.findByText(/From loader too!/i)).rejects.toBeTruthy()
+  // })
 })
