@@ -63,7 +63,7 @@
     "prepack": "pnpm run build",
     "pretest": "pnpm run build",
     "coverage": "vitest run --coverage",
-    "test": "vitest run && pnpm -F ./test build",
+    "test": "vitest run && pnpm -F ./test test",
     "start": "pnpm run test && pnpm -F ./test start"
   },
   "dependencies": {
@@ -72,9 +72,9 @@
   },
   "devDependencies": {
     "@types/negotiator": "^0.6.4",
-    "@types/node": "^22.18.12",
+    "@types/node": "^22.19.0",
     "@types/react": "^19.2.2",
-    "@vitest/coverage-v8": "^4.0.4",
+    "@vitest/coverage-v8": "^4.0.6",
     "cldr-core": "^48.0.0",
     "prettier": "^3.6.2",
     "prettier-plugin-organize-imports": "^4.3.0",
@@ -82,8 +82,8 @@
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
     "unbuild": "^3.6.1",
-    "vite": "^7.1.7",
-    "vitest": "^4.0.4"
+    "vite": "^7.1.12",
+    "vitest": "^4.0.6"
   },
   "peerDependencies": {
     "@lingui/conf": "^5.5.0",

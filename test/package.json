@@ -7,25 +7,26 @@
     "prebuild": "react-router typegen && tsc --noEmit --strict && lingui extract --clean",
     "build": "react-router build",
     "dev": "react-router dev",
-    "start": "react-router-serve ./build/server/index.js"
+    "start": "react-router-serve ./build/server/index.js",
+    "test": "react-router build && vitest run"
   },
   "dependencies": {
-    "@lingui/core": "^5.5.1",
-    "@lingui/react": "^5.5.1",
-    "@react-router/dev": "^7.9.4",
-    "@react-router/node": "^7.9.4",
-    "@react-router/serve": "^7.9.4",
+    "@lingui/core": "^5.5.2",
+    "@lingui/react": "^5.5.2",
+    "@react-router/dev": "^7.9.5",
+    "@react-router/node": "^7.9.5",
+    "@react-router/serve": "^7.9.5",
     "isbot": "^5.1.31",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "react-router": "^7.9.4"
+    "react-router": "^7.9.5"
   },
   "devDependencies": {
-    "@lingui/cli": "^5.5.1",
-    "@lingui/conf": "^5.5.1",
-    "@lingui/vite-plugin": "^5.5.1",
+    "@lingui/cli": "^5.5.2",
+    "@lingui/conf": "^5.5.2",
+    "@lingui/vite-plugin": "^5.5.2",
     "@tailwindcss/vite": "^4.1.16",
-    "@types/node": "^24.9.1",
+    "@types/node": "^24.10.0",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
     "lingui-react-router": "workspace:*",
@@ -34,7 +35,8 @@
     "typescript": "^5.9.3",
     "vite": "^7.1.12",
     "vite-plugin-babel-macros": "^1.0.6",
-    "vite-tsconfig-paths": "^5.1.4"
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^4.0.6"
   },
   "devDependenciesMeta": {
     "lingui-react-router": {
