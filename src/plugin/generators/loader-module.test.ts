@@ -245,7 +245,7 @@ describe("loader-module", () => {
       )
 
       expect(result).not.toContain("negotiateClientLocale")
-      expect(result).not.toContain("$detectLocale")
+      expect(result).toContain("export const $detectLocale = () => undefined")
     })
 
     it("should use client i18n instance", async () => {
@@ -254,9 +254,12 @@ describe("loader-module", () => {
         buildConfig(mockPluginConfig, false)
       )
 
-      expect(result).toContain('import { i18n } from "@lingui/core"')
-      expect(result).toContain("export function $getI18nInstance(_locale)")
-      expect(result).toContain("return i18n")
+      expect(result).toContain(`import { i18n } from "@lingui/core"`)
+      expect(result).toContain(`export function $getI18nInstance(_locale) {
+  return i18n
+}`)
+      expect(result).toContain("export const localeMapping = undefined")
+      expect(result).toContain("export const $detectLocale = () => undefined")
     })
 
     it("should set localeMapping to undefined", async () => {

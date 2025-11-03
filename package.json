@@ -48,6 +48,11 @@
       "types": "./dist/plugin/index.d.ts",
       "import": "./dist/plugin/index.mjs",
       "require": "./dist/plugin/index.cjs"
+    },
+    "./test": {
+      "types": "./dist/test/index.d.ts",
+      "import": "./dist/test/index.mjs",
+      "require": "./dist/test/index.cjs"
     }
   },
   "files": [
@@ -61,9 +66,8 @@
     "build": "pnpm run typecheck && unbuild",
     "dev": "pnpm run typecheck && unbuild --watch",
     "prepack": "pnpm run build",
-    "pretest": "pnpm run build",
     "coverage": "vitest run --coverage",
-    "test": "vitest run && pnpm -F ./test test",
+    "test": "pnpm run typecheck && vitest run && unbuild && pnpm -F ./test build",
     "start": "pnpm run test && pnpm -F ./test start"
   },
   "dependencies": {
