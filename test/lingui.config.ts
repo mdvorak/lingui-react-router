@@ -28,6 +28,6 @@ export const linguiRouterConfig = defineLinguiRouterConfig({
   exclude: ["api"],
   localeParamName: "locale",
   localeMapping: {
-    de: "en",
+    de: "cs",
   },
 })

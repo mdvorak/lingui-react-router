@@ -14,7 +14,7 @@ import { normalizeLocaleKey } from "../config"
 export function localePaths(
   config: Readonly<LinguiConfig>,
   path: string,
-  withDefault: boolean = true
+  withDefault: boolean = true,
 ): string[] {
   const result = config.locales.map(loc => `/${normalizeLocaleKey(loc)}${path}`)
   if (withDefault) {

@@ -88,7 +88,7 @@ export type LinguiRouterPluginConfig = Partial<LinguiRouterPluginConfigFull>
  * ```
  */
 export function defineLinguiRouterConfig(
-  config: LinguiRouterPluginConfig
+  config: LinguiRouterPluginConfig,
 ): LinguiRouterPluginConfig {
   return config
 }

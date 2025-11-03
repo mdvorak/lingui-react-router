@@ -15,7 +15,7 @@ import { getAllLocales } from "./cldr"
 export async function generateLoaderModuleServer(
   pluginConfig: Readonly<LinguiRouterPluginConfigFull>,
   configObject: LinguiRouterConfig,
-): Promise<string> {
+): Promise<string[]> {
   const lines: string[] = []
 
   lines.push(
@@ -50,22 +50,7 @@ export async function generateLoaderModuleServer(
     generateGetI18nInstanceServer(),
   )
 
-  if (pluginConfig.detectLocale) {
-    lines.push(
-      `import { negotiateClientLocale } from "${PLUGIN_NAME}/negotiate"`,
-      `export const $detectLocale = negotiateClientLocale`,
-    )
-  } else {
-    lines.push(`export const $detectLocale = () => undefined`)
-  }
-
-  const allLocaleMapping: Record<string, string> = await buildLocaleMapping(
-    pluginConfig.locales,
-    pluginConfig.localeMapping,
-  )
-  lines.push(`export const localeMapping = JSON.parse(\`${JSON.stringify(allLocaleMapping)}\`)`)
-
-  return lines.join("\n")
+  return lines
 }
 
 /**
@@ -77,7 +62,7 @@ export async function generateLoaderModuleServer(
 export async function generateLoaderModuleClient(
   pluginConfig: Readonly<LinguiRouterPluginConfigFull>,
   configObject: LinguiRouterConfig,
-): Promise<string> {
+): Promise<string[]> {
   const lines: string[] = []
 
   lines.push(
@@ -93,11 +78,9 @@ export async function generateLoaderModuleClient(
   lines.push(
     `}`,
     generateGetI18nInstanceClient(),
-    `export const localeMapping = undefined`,
-    `export const $detectLocale = () => undefined`,
   )
 
-  return lines.join("\n")
+  return lines
 }
 
 /**
@@ -134,11 +117,11 @@ export async function buildLocaleMapping(
   for (const [locale, fallback] of Object.entries(localeMap)) {
     // Validate
     if (result.has(locale)) {
-      throw new Error(`Mapped locale ${locale} is already defined in the Lingui configuration.`)
+      throw new Error(`Mapped locale '${locale}' is already defined in the Lingui configuration.`)
     }
     if (!locales.includes(fallback)) {
       throw new Error(
-        `Fallback locale ${fallback} for locale ${locale} is not defined in the Lingui configuration.`,
+        `Fallback locale '${fallback}' for locale '${locale}' is not defined in the Lingui configuration.`,
       )
     }
     // Add to result
@@ -193,4 +176,24 @@ function generateGetI18nInstanceClient() {
 export function $getI18nInstance(_locale) {
   return i18n
 }`
+}
+
+export async function generateLocaleMapping(pluginConfig: Readonly<LinguiRouterPluginConfigFull>) {
+  const allLocaleMapping: Record<string, string> = await buildLocaleMapping(
+    pluginConfig.locales,
+    pluginConfig.localeMapping,
+  )
+  return [`export const localeMapping = JSON.parse(\`${JSON.stringify(allLocaleMapping)}\`)`]
+}
+
+
+export function generateDetectLocale(enabled: boolean) {
+  if (enabled) {
+    return [
+      `import { negotiateClientLocale } from "${PLUGIN_NAME}/negotiate"`,
+      `export const $detectLocale = negotiateClientLocale`,
+    ]
+  } else {
+    return [`export const $detectLocale = () => undefined`]
+  }
 }

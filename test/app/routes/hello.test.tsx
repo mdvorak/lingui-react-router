@@ -29,7 +29,7 @@ describe("/:locale?/hello", () => {
     const url = "/it/hello"
     render(<Stub initialEntries={[url]} />)
 
-    // French heading
+    // Italian heading
     await expect(screen.findByText(/Ciao, mondo!/i)).resolves.toBeTruthy()
 
     // Loader returns: 'From loader too!'
@@ -40,22 +40,20 @@ describe("/:locale?/hello", () => {
     await expect(screen.findByText(/Testo di colore grigio con una variabile:/)).resolves.toBeTruthy()
   })
 
-  it("should redirect from mapped locale /de/hello to /en/hello", async () => {
+  it("should redirect from mapped locale /de/hello to configured mapped locale /cs/hello", async () => {
     const url = "/de/hello"
     render(<Stub initialEntries={[url]} />)
 
-    // Redirected to /en/hello
-    await expect(screen.findByText(/Hello, World!/i)).resolves.toBeTruthy()
-    await expect(screen.findByText(/From loader too!/i)).resolves.toBeTruthy()
+    // Redirected to /cs/hello (configured mapping de -> cs)
+    await expect(screen.findByText(/Ahoj světe!/i)).resolves.toBeTruthy()
+    await expect(screen.findByText(/Také z loaderu!/i)).resolves.toBeTruthy()
   })
 
-  // TODO fix middleware behavior
-  // it("should fail on unknown locale /xx/hello", async () => {
-  //   const url = "/xx/hello"
-  //   render(<Stub initialEntries={[url]} />)
-  //
-  //   // Should fail
-  //   await expect(screen.findByText(/Hello, World!/i)).rejects.toBeTruthy()
-  //   await expect(screen.findByText(/From loader too!/i)).rejects.toBeTruthy()
-  // })
+  it("should fail on unknown locale /xx/hello", async () => {
+    const url = "/xx/hello"
+    render(<Stub initialEntries={[url]} />)
+
+    // Should return 404
+    await expect(screen.findByText(/404 Locale Not Found/i)).resolves.toBeTruthy()
+  })
 })

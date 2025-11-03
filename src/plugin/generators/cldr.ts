@@ -13,7 +13,7 @@ async function loadModuleJson(path: string): Promise<any> {
 async function loadAllLocales(): Promise<Set<string>> {
   const lists = await Promise.all([
     loadModuleJson("cldr-core/availableLocales.json").then(
-      obj => obj.availableLocales.full as string[]
+      obj => obj.availableLocales.full as string[],
     ),
     loadModuleJson("cldr-core/defaultContent.json").then(obj => obj.defaultContent as string[]),
   ])

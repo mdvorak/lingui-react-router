@@ -14,7 +14,7 @@ import { usePathLocale } from "../i18n"
  * - If `to` is a location object, it prefixes `pathname` with `/${locale}`.
  */
 export function LocaleLink(
-  props: LinkProps & React.RefAttributes<HTMLAnchorElement>
+  props: LinkProps & React.RefAttributes<HTMLAnchorElement>,
 ): React.ReactNode {
   const { requestLocale } = usePathLocale()
   if (!requestLocale) return React.createElement(Link, props)

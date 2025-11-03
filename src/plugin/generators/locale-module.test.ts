@@ -56,7 +56,7 @@ describe("locale-module", () => {
       expect(result).toContain(`export * from '${normalizePath("/project/locales/en.po")}'`)
       expect(fg).toHaveBeenCalledWith(
         "/project/locales/en.po",
-        expect.objectContaining({ cwd: "/project" })
+        expect.objectContaining({ cwd: "/project" }),
       )
     })
 
@@ -108,7 +108,7 @@ export const messages = Object.assign({}, catalog0, catalog1, catalog2)`)
 
     it("should throw error when locale not found in lingui config", async () => {
       await expect(generateLocaleModule("de", mockPluginConfig)).rejects.toThrow(
-        "Locale 'de' not found in Lingui configuration locales"
+        "Locale 'de' not found in Lingui configuration locales",
       )
     })
 
@@ -142,7 +142,7 @@ export const messages = Object.assign({}, catalog0, catalog1, catalog2)`)
 
       expect(fg).toHaveBeenCalledWith(
         "/custom/root/custom/path/en.po",
-        expect.objectContaining({ cwd: "/custom/root" })
+        expect.objectContaining({ cwd: "/custom/root" }),
       )
     })
 
@@ -258,7 +258,7 @@ export const messages = Object.assign({}, catalog0, catalog1, catalog2)`)
       expect(result).toContain(`export * from '${normalizePath("/project/locales/en.json")}'`)
       expect(fg).toHaveBeenCalledWith(
         "/project/locales/en.json",
-        expect.objectContaining({ cwd: "/project" })
+        expect.objectContaining({ cwd: "/project" }),
       )
     })
 
@@ -272,7 +272,7 @@ export const messages = Object.assign({}, catalog0, catalog1, catalog2)`)
       expect(result).toContain(`export * from '${normalizePath("/project/locales/en.po")}'`)
       expect(fg).toHaveBeenCalledWith(
         "/project/locales/en.po",
-        expect.objectContaining({ cwd: "/project" })
+        expect.objectContaining({ cwd: "/project" }),
       )
     })
 
@@ -288,7 +288,7 @@ export const messages = Object.assign({}, catalog0, catalog1, catalog2)`)
       expect(result).toContain(`export * from '${normalizePath("/project/locales/en.po")}'`)
       expect(fg).toHaveBeenCalledWith(
         "/project/locales/en.po",
-        expect.objectContaining({ cwd: "/project" })
+        expect.objectContaining({ cwd: "/project" }),
       )
     })
   })

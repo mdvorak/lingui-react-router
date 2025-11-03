@@ -61,7 +61,7 @@ export function findLocale(localeParam: string | undefined): {
 
 function findLocaleImpl(
   localeParam: string | undefined,
-  seen: Set<string>
+  seen: Set<string>,
 ): {
   locale?: string
   excluded: boolean
@@ -107,7 +107,7 @@ function findLocaleImpl(
  */
 export function stripPathnameLocalePrefix(
   pathname: string,
-  localeParam: string | undefined
+  localeParam: string | undefined,
 ): string {
   if (localeParam && pathname.startsWith(`/${localeParam}`)) {
     return pathname.slice(localeParam.length + 1) || "/"

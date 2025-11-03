@@ -22,25 +22,31 @@ export async function localeMiddleware(
   const url = new URL(request.url)
   const paramsMap = params as Record<string, string | undefined>
   const localeParam = paramsMap[config.localeParamName]
-  const { locale, excluded } = findLocale(localeParam)
-  const requestPathname = locale
+  const requestPathname = localeParam
     ? stripPathnameLocalePrefix(url.pathname, localeParam)
     : url.pathname
+  const foundLocale = findLocale(localeParam)
 
-  let requestLocale = locale
+  let requestLocale = foundLocale.locale
 
   if (requestLocale) {
     if (requestLocale !== localeParam) {
       // Redirect to normalized locale URL
       // Note that this intentionally ignores redirect config, but we might add a new option later
       // Without this, pre-rendered URLs would not match
-      throw redirect(`/${requestLocale}${requestPathname}${url.search}${url.hash}`)
+      throw redirectToLocale(requestLocale, requestPathname, url)
     }
   } else {
     // Detect locale from request headers
-    requestLocale = handleRequestLocale(request, url, requestPathname, excluded)
+    requestLocale = handleRequestLocale(request, url, requestPathname, foundLocale.excluded)
   }
 
+  // Unsupported locale in the URL, redirect to default locale
+  if (!requestLocale && localeParam) {
+    throw new Response(null, { status: 404, statusText: "Locale Not Found" })
+  }
+
+  // Get or create the i18n instance for the resolved locale
   const resolvedLocale = requestLocale || config.defaultLocale
   const i18n = $getI18nInstance(resolvedLocale)
   if (!i18n) {
@@ -77,7 +83,7 @@ export async function localeMiddleware(
 function handleRequestLocale(
   request: Request,
   url: URL,
-  pathname: string,
+  requestPathname: string,
   excluded: boolean,
 ): string | undefined {
   const detectedLocale = $detectLocale(getRequestHeaders(request.headers), config.locales)
@@ -91,7 +97,7 @@ function handleRequestLocale(
     (config.redirect === "auto" && preferredLocale !== config.defaultLocale)
   ) {
     // Redirect to a page with the preferred locale
-    throw redirect(`/${preferredLocale}${pathname}${url.search}${url.hash}`)
+    throw redirectToLocale(preferredLocale, requestPathname, url)
   }
 }
 
@@ -99,4 +105,8 @@ function getRequestHeaders(headers: Headers): Record<string, string | undefined>
   return {
     "accept-language": headers.get("accept-language") ?? undefined,
   }
+}
+
+function redirectToLocale(requestLocale: string, requestPathname: string, url: URL) {
+  return redirect(`/${requestLocale}${requestPathname}${url.search}${url.hash}`)
 }

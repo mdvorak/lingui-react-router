@@ -108,7 +108,7 @@ describe("stripPathnameLocalePrefix", () => {
 
   it("preserves query strings and hashes", () => {
     expect(stripPathnameLocalePrefix("/en/about?foo=bar#section", "en")).toBe(
-      "/about?foo=bar#section"
+      "/about?foo=bar#section",
     )
   })
 
