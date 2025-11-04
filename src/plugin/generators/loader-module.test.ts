@@ -212,9 +212,9 @@ describe("loader-module", () => {
     it("should include identity mappings for all defined locales", async () => {
       const result = await buildLocaleMapping(["en", "fr", "es"], {}, true)
 
-      expect(result.en).toBe("en")
-      expect(result.fr).toBe("fr")
-      expect(result.es).toBe("es")
+      expect(result.en).toBeUndefined()
+      expect(result.fr).toBeUndefined()
+      expect(result.es).toBeUndefined()
     })
 
     it("should add CLDR fallback mappings for more specific locales", async () => {
@@ -237,8 +237,8 @@ describe("loader-module", () => {
       const result = await buildLocaleMapping(["en", "fr"], { de: "en" }, true)
 
       expect(result.de).toBe("en")
-      expect(result.en).toBe("en")
-      expect(result.fr).toBe("fr")
+      expect(result.en).toBeUndefined()
+      expect(result.fr).toBeUndefined()
       expect(result["en-us"]).toBe("en")
       expect(result["fr-ca"]).toBe("fr")
     })
@@ -246,15 +246,15 @@ describe("loader-module", () => {
     it("should prioritize more specific defined locales over general ones", async () => {
       const result = await buildLocaleMapping(["en", "en-gb"], {}, true)
 
-      expect(result["en-gb"]).toBe("en-gb")
+      expect(result["en-gb"]).toBeUndefined()
       expect(result["en-us"]).toBe("en")
     })
 
     it("should handle locales with multiple hyphens correctly", async () => {
       const result = await buildLocaleMapping(["zh", "zh-hans"], {}, true)
 
-      expect(result.zh).toBe("zh")
-      expect(result["zh-hans"]).toBe("zh-hans")
+      expect(result.zh).toBeUndefined()
+      expect(result["zh-hans"]).toBeUndefined()
     })
 
     it("should throw error when mapped locale is already defined", async () => {
@@ -270,9 +270,10 @@ describe("loader-module", () => {
     })
 
     it("should normalize locale keys correctly", async () => {
-      const result = await buildLocaleMapping(["en-us"], {}, true)
+      const result = await buildLocaleMapping(["en"], {}, true)
 
-      expect(result["en-us"]).toBe("en-us")
+      expect(result["en-US"]).toBeUndefined()
+      expect(result["en-us"]).toBe("en")
     })
 
     it("should handle empty locale list", async () => {
@@ -284,7 +285,7 @@ describe("loader-module", () => {
     it("should handle empty custom mappings", async () => {
       const result = await buildLocaleMapping(["en"], {}, true)
 
-      expect(result.en).toBe("en")
+      expect(result.en).toBeUndefined()
       expect(result["en-us"]).toBe("en")
       expect(result["en-gb"]).toBe("en")
     })
@@ -292,8 +293,8 @@ describe("loader-module", () => {
     it("should not add CLDR fallback if exact locale is already defined", async () => {
       const result = await buildLocaleMapping(["en-us", "en-gb"], {}, true)
 
-      expect(result["en-us"]).toBe("en-us")
-      expect(result["en-gb"]).toBe("en-gb")
+      expect(result["en-us"]).toBeUndefined()
+      expect(result["en-gb"]).toBeUndefined()
     })
 
     it("should handle complex scenario with multiple locale levels", async () => {
@@ -304,9 +305,9 @@ describe("loader-module", () => {
 
       expect(result.de).toBe("en")
       expect(result["de-ch"]).toBe("en-gb")
-      expect(result.en).toBe("en")
-      expect(result["en-gb"]).toBe("en-gb")
-      expect(result.fr).toBe("fr")
+      expect(result.en).toBeUndefined()
+      expect(result["en-gb"]).toBeUndefined()
+      expect(result.fr).toBeUndefined()
       expect(result["en-us"]).toBe("en")
       expect(result["fr-ca"]).toBe("fr")
     })
@@ -320,15 +321,15 @@ describe("loader-module", () => {
     it("should handle locales with region and script subtags", async () => {
       const result = await buildLocaleMapping(["zh", "zh-hans"], {}, true)
 
-      expect(result.zh).toBe("zh")
-      expect(result["zh-hans"]).toBe("zh-hans")
+      expect(result.zh).toBeUndefined()
+      expect(result["zh-hans"]).toBeUndefined()
       expect(result["zh-hans-cn"]).toBe("zh-hans")
       expect(result["zh-hans-sg"]).toBe("zh-hans")
     })
 
     it("should fallback to more general locale when specific locale not defined", async () => {
       const result = await buildLocaleMapping(["zh"], {}, true)
-      expect(result.zh).toBe("zh")
+      expect(result.zh).toBeUndefined()
       expect(result["zh-hans"]).toBe("zh")
       expect(result["zh-hans-cn"]).toBe("zh")
       expect(result["zh-hans-sg"]).toBe("zh")
@@ -338,9 +339,9 @@ describe("loader-module", () => {
       const result = await buildLocaleMapping(["en", "fr", "es"], { de: "en" }, false)
 
       // Identity mappings
-      expect(result.en).toBe("en")
-      expect(result.fr).toBe("fr")
-      expect(result.es).toBe("es")
+      expect(result.en).toBeUndefined()
+      expect(result.fr).toBeUndefined()
+      expect(result.es).toBeUndefined()
 
       // Custom mapping should be present
       expect(result.de).toBe("en")
@@ -469,9 +470,9 @@ describe("loader-module", () => {
       // CLDR fallbacks should be present
       expect(localeMap).toHaveProperty("fr-ca")
       expect(localeMap).toHaveProperty("en-gb")
-      // Identity mappings should also exist
-      expect(localeMap).toHaveProperty("en")
-      expect(localeMap).toHaveProperty("fr")
+      // Identity mappings should not exist
+      expect(localeMap).not.toHaveProperty("en")
+      expect(localeMap).not.toHaveProperty("fr")
     })
 
     it("should NOT include CLDR fallbacks when defaultLocaleMapping is false", async () => {
@@ -485,10 +486,8 @@ describe("loader-module", () => {
       const localeMapMatch = result[0].match(/export const localeMapping = JSON\.parse\(`([^`]+)`\)/)
       const localeMap = JSON.parse(localeMapMatch![1])
 
-      // Only identity mappings should be present (en, fr, es)
-      expect(Object.keys(localeMap).sort()).toEqual(["en", "es", "fr"].sort())
-      expect(localeMap).not.toHaveProperty("fr-ca")
-      expect(localeMap).not.toHaveProperty("en-gb")
+      // Should be empty
+      expect(Object.keys(localeMap)).toHaveLength(0)
     })
   })
 
