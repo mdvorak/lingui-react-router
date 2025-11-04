@@ -179,7 +179,7 @@ describe("loader-module", () => {
         buildConfig(mockPluginConfig, false),
       )
 
-      // Expect import to use provided module without import name
+      // Expect import to use provided module with default import name
       expect(result.some(s => s.includes(`import { i18n as i18n } from \"my-i18n-module\"`))).toBeTruthy()
       expect(result.some(s => s.includes(`export function $getI18nInstance(_locale) {`))).toBeTruthy()
       expect(result.some(s => s.includes(`return i18n`))).toBeTruthy()
