@@ -36,7 +36,7 @@ export const supportedLocales = new Set<string>(loader.config.locales)
 export async function loadLocaleCatalog(locale: string): Promise<Messages> {
   const loaderFunc = loader.localeLoaders[locale]
   if (!loaderFunc) {
-    throw new Error(`Locale ${locale} is not supported`)
+    throw new Error(`Locale '${locale}' is not supported`)
   }
 
   const mod = await loaderFunc()
