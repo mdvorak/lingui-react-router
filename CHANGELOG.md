@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/mdvorak/lingui-react-router/compare/v1.0.0...v1.0.1) (2025-11-04)
+
+
+### Bug Fixes
+
+* move cldr-core dependency to direct dependencies ([b8f504d](https://github.com/mdvorak/lingui-react-router/commit/b8f504d184bd4bbceb57ac7a240cf5c9666aec4a))
+
 ## [1.0.0](https://github.com/mdvorak/lingui-react-router/compare/v0.3.2...v1.0.0) (2025-11-04)
 
 
