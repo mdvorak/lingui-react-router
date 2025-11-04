@@ -1,3 +1,4 @@
+import type { LinguiConfigNormalized } from "@lingui/conf"
 import { type LinguiRouterConfig, normalizeLocaleKey } from "../../config"
 import {
   type LinguiRouterPluginConfigFull,
@@ -5,7 +6,6 @@ import {
   VIRTUAL_LOCALE_PREFIX,
 } from "../plugin-config"
 import { getAllLocales } from "./cldr"
-import type { LinguiConfigNormalized } from "@lingui/conf"
 
 /**
  * Generate the loader module for server builds.

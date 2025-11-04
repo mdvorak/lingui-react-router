@@ -5,10 +5,10 @@ import {
   buildConfig,
   buildLocaleMapping,
   generateDetectLocale,
+  generateEmptyLocaleMapping,
   generateLoaderModuleClient,
   generateLoaderModuleServer,
   generateLocaleMapping,
-  generateEmptyLocaleMapping,
 } from "./loader-module"
 
 vi.mock("./cldr", () => ({
@@ -165,7 +165,7 @@ describe("loader-module", () => {
       )
 
       // Expect import to use provided module and import name
-      expect(result.some(s => s.includes(`import { myI18n as i18n } from \"my-i18n-module\"`))).toBeTruthy()
+      expect(result.some(s => s.includes(`import { myI18n as i18n } from "my-i18n-module"`))).toBeTruthy()
       expect(result.some(s => s.includes(`export function $getI18nInstance(_locale) {`))).toBeTruthy()
       expect(result.some(s => s.includes(`return i18n`))).toBeTruthy()
     })
@@ -181,7 +181,7 @@ describe("loader-module", () => {
       )
 
       // Expect import to use provided module with default import name
-      expect(result.some(s => s.includes(`import { i18n as i18n } from \"my-i18n-module\"`))).toBeTruthy()
+      expect(result.some(s => s.includes(`import { i18n as i18n } from "my-i18n-module"`))).toBeTruthy()
       expect(result.some(s => s.includes(`export function $getI18nInstance(_locale) {`))).toBeTruthy()
       expect(result.some(s => s.includes(`return i18n`))).toBeTruthy()
     })

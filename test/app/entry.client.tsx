@@ -9,6 +9,6 @@ startTransition(async () => {
     document,
     <StrictMode>
       <HydratedRouter />
-    </StrictMode>
+    </StrictMode>,
   )
 })
