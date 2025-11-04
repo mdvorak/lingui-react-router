@@ -155,7 +155,9 @@ export async function buildLocaleMapping(
     }
   }
 
-  return Object.fromEntries(result)
+  // Delete all where locale === fallback
+  const entries = Array.from(result.entries()).filter(([k, v]) => k !== v)
+  return Object.fromEntries(entries)
 }
 
 function generateGetI18nInstanceServer() {
