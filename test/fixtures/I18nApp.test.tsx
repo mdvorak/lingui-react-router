@@ -48,8 +48,10 @@ describe("I18nApp", () => {
 
       render(<Stub initialEntries={["/test"]} />)
 
-      const localeElement = await screen.findByTestId("current-locale")
-      expect(localeElement.textContent).toBe("en")
+      await waitFor(() => {
+        const localeElement = screen.getByTestId("current-locale")
+        expect(localeElement.textContent).toBe("en")
+      })
     })
   })
 
@@ -65,8 +67,10 @@ describe("I18nApp", () => {
       render(<Stub initialEntries={["/en/test"]} />)
 
       // Verify initial locale
-      let localeElement = await screen.findByTestId("current-locale")
-      expect(localeElement.textContent).toBe("en")
+      await waitFor(() => {
+        const localeElement = screen.getByTestId("current-locale")
+        expect(localeElement.textContent).toBe("en")
+      })
 
       // Navigate to Italian locale by clicking link
       const itLink = screen.getByTestId("link-it")
@@ -74,7 +78,7 @@ describe("I18nApp", () => {
 
       // Wait for locale to change
       await waitFor(() => {
-        localeElement = screen.getByTestId("current-locale")
+        const localeElement = screen.getByTestId("current-locale")
         expect(localeElement.textContent).toBe("it")
       })
     })
@@ -92,14 +96,16 @@ describe("I18nApp", () => {
       render(<Stub initialEntries={["/en/test"]} />)
 
       // Start with English
-      let localeElement = await screen.findByTestId("current-locale")
-      expect(localeElement.textContent).toBe("en")
+      await waitFor(() => {
+        const localeElement = screen.getByTestId("current-locale")
+        expect(localeElement.textContent).toBe("en")
+      })
 
       // Switch to Italian
       const itLink = screen.getByTestId("link-it")
       await user.click(itLink)
       await waitFor(() => {
-        localeElement = screen.getByTestId("current-locale")
+        const localeElement = screen.getByTestId("current-locale")
         expect(localeElement.textContent).toBe("it")
       })
 
@@ -107,7 +113,7 @@ describe("I18nApp", () => {
       const csLink = screen.getByTestId("link-cs")
       await user.click(csLink)
       await waitFor(() => {
-        localeElement = screen.getByTestId("current-locale")
+        const localeElement = screen.getByTestId("current-locale")
         expect(localeElement.textContent).toBe("cs")
       })
 
@@ -115,7 +121,7 @@ describe("I18nApp", () => {
       const enGbLink = screen.getByTestId("link-en-GB")
       await user.click(enGbLink)
       await waitFor(() => {
-        localeElement = screen.getByTestId("current-locale")
+        const localeElement = screen.getByTestId("current-locale")
         // Locale keys are normalized to lowercase
         expect(localeElement.textContent).toBe("en-gb")
       })
@@ -124,7 +130,7 @@ describe("I18nApp", () => {
       const defaultLink = screen.getByTestId("link-default")
       await user.click(defaultLink)
       await waitFor(() => {
-        localeElement = screen.getByTestId("current-locale")
+        const localeElement = screen.getByTestId("current-locale")
         expect(localeElement.textContent).toBe("en")
       })
     })
@@ -149,11 +155,13 @@ describe("I18nApp", () => {
 
       render(<Stub initialEntries={["/it/test"]} />)
 
-      const i18nAvailable = await screen.findByTestId("i18n-available")
-      expect(i18nAvailable.textContent).toBe("available")
+      await waitFor(() => {
+        const i18nAvailable = screen.getByTestId("i18n-available")
+        const i18nLocale = screen.getByTestId("i18n-locale")
 
-      const i18nLocale = await screen.findByTestId("i18n-locale")
-      expect(i18nLocale.textContent).toBe("it")
+        expect(i18nAvailable.textContent).toBe("available")
+        expect(i18nLocale.textContent).toBe("it")
+      })
     })
   })
 })
