@@ -402,9 +402,9 @@ environment.
 Use a modern Node.js runtime and verify Vite plugins are active to compile and load catalogs in dev
 and prod.
 
-```
-pnpm build
-pnpm test
+```shell
+# Build and run all tests
+pnpm test:all
 ```
 
 ## License
