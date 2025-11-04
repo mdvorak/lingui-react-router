@@ -106,7 +106,7 @@ describe("Prerendered HTML validation", () => {
       const html = await readFile(htmlPath, "utf-8")
 
       // Should exist and be valid HTML
-      expect(html).toContain('<html lang="en">')
+      expect(html).toContain(`<html lang="en">`)
       expect(html).toContain("This is a static page without localization")
     })
   })

@@ -4,7 +4,7 @@
 export type LinguiRouterConfig = {
   /**
    * Supported locales in priority order (e.g., ["en", "it"]).
-   * Uses BCP 47 codes or project-specific variants.
+   * Uses BCP 47 codes or project-specific variants.
    */
   locales: string[]
   /**

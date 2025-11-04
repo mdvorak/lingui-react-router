@@ -1,7 +1,7 @@
+import { $getI18nInstance } from "virtual:lingui-router-loader"
 import { findLocale } from "../i18n"
 import { defaultLocale, loadLocaleCatalog } from "../runtime"
 import "./assert-client"
-import { $getI18nInstance } from "virtual:lingui-router-loader"
 
 /**
  * Setup lingui for client-side rendering.

@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react"
+import { createRoutesStub } from "react-router"
 import { describe, expect, it } from "vitest"
 import StaticHello from "./static-hello"
-import { createRoutesStub } from "react-router"
 
 describe("/static-hello", () => {
   it("navigates to /static-hello and shows static content", async () => {

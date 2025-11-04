@@ -3,8 +3,8 @@ import { I18nApp, LocaleLink, LocalePreload } from "lingui-react-router"
 import { localeMiddleware } from "lingui-react-router/server"
 import { type ReactNode } from "react"
 import { isRouteErrorResponse, Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router"
-import SelectLanguage from "~/components/SelectLanguage"
 import type { Route } from "./+types/root"
+import SelectLanguage from "~/components/SelectLanguage"
 import "./app.css"
 
 export const links: Route.LinksFunction = () => [
@@ -18,7 +18,7 @@ export const links: Route.LinksFunction = () => [
 
 export const middleware: Route.MiddlewareFunction[] = [localeMiddleware]
 
-export function meta({}: Route.MetaArgs) {
+export function meta() {
   const { t } = useLingui()
   return [
     { title: t`Lingui React Router App` },

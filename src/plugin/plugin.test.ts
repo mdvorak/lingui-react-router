@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
-import { generateBundleClient, generateBundleServer } from "./generators/manifest-module"
 import {
+  generateDetectLocale,
+  generateEmptyLocaleMapping,
   generateLoaderModuleClient,
   generateLoaderModuleServer,
   generateLocaleMapping,
-  generateDetectLocale,
-  generateEmptyLocaleMapping,
 } from "./generators/loader-module"
+import { generateBundleClient, generateBundleServer } from "./generators/manifest-module"
 import { addToList, linguiRouterPlugin } from "./plugin"
 import {
   PLUGIN_NAME,

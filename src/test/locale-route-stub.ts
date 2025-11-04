@@ -1,3 +1,4 @@
+import React from "react"
 import {
   createRoutesStub,
   type LoaderFunction,
@@ -8,7 +9,6 @@ import {
 import * as loader from "virtual:lingui-router-loader"
 import { I18nApp } from "../components/I18nApp"
 import { localeMiddleware } from "../server"
-import React from "react"
 
 export type StubRouteObject = Parameters<typeof createRoutesStub>[0][0]
 

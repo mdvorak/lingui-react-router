@@ -1,6 +1,6 @@
+import path from "node:path"
 import type { LinguiConfigNormalized } from "@lingui/conf"
 import fg from "fast-glob"
-import path from "node:path"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import type { LinguiRouterPluginConfigFull } from "../plugin-config"
 import { generateLocaleModule } from "./locale-module"
