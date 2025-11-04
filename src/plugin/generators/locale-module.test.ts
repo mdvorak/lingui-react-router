@@ -36,6 +36,7 @@ describe("locale-module", () => {
       redirect: "auto",
       detectLocale: true,
       localeMapping: {},
+      defaultLocaleMapping: true,
       localeParamName: "locale",
       linguiConfig: mockLinguiConfig,
     }
