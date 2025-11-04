@@ -4,6 +4,7 @@ import { normalizeLocaleKey } from "../config"
 import {
   buildConfig,
   generateDetectLocale,
+  generateEmptyLocaleMapping,
   generateLoaderModuleClient,
   generateLoaderModuleServer,
   generateLocaleMapping,
@@ -137,6 +138,8 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
 
         if (server || this.environment.mode === "dev") {
           lines.push(...await generateLocaleMapping(linguiRouterConfig))
+        } else {
+          lines.push(...generateEmptyLocaleMapping())
         }
         lines.push(...generateDetectLocale(server && linguiRouterConfig.detectLocale))
 

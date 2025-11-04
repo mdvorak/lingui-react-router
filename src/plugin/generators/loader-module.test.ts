@@ -8,6 +8,7 @@ import {
   generateLoaderModuleClient,
   generateLoaderModuleServer,
   generateLocaleMapping,
+  generateEmptyLocaleMapping,
 } from "./loader-module"
 
 vi.mock("./cldr", () => ({
@@ -146,10 +147,42 @@ describe("loader-module", () => {
         buildConfig(mockPluginConfig, false),
       )
 
-      expect(result.some(s => s.includes(`import { i18n } from "@lingui/core"`))).toBeTruthy()
+      expect(result.some(s => s.includes(`import { i18n as i18n } from "@lingui/core"`))).toBeTruthy()
       expect(result.some(s => s.includes(`export function $getI18nInstance(_locale) {
   return i18n
 }`))).toBeTruthy()
+    })
+
+    it("should use custom runtimeConfigModule import when provided", async () => {
+      // Set runtimeConfigModule to a custom module and import name
+      mockLinguiConfig.runtimeConfigModule = { i18n: ["my-i18n-module", "myI18n"] } as any
+      mockPluginConfig.linguiConfig = mockLinguiConfig
+
+      const result = await generateLoaderModuleClient(
+        mockPluginConfig,
+        buildConfig(mockPluginConfig, false),
+      )
+
+      // Expect import to use provided module and import name
+      expect(result.some(s => s.includes(`import { myI18n as i18n } from \"my-i18n-module\"`))).toBeTruthy()
+      expect(result.some(s => s.includes(`export function $getI18nInstance(_locale) {`))).toBeTruthy()
+      expect(result.some(s => s.includes(`return i18n`))).toBeTruthy()
+    })
+
+    it("should use custom runtimeConfigModule import without specifier when provided", async () => {
+      // Set runtimeConfigModule to a custom module without import name
+      mockLinguiConfig.runtimeConfigModule = { i18n: ["my-i18n-module"] } as any
+      mockPluginConfig.linguiConfig = mockLinguiConfig
+
+      const result = await generateLoaderModuleClient(
+        mockPluginConfig,
+        buildConfig(mockPluginConfig, false),
+      )
+
+      // Expect import to use provided module with default import name
+      expect(result.some(s => s.includes(`import { i18n as i18n } from \"my-i18n-module\"`))).toBeTruthy()
+      expect(result.some(s => s.includes(`export function $getI18nInstance(_locale) {`))).toBeTruthy()
+      expect(result.some(s => s.includes(`return i18n`))).toBeTruthy()
     })
 
     it("should set localeMapping to undefined", async () => {
@@ -404,6 +437,15 @@ describe("loader-module", () => {
         ...mockPluginConfig.localeMapping,
         "fr-ca": "fr",
       })
+    })
+  })
+
+  describe("generateEmptyLocaleMapping", () => {
+    it("should generate an empty locale mapping module", () => {
+      const result = generateEmptyLocaleMapping()
+
+      expect(result).toHaveLength(1)
+      expect(result[0]).toBe("export const localeMapping = undefined")
     })
   })
 
