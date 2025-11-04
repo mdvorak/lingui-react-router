@@ -37,6 +37,7 @@ jobs:
         run: pnpm test:all
 
       - name: Package
+        if: matrix.node-version == 'lts/*' && matrix.os == 'ubuntu-latest'
         run: pnpm pack
 
       - name: Upload build artifacts
