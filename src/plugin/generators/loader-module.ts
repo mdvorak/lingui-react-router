@@ -108,8 +108,9 @@ export function buildConfig(
 export async function buildLocaleMapping(
   locales: string[],
   localeMap: Record<string, string>,
+  defaultLocaleMapping: boolean,
 ): Promise<Record<string, string>> {
-  const knownLocales = await getAllLocales()
+  const knownLocales = defaultLocaleMapping ? await getAllLocales() : new Set<string>()
 
   // Add existing locales to the result (all normalized)
   const result = new Map<string, string>(locales.map(l => [l, l]))
@@ -183,6 +184,7 @@ export async function generateLocaleMapping(pluginConfig: Readonly<LinguiRouterP
   const allLocaleMapping: Record<string, string> = await buildLocaleMapping(
     pluginConfig.locales,
     pluginConfig.localeMapping,
+    pluginConfig.defaultLocaleMapping,
   )
   return [`export const localeMapping = JSON.parse(\`${JSON.stringify(allLocaleMapping)}\`)`]
 }

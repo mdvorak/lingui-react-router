@@ -35,6 +35,16 @@ export type LinguiRouterPluginConfigFull = {
    */
   localeMapping: Record<string, string>
   /**
+   * Whether to enable default locale mapping according to CLDR data.
+   *
+   * When set to false, only identity mappings and custom localeMapping entries will be included,
+   * without automatic CLDR fallbacks.
+   *
+   * For example, mapping "en-GB" to "en", "pt-BR" to "pt", etc.
+   * Defaults to true.
+   */
+  defaultLocaleMapping: boolean
+  /**
    * Name of the URL parameter used to specify the locale.
    * Defaults to "locale", e.g. `"/:locale?/*"`.
    */

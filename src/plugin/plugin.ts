@@ -67,6 +67,7 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
         detectLocale: pluginConfig.detectLocale ?? true,
         redirect: pluginConfig.redirect ?? "auto",
         localeMapping,
+        defaultLocaleMapping: pluginConfig.defaultLocaleMapping ?? true,
         localeParamName: pluginConfig.localeParamName ?? "locale",
         defaultLocale: normalizeLocaleKey(pluginConfig.defaultLocale ?? locales[0] ?? "und"),
         locales: locales.map(normalizeLocaleKey),
