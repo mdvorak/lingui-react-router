@@ -1,7 +1,7 @@
-import { i18n } from "@lingui/core"
 import { findLocale } from "../i18n"
 import { defaultLocale, loadLocaleCatalog } from "../runtime"
 import "./assert-client"
+import { $getI18nInstance } from "virtual:lingui-router-loader"
 
 /**
  * Setup lingui for client-side rendering.
@@ -31,7 +31,9 @@ export async function loadInitialLocale(pathname: string) {
   const locale = parseUrlLocale(pathname) || defaultLocale
   const messages = await loadLocaleCatalog(locale)
 
-  i18n.loadAndActivate({ locale, messages })
+  // Note: don't use i18n global directly, as it does not respect runtimeConfigModule,
+  // while $getI18nInstance returns a correct instance.
+  $getI18nInstance(locale).loadAndActivate({ locale, messages })
 }
 
 /**

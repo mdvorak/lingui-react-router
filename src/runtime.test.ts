@@ -31,6 +31,6 @@ describe("loadLocaleCatalog", () => {
   })
 
   it("throws when locale has no loader", async () => {
-    await expect(runtime.loadLocaleCatalog("de")).rejects.toThrow("Locale de is not supported")
+    await expect(runtime.loadLocaleCatalog("de")).rejects.toThrow("Locale 'de' is not supported")
   })
 })

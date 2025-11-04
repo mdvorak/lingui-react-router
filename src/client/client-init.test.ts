@@ -1,14 +1,8 @@
-import { i18n } from "@lingui/core"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import * as i18nModule from "../i18n"
 import * as runtimeModule from "../runtime"
 import { loadInitialLocale } from "./client-init"
-
-vi.mock("@lingui/core", () => ({
-  i18n: {
-    loadAndActivate: vi.fn(),
-  },
-}))
+import { setupI18n } from "@lingui/core"
 
 vi.mock("../i18n", () => ({
   findLocale: vi.fn(),
@@ -20,6 +14,13 @@ vi.mock("../runtime", () => ({
 }))
 
 vi.mock("./assert-client", () => ({}))
+
+const testI18n = setupI18n({ locale: "test", messages: { test: {} } })
+vi.spyOn(testI18n, "loadAndActivate")
+
+vi.mock("virtual:lingui-router-loader", () => ({
+  $getI18nInstance: (_locale: string) => testI18n,
+}))
 
 describe("loadInitialLocale", () => {
   const mockMessages = { hello: "Hello" }
@@ -40,7 +41,7 @@ describe("loadInitialLocale", () => {
     // Verify that 'fr' was extracted from '/fr/about'
     expect(i18nModule.findLocale).toHaveBeenCalledWith("fr")
     expect(runtimeModule.loadLocaleCatalog).toHaveBeenCalledWith("fr")
-    expect(i18n.loadAndActivate).toHaveBeenCalledWith({
+    expect(testI18n.loadAndActivate).toHaveBeenCalledWith({
       locale: "fr",
       messages: mockMessages,
     })
@@ -53,7 +54,7 @@ describe("loadInitialLocale", () => {
 
     expect(i18nModule.findLocale).not.toHaveBeenCalled()
     expect(runtimeModule.loadLocaleCatalog).toHaveBeenCalledWith("en")
-    expect(i18n.loadAndActivate).toHaveBeenCalledWith({
+    expect(testI18n.loadAndActivate).toHaveBeenCalledWith({
       locale: "en",
       messages: mockMessages,
     })
@@ -71,7 +72,7 @@ describe("loadInitialLocale", () => {
     // Verify that 'about' was extracted and passed to findLocale
     expect(i18nModule.findLocale).toHaveBeenCalledWith("about")
     expect(runtimeModule.loadLocaleCatalog).toHaveBeenCalledWith("en")
-    expect(i18n.loadAndActivate).toHaveBeenCalledWith({
+    expect(testI18n.loadAndActivate).toHaveBeenCalledWith({
       locale: "en",
       messages: mockMessages,
     })
@@ -89,7 +90,7 @@ describe("loadInitialLocale", () => {
     // Verify that 'es' was extracted from '/es/contact/'
     expect(i18nModule.findLocale).toHaveBeenCalledWith("es")
     expect(runtimeModule.loadLocaleCatalog).toHaveBeenCalledWith("es")
-    expect(i18n.loadAndActivate).toHaveBeenCalledWith({
+    expect(testI18n.loadAndActivate).toHaveBeenCalledWith({
       locale: "es",
       messages: mockMessages,
     })
@@ -107,7 +108,7 @@ describe("loadInitialLocale", () => {
     // Verify that only 'it' (first segment) was extracted
     expect(i18nModule.findLocale).toHaveBeenCalledWith("it")
     expect(runtimeModule.loadLocaleCatalog).toHaveBeenCalledWith("it")
-    expect(i18n.loadAndActivate).toHaveBeenCalledWith({
+    expect(testI18n.loadAndActivate).toHaveBeenCalledWith({
       locale: "it",
       messages: mockMessages,
     })
@@ -125,7 +126,7 @@ describe("loadInitialLocale", () => {
     // Verify that 'de' was extracted despite multiple leading slashes
     expect(i18nModule.findLocale).toHaveBeenCalledWith("de")
     expect(runtimeModule.loadLocaleCatalog).toHaveBeenCalledWith("de")
-    expect(i18n.loadAndActivate).toHaveBeenCalledWith({
+    expect(testI18n.loadAndActivate).toHaveBeenCalledWith({
       locale: "de",
       messages: mockMessages,
     })
@@ -143,7 +144,7 @@ describe("loadInitialLocale", () => {
     // Verify that 'pt' was extracted from '/pt'
     expect(i18nModule.findLocale).toHaveBeenCalledWith("pt")
     expect(runtimeModule.loadLocaleCatalog).toHaveBeenCalledWith("pt")
-    expect(i18n.loadAndActivate).toHaveBeenCalledWith({
+    expect(testI18n.loadAndActivate).toHaveBeenCalledWith({
       locale: "pt",
       messages: mockMessages,
     })
@@ -157,7 +158,7 @@ describe("loadInitialLocale", () => {
     // Pathname doesn't start with '/', regex won't match, no locale extracted
     expect(i18nModule.findLocale).not.toHaveBeenCalled()
     expect(runtimeModule.loadLocaleCatalog).toHaveBeenCalledWith("en")
-    expect(i18n.loadAndActivate).toHaveBeenCalledWith({
+    expect(testI18n.loadAndActivate).toHaveBeenCalledWith({
       locale: "en",
       messages: mockMessages,
     })
