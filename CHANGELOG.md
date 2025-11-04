@@ -1,5 +1,36 @@
 # Changelog
 
+## [1.0.0](https://github.com/mdvorak/lingui-react-router/compare/v0.3.2...v1.0.0) (2025-11-04)
+
+
+### ⚠ BREAKING CHANGES
+
+* removed localeRoutes from lingui-react-router
+
+### Features
+
+* add defaultLocaleMapping plugin config ([d0664a3](https://github.com/mdvorak/lingui-react-router/commit/d0664a3d4ecd7070bd8f541767a632e7537c9f33))
+* add defineLinguiRouterConfig function ([400a802](https://github.com/mdvorak/lingui-react-router/commit/400a802e3f078db6e6093dcf6a0a0d3f05ca3ee1))
+* add locale mapping configuration for improved locale detection ([d2c7527](https://github.com/mdvorak/lingui-react-router/commit/d2c752748d3e301a587ef39e415d75b7b6fea99a))
+* add locale normalization and parent locale mapping ([9037056](https://github.com/mdvorak/lingui-react-router/commit/90370564e3c95786ee8b51a75ef078f4d81e7983))
+* add locale parameter name configuration for improved locale handling ([5cf9615](https://github.com/mdvorak/lingui-react-router/commit/5cf961587cf816ba8e6c70f698c74afd3110c491))
+* add support for custom catalog extensions in locale module ([2837a6e](https://github.com/mdvorak/lingui-react-router/commit/2837a6e379b9a17a0194abde6c781c02194c72ba))
+* add support for custom runtimeConfigModule i18n config ([9db65c0](https://github.com/mdvorak/lingui-react-router/commit/9db65c0e3b8ed56c1f7661fbd59eddebaa2be199))
+* enhance locale handling and configuration ([edece57](https://github.com/mdvorak/lingui-react-router/commit/edece5783432d21a2b7097e30f3de0ba28ed9b38))
+* enhance localization support and configuration ([b19722a](https://github.com/mdvorak/lingui-react-router/commit/b19722ad41ccc04c4be56609fdbc6e63e4fc5531)), closes [#22](https://github.com/mdvorak/lingui-react-router/issues/22)
+* enhance testing support with createLocaleRouteStub function ([7655d0e](https://github.com/mdvorak/lingui-react-router/commit/7655d0e70401c20f435b97824b92eaae88cb4642))
+* removed localeRoutes from lingui-react-router ([828313c](https://github.com/mdvorak/lingui-react-router/commit/828313ce8106951276fe375d8556785fde7715e2))
+* support fallback locales ([96ca054](https://github.com/mdvorak/lingui-react-router/commit/96ca054b91e6b40baaf0682c90f67f04b8b0ec92))
+
+
+### Bug Fixes
+
+* add cycle detection to localeMapping resolution ([b252432](https://github.com/mdvorak/lingui-react-router/commit/b2524322d7d5bfb499203d247723d6bda616d46a))
+* don't add user defined locales  to fallbackLocales ([6d70822](https://github.com/mdvorak/lingui-react-router/commit/6d708229bcdd2752f80a608ecdb114c1746dd223))
+* fix unknown locale handling ([cb7c3a8](https://github.com/mdvorak/lingui-react-router/commit/cb7c3a849ed7a4099a8d7df98cec6e89078d143b))
+* loadInitialLocale should respect lingui runtimeConfigModule config ([3d80aaf](https://github.com/mdvorak/lingui-react-router/commit/3d80aafa55ac50d3b253af32f4a63e1efd59bb7b))
+* resolve catalog path properly ([ff114aa](https://github.com/mdvorak/lingui-react-router/commit/ff114aa53a0a5fa078a19a6caee3539111f98cac))
+
 ## [0.3.2](https://github.com/mdvorak/lingui-react-router/compare/v0.3.1...v0.3.2) (2025-10-24)
 
 ### ⚠ BREAKING CHANGES
