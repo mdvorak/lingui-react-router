@@ -5,6 +5,7 @@ import {
   generateLoaderModuleServer,
   generateLocaleMapping,
   generateDetectLocale,
+  generateEmptyLocaleMapping,
 } from "./generators/loader-module"
 import { addToList, linguiRouterPlugin } from "./plugin"
 import {
@@ -29,6 +30,7 @@ vi.mock("./generators/loader-module", () => ({
   generateLocaleMapping: vi.fn().mockResolvedValue(["LOCALE_MAPPING_LINE"]),
   generateDetectLocale: vi.fn().mockReturnValue(["DETECT_LOCALE_LINE"]),
   buildConfig: vi.fn().mockReturnValue({}),
+  generateEmptyLocaleMapping: vi.fn().mockReturnValue(["EMPTY_LOCALE_MAPPING"]),
 }))
 
 beforeEach(() => {
@@ -508,6 +510,7 @@ describe("linguiRouterPlugin - load", () => {
 
     expect(generateLoaderModuleServer).toHaveBeenCalledTimes(1)
     expect(generateLocaleMapping).toHaveBeenCalledTimes(1)
+    expect(generateEmptyLocaleMapping).not.toHaveBeenCalled()
     expect(generateDetectLocale).toHaveBeenCalledWith(true)
     expect(result).toContain("SERVER_LOADER_LINE")
     expect(result).toContain("LOCALE_MAPPING_LINE")
@@ -539,9 +542,11 @@ describe("linguiRouterPlugin - load", () => {
     expect(generateLoaderModuleClient).toHaveBeenCalledTimes(1)
     // Not called because not server and not dev
     expect(generateLocaleMapping).not.toHaveBeenCalled()
+    expect(generateEmptyLocaleMapping).toHaveBeenCalledTimes(1)
     // server && detectLocale -> false
     expect(generateDetectLocale).toHaveBeenCalledWith(false)
     expect(result).toContain("CLIENT_LOADER_LINE")
+    expect(result).toContain("EMPTY_LOCALE_MAPPING")
     expect(result).toContain("DETECT_LOCALE_LINE")
   })
 
@@ -570,6 +575,7 @@ describe("linguiRouterPlugin - load", () => {
     expect(generateLoaderModuleClient).toHaveBeenCalledTimes(1)
     // mode === 'dev' -> locale mapping included
     expect(generateLocaleMapping).toHaveBeenCalledTimes(1)
+    expect(generateEmptyLocaleMapping).not.toHaveBeenCalled()
     // server && detectLocale -> false
     expect(generateDetectLocale).toHaveBeenCalledWith(false)
     expect(result).toContain("CLIENT_LOADER_LINE")

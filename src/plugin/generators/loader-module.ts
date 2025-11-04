@@ -5,6 +5,7 @@ import {
   VIRTUAL_LOCALE_PREFIX,
 } from "../plugin-config"
 import { getAllLocales } from "./cldr"
+import type { LinguiConfigNormalized } from "@lingui/conf"
 
 /**
  * Generate the loader module for server builds.
@@ -77,7 +78,7 @@ export async function generateLoaderModuleClient(
 
   lines.push(
     `}`,
-    generateGetI18nInstanceClient(),
+    generateGetI18nInstanceClient(pluginConfig.linguiConfig),
   )
 
   return lines
@@ -168,11 +169,11 @@ export function $getI18nInstance(locale) {
 `
 }
 
-function generateGetI18nInstanceClient() {
-  // TODO support   runtimeConfigModule: {
-  //     i18n: ["@lingui/core", "i18n"],
-  //   },
-  return `import { i18n } from "@lingui/core"
+function generateGetI18nInstanceClient(linguiConfig: Readonly<LinguiConfigNormalized>) {
+  // modulePath can be specified without an importName
+  const [modulePath, importName] = linguiConfig.runtimeConfigModule?.i18n ?? []
+
+  return `import { ${importName || "i18n"} as i18n } from "${modulePath || "@lingui/core"}"
 export function $getI18nInstance(_locale) {
   return i18n
 }`
@@ -186,6 +187,9 @@ export async function generateLocaleMapping(pluginConfig: Readonly<LinguiRouterP
   return [`export const localeMapping = JSON.parse(\`${JSON.stringify(allLocaleMapping)}\`)`]
 }
 
+export function generateEmptyLocaleMapping() {
+  return [`export const localeMapping = undefined`]
+}
 
 export function generateDetectLocale(enabled: boolean) {
   if (enabled) {
