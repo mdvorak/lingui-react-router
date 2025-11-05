@@ -47,3 +47,13 @@ export async function loadLocaleCatalog(locale: string): Promise<Messages> {
  * Wrapper function that uses user-configured useLingui function.
  */
 export const $useLingui = loader.$useLingui
+
+type Logger = {
+  log: (..._args: any[]) => void
+  error: (..._args: any[]) => void
+}
+
+/**
+ * Logger instance to be used by the library.
+ */
+export const logger: Logger = console

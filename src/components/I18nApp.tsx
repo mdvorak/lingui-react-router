@@ -1,9 +1,16 @@
+import type { I18n } from "@lingui/core"
 import { I18nProvider } from "@lingui/react"
 import React, { useEffect, useMemo } from "react"
-import { useParams } from "react-router"
+import {
+  type Location,
+  type NavigateFunction,
+  useLocation,
+  useNavigate,
+  useParams,
+} from "react-router"
 import { $getI18nInstance } from "virtual:lingui-router-loader"
-import { findLocale } from "../i18n"
-import { config, loadLocaleCatalog } from "../runtime"
+import { findLocale, stripPathnameLocalePrefix } from "../i18n"
+import { config, loadLocaleCatalog, logger } from "../runtime"
 
 /**
  * The I18nApp component provides internationalization context to the application.
@@ -46,29 +53,62 @@ import { config, loadLocaleCatalog } from "../runtime"
 export function I18nApp({ children }: Readonly<{ children: React.ReactNode }>) {
   const localeParamName = config.localeParamName
   const params = useParams()
+  const navigate = useNavigate()
+  const location = useLocation()
 
-  const { i18n, locale } = useMemo(() => {
+  const { i18n, locale, localeParam } = useMemo(() => {
     const localeParam = params[localeParamName]
     const resolvedLocale = findLocale(localeParam).locale ?? config.defaultLocale
     return {
+      localeParam,
       locale: resolvedLocale,
       i18n: $getI18nInstance(resolvedLocale),
     }
   }, [params[localeParamName]])
 
+  // Configure i18n instance based on selected locale
   useEffect(() => {
-    // This is executed only client-side
-    const localeDidChange = locale !== i18n.locale
-    if (localeDidChange) {
-      if (locale in i18n.messages) {
-        i18n.activate(locale)
-      } else {
-        loadLocaleCatalog(locale)
-          .then(messages => i18n.loadAndActivate({ locale, messages }))
-          .catch(err => console.error("Failed to load locale ", locale, " catalog:", err))
-      }
-    }
+    loadAndActivateLocale(i18n, locale)
   }, [i18n, locale])
 
+  // Normalize locale in the url path, if needed
+  useEffect(() => {
+    // Navigate to normalize locale in the url
+    normalizeLocationLocale(localeParam, locale, location, navigate)
+  }, [locale, localeParam]) // We don't need to re-run this effect if location changes
+
   return <I18nProvider i18n={i18n}>{children}</I18nProvider>
+}
+
+function loadAndActivateLocale(i18n: I18n, locale: string) {
+  if (locale !== i18n.locale) {
+    if (locale in i18n.messages) {
+      // Already loaded
+      logger.log(`Activating locale ${locale}`)
+      i18n.activate(locale)
+    } else {
+      // Load locale catalog and set the locale when loaded
+      // Note that this presents a race condition, but there is no way to avoid it
+      logger.log(`Loading locale catalog for ${locale}`)
+      loadLocaleCatalog(locale)
+        .then(messages => i18n.loadAndActivate({ locale, messages }))
+        .catch(err => logger.error(`Failed to load locale "${locale}" catalog:`, err))
+    }
+  }
+}
+
+function normalizeLocationLocale(localeParam: string | undefined,
+                                 locale: string,
+                                 location: Location,
+                                 navigate: NavigateFunction) {
+  if (localeParam && localeParam !== locale) {
+    const requestPathname = stripPathnameLocalePrefix(location.pathname, localeParam)
+    const nextPath = `/${localeParam}${requestPathname}${location.search}${location.hash}`
+    logger.log(`Detected badly formatted locale (${localeParam}) navigating to ${locale}:`, nextPath)
+
+    navigate(nextPath, {
+      replace: true,
+      preventScrollReset: true,
+    })
+  }
 }

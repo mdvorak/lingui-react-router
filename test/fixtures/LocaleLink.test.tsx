@@ -1,7 +1,8 @@
 import { render, screen } from "@testing-library/react"
+import { LocaleLink } from "lingui-react-router"
+import { loadInitialLocale } from "lingui-react-router/client"
 import { createLocaleRouteStub } from "lingui-react-router/test"
 import { describe, expect, it } from "vitest"
-import { LocaleLink } from "lingui-react-router"
 
 describe("LocaleLink", () => {
   describe("with string 'to' prop", () => {
@@ -22,6 +23,8 @@ describe("LocaleLink", () => {
       const Stub = createLocaleLinkStub()
 
       const url = "/test"
+
+      await loadInitialLocale(url)
       render(<Stub initialEntries={[url]} />)
 
       const link = await screen.findByRole("link", { name: "Test Link" })
@@ -33,6 +36,8 @@ describe("LocaleLink", () => {
       const Stub = createLocaleLinkStub()
 
       const url = "/en/test"
+
+      await loadInitialLocale(url)
       render(<Stub initialEntries={[url]} />)
 
       const link = await screen.findByRole("link", { name: "Test Link" })
@@ -44,6 +49,8 @@ describe("LocaleLink", () => {
       const Stub = createLocaleLinkStub()
 
       const url = "/it/test"
+
+      await loadInitialLocale(url)
       render(<Stub initialEntries={[url]} />)
 
       const link = await screen.findByRole("link", { name: "Test Link" })
@@ -55,6 +62,8 @@ describe("LocaleLink", () => {
       const Stub = createLocaleLinkStub()
 
       const url = "/en-gb/test"
+
+      await loadInitialLocale(url)
       render(<Stub initialEntries={[url]} />)
 
       const link = await screen.findByRole("link", { name: "Test Link" })
@@ -66,6 +75,8 @@ describe("LocaleLink", () => {
       const Stub = createLocaleLinkStub("/")
 
       const url = "/en/test"
+
+      await loadInitialLocale(url)
       render(<Stub initialEntries={[url]} />)
 
       const link = await screen.findByRole("link", { name: "Test Link" })
@@ -77,6 +88,8 @@ describe("LocaleLink", () => {
       const Stub = createLocaleLinkStub("/path/to/page")
 
       const url = "/cs/test"
+
+      await loadInitialLocale(url)
       render(<Stub initialEntries={[url]} />)
 
       const link = await screen.findByRole("link", { name: "Test Link" })
@@ -99,6 +112,8 @@ describe("LocaleLink", () => {
       })
 
       const url = "/test"
+
+      await loadInitialLocale(url)
       render(<Stub initialEntries={[url]} />)
 
       const link = await screen.findByRole("link", { name: "Test Link" })
@@ -119,6 +134,8 @@ describe("LocaleLink", () => {
       })
 
       const url = "/en/test"
+
+      await loadInitialLocale(url)
       render(<Stub initialEntries={[url]} />)
 
       const link = await screen.findByRole("link", { name: "Test Link" })
@@ -139,6 +156,8 @@ describe("LocaleLink", () => {
       })
 
       const url = "/en/test"
+
+      await loadInitialLocale(url)
       render(<Stub initialEntries={[url]} />)
 
       const link = await screen.findByRole("link", { name: "Test Link" })
@@ -159,6 +178,8 @@ describe("LocaleLink", () => {
       })
 
       const url = "/en/test"
+
+      await loadInitialLocale(url)
       render(<Stub initialEntries={[url]} />)
 
       const link = await screen.findByRole("link", { name: "Test Link" })
@@ -180,7 +201,10 @@ describe("LocaleLink", () => {
         Component: TestComponent,
       })
 
+
       const url = "/it/test"
+
+      await loadInitialLocale(url)
       render(<Stub initialEntries={[url]} />)
 
       const link = await screen.findByRole("link", { name: "Test Link" })
@@ -201,6 +225,8 @@ describe("LocaleLink", () => {
       })
 
       const url = "/cs/test"
+
+      await loadInitialLocale(url)
       render(<Stub initialEntries={[url]} />)
 
       const link = await screen.findByRole("link", { name: "Test Link" })
@@ -223,6 +249,8 @@ describe("LocaleLink", () => {
       })
 
       const url = "/en/test"
+
+      await loadInitialLocale(url)
       render(<Stub initialEntries={[url]} />)
 
       const link = await screen.findByRole("link", { name: "Test Link" })
@@ -243,6 +271,8 @@ describe("LocaleLink", () => {
       })
 
       const url = "/en/test"
+
+      await loadInitialLocale(url)
       render(<Stub initialEntries={[url]} />)
 
       const link = await screen.findByRole("link", { name: "Test Link" })
