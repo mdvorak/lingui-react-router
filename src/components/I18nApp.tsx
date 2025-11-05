@@ -68,7 +68,7 @@ export function I18nApp({ children }: Readonly<{ children: React.ReactNode }>) {
 
   const context = useMemo(() => {
     return resolveLocalePathContext(localeParam, locale, location)
-  }, [locale, localeParam, location.pathname])
+  }, [localeParam, locale, location.pathname])
 
   // Configure i18n instance based on selected locale
   useEffect(() => {
@@ -79,7 +79,7 @@ export function I18nApp({ children }: Readonly<{ children: React.ReactNode }>) {
   useEffect(() => {
     // Navigate to normalize locale in the url
     normalizeLocationLocale(localeParam, locale, location, navigate)
-  }, [locale, localeParam]) // We don't need to re-run this effect if location changes
+  }, [localeParam, locale]) // We don't need to re-run this effect if location changes
 
   return (
     <LocalePathContext value={context}>
