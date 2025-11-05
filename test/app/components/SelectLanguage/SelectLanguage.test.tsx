@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react"
+import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { loadInitialLocale } from "lingui-react-router/client"
 import { createLocaleRouteStub } from "lingui-react-router/test"
@@ -87,7 +87,9 @@ describe("SelectLanguage", () => {
     // After navigation, the URL should change and the select should reflect it
     // Note: In a stub environment, we can check the selected value
     const updatedSelect = await screen.findByRole("combobox")
-    expect((updatedSelect as HTMLSelectElement).value).toBe("it")
+    await waitFor(() => {
+      expect((updatedSelect as HTMLSelectElement).value).toBe("it")
+    })
   })
 
   it("preserves query parameters and hash when changing locale", async () => {
@@ -105,7 +107,9 @@ describe("SelectLanguage", () => {
     // The component should navigate to /cs/test?foo=bar#section
     // In the test environment, we verify the select value changed
     const updatedSelect = await screen.findByRole("combobox")
-    expect((updatedSelect as HTMLSelectElement).value).toBe("cs")
+    await waitFor(() => {
+      expect((updatedSelect as HTMLSelectElement).value).toBe("cs")
+    })
   })
 
   it("handles locale change from default locale path", async () => {
@@ -123,7 +127,9 @@ describe("SelectLanguage", () => {
 
     // Should navigate to /en-GB/test
     const updatedSelect = await screen.findByRole("combobox")
-    expect((updatedSelect as HTMLSelectElement).value).toBe("en-gb")
+    await waitFor(() => {
+      expect((updatedSelect as HTMLSelectElement).value).toBe("en-gb")
+    })
   })
 
   it("renders with correct CSS classes", async () => {
@@ -133,8 +139,10 @@ describe("SelectLanguage", () => {
     render(<Stub initialEntries={[url]} />)
 
     const select = await screen.findByRole("combobox")
-    expect(select.className).toContain("data-hover:outline-1")
-    expect(select.className).toContain("border-0!")
+    await waitFor(() => {
+      expect(select.className).toContain("data-hover:outline-1")
+      expect(select.className).toContain("border-0!")
+    })
   })
 
   it("has proper accessibility attributes", async () => {
