@@ -103,7 +103,7 @@ function normalizeLocationLocale(localeParam: string | undefined,
                                  navigate: NavigateFunction) {
   if (localeParam && localeParam !== locale) {
     const requestPathname = stripPathnameLocalePrefix(location.pathname, localeParam)
-    const nextPath = `/${localeParam}${requestPathname}${location.search}${location.hash}`
+    const nextPath = `/${locale}${requestPathname}${location.search}${location.hash}`
     logger.log(`Detected badly formatted locale (${localeParam}) navigating to ${locale}:`, nextPath)
 
     navigate(nextPath, {
