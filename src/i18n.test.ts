@@ -1,5 +1,6 @@
-import { describe, expect, it, vi } from "vitest"
-import { findLocale, stripPathnameLocalePrefix } from "./i18n"
+import { type Location, useLocation, useParams } from "react-router"
+import { beforeEach, describe, expect, it, vi } from "vitest"
+import { findLocale, stripPathnameLocalePrefix, usePathLocale } from "./i18n"
 
 // Mock the virtual loader used by runtime.ts before importing the tested module.
 // This is shorter and more direct than mocking ./runtime.
@@ -22,6 +23,17 @@ vi.mock("virtual:lingui-router-loader", () => ({
   },
   // empty loaders are fine for these tests
   localeLoaders: {},
+}))
+
+// Mock react hooks to avoid DOM dependency
+vi.mock("react", () => ({
+  useMemo: vi.fn(fn => fn()),
+}))
+
+// Mock react-router hooks
+vi.mock("react-router", () => ({
+  useLocation: vi.fn(),
+  useParams: vi.fn(),
 }))
 
 describe("findLocale", () => {
@@ -130,6 +142,141 @@ describe("stripPathnameLocalePrefix", () => {
 
     testCases.forEach(({ pathname, locale, expected }) => {
       expect(stripPathnameLocalePrefix(pathname, locale)).toBe(expected)
+    })
+  })
+})
+
+describe("usePathLocale", () => {
+  let location: Location
+  let params: Record<string, string | undefined>
+
+  beforeEach(() => {
+    location = {
+      pathname: "/about",
+      search: "",
+      hash: "",
+      state: null,
+      key: "default",
+    }
+    params = {}
+
+    vi.mocked(useParams).mockReturnValue(params)
+    vi.mocked(useLocation).mockReturnValue(location)
+  })
+
+  it("returns default locale when no locale param is present", () => {
+    const result = usePathLocale()
+
+    expect(result).toEqual({
+      locale: "en",
+      requestLocale: undefined,
+      requestPathname: "/about",
+    })
+  })
+
+  it("returns resolved locale and strips pathname prefix when locale param is present", () => {
+    params.locale = "fr"
+    location.pathname = "/fr/products"
+
+    const result = usePathLocale()
+
+    expect(result).toEqual({
+      locale: "fr",
+      requestLocale: "fr",
+      requestPathname: "/products",
+    })
+  })
+
+  it("normalizes locale param and strips pathname prefix", () => {
+    params.locale = "en-US"
+    location.pathname = "/en-US/products"
+
+    const result = usePathLocale()
+
+    expect(result).toEqual({
+      locale: "en-us",
+      requestLocale: "en-us",
+      requestPathname: "/products",
+    })
+  })
+
+  it("handles locale mapping and strips pathname prefix", () => {
+    params.locale = "a"
+    location.pathname = "/a/dashboard"
+
+    const result = usePathLocale()
+
+    expect(result).toEqual({
+      locale: "en",
+      requestLocale: "en",
+      requestPathname: "/dashboard",
+    })
+  })
+
+  it("falls back to default locale for unknown locale param and preserves pathname", () => {
+    params.locale = "de"
+    location.pathname = "/de/home"
+
+    const result = usePathLocale()
+
+    expect(result).toEqual({
+      locale: "en",
+      requestLocale: undefined,
+      requestPathname: "/de/home",
+    })
+  })
+
+  it("handles root pathname with locale", () => {
+    params.locale = "fr"
+    location.pathname = "/fr"
+
+    const result = usePathLocale()
+
+    expect(result).toEqual({
+      locale: "fr",
+      requestLocale: "fr",
+      requestPathname: "/",
+    })
+  })
+
+  it("handles root pathname with locale and trailing slash", () => {
+    params.locale = "fr"
+    location.pathname = "/fr/"
+
+    const result = usePathLocale()
+
+    expect(result).toEqual({
+      locale: "fr",
+      requestLocale: "fr",
+      requestPathname: "/",
+    })
+  })
+
+  it("preserves query strings and hashes in requestPathname", () => {
+    params.locale = "en"
+    location.pathname = "/en/about"
+    location.search = "?foo=bar"
+    location.hash = "#section"
+
+    const result = usePathLocale()
+
+    expect(result).toEqual({
+      locale: "en",
+      requestLocale: "en",
+      requestPathname: "/about",
+    })
+  })
+
+  it("handles extended locale codes", () => {
+    params.locale = "en-US-x-twain"
+    location.pathname = "/en-US-x-twain/page"
+
+    const result = usePathLocale()
+
+    expect(result).toEqual({
+      locale: "en-us-x-twain",
+      requestLocale: "en-us-x-twain",
+      requestPathname: "/page",
     })
   })
 })
