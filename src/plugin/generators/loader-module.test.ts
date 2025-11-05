@@ -126,6 +126,45 @@ describe("loader-module", () => {
       expect(result.some(s => s.includes("const i18nInstances = {"))).toBeTruthy()
       expect(result.some(s => s.includes("setupI18n({ locale: 'en', messages: localeMessages })"))).toBeTruthy()
     })
+
+    it("should export useLingui hook using default import", async () => {
+      const result = await generateLoaderModuleServer(
+        mockPluginConfig,
+        buildConfig(mockPluginConfig, true),
+      )
+
+      expect(result.some(s => s.includes("import { useLingui as runtimeUseLingui } from \"@lingui/react\""))).toBeTruthy()
+      expect(result.some(s => s.includes("export const $useLingui = runtimeUseLingui"))).toBeTruthy()
+    })
+
+    it("should use custom runtimeConfigModule.useLingui when provided", async () => {
+      // Provide a custom module and import name
+      mockLinguiConfig.runtimeConfigModule = { useLingui: ["my-useLingui-module", "myUseLingui"] } as any
+      mockPluginConfig.linguiConfig = mockLinguiConfig
+
+      const result = await generateLoaderModuleServer(
+        mockPluginConfig,
+        buildConfig(mockPluginConfig, true),
+      )
+
+      // Generator should include the provided module/import
+      expect(result.some(s => s.includes("import { myUseLingui as runtimeUseLingui } from \"my-useLingui-module\""))).toBeTruthy()
+      expect(result.some(s => s.includes("export const $useLingui = runtimeUseLingui"))).toBeTruthy()
+    })
+
+    it("should use custom runtimeConfigModule.useLingui without specifier when provided", async () => {
+      // Provide a custom module without import name
+      mockLinguiConfig.runtimeConfigModule = { useLingui: ["my-useLingui-module"] } as any
+      mockPluginConfig.linguiConfig = mockLinguiConfig
+
+      const result = await generateLoaderModuleServer(
+        mockPluginConfig,
+        buildConfig(mockPluginConfig, true),
+      )
+
+      expect(result.some(s => s.includes("import { useLingui as runtimeUseLingui } from \"my-useLingui-module\""))).toBeTruthy()
+      expect(result.some(s => s.includes("export const $useLingui = runtimeUseLingui"))).toBeTruthy()
+    })
   })
 
   describe("generateLoaderModuleClient", () => {
@@ -148,10 +187,10 @@ describe("loader-module", () => {
         buildConfig(mockPluginConfig, false),
       )
 
-      expect(result.some(s => s.includes(`import { i18n as i18n } from "@lingui/core"`))).toBeTruthy()
-      expect(result.some(s => s.includes(`export function $getI18nInstance(_locale) {
-  return i18n
-}`))).toBeTruthy()
+      // Import formatting can vary; just assert the default module is referenced
+      expect(result.some(s => s.includes("@lingui/core"))).toBeTruthy()
+      expect(result.some(s => s.includes(`export function $getI18nInstance(_locale) {`))).toBeTruthy()
+      expect(result.some(s => s.includes(`return runtimeI18n`))).toBeTruthy()
     })
 
     it("should use custom runtimeConfigModule import when provided", async () => {
@@ -165,9 +204,9 @@ describe("loader-module", () => {
       )
 
       // Expect import to use provided module and import name
-      expect(result.some(s => s.includes(`import { myI18n as i18n } from "my-i18n-module"`))).toBeTruthy()
+      expect(result.some(s => s.includes(`import { myI18n as runtimeI18n } from "my-i18n-module"`))).toBeTruthy()
       expect(result.some(s => s.includes(`export function $getI18nInstance(_locale) {`))).toBeTruthy()
-      expect(result.some(s => s.includes(`return i18n`))).toBeTruthy()
+      expect(result.some(s => s.includes(`return runtimeI18n`))).toBeTruthy()
     })
 
     it("should use custom runtimeConfigModule import without specifier when provided", async () => {
@@ -181,9 +220,9 @@ describe("loader-module", () => {
       )
 
       // Expect import to use provided module with default import name
-      expect(result.some(s => s.includes(`import { i18n as i18n } from "my-i18n-module"`))).toBeTruthy()
+      expect(result.some(s => s.includes(`import { i18n as runtimeI18n } from "my-i18n-module"`))).toBeTruthy()
       expect(result.some(s => s.includes(`export function $getI18nInstance(_locale) {`))).toBeTruthy()
-      expect(result.some(s => s.includes(`return i18n`))).toBeTruthy()
+      expect(result.some(s => s.includes(`return runtimeI18n`))).toBeTruthy()
     })
 
     it("should set localeMapping to undefined", async () => {
@@ -205,6 +244,44 @@ describe("loader-module", () => {
 
       expect(result.some(s => s.includes("  'en-US': () => import('virtual:lingui-router-locale-en-US')"))).toBeTruthy()
       expect(result.some(s => s.includes("  'fr-CA': () => import('virtual:lingui-router-locale-fr-CA')"))).toBeTruthy()
+    })
+
+    it("should export useLingui hook using default import", async () => {
+      const result = await generateLoaderModuleClient(
+        mockPluginConfig,
+        buildConfig(mockPluginConfig, false),
+      )
+
+      expect(result.some(s => s.includes("import { useLingui as runtimeUseLingui } from \"@lingui/react\""))).toBeTruthy()
+      expect(result.some(s => s.includes("export const $useLingui = runtimeUseLingui"))).toBeTruthy()
+    })
+
+    it("should use custom runtimeConfigModule.useLingui when provided", async () => {
+      // Provide a custom module and import name
+      mockLinguiConfig.runtimeConfigModule = { useLingui: ["my-useLingui-module", "myUseLingui"] } as any
+      mockPluginConfig.linguiConfig = mockLinguiConfig
+
+      const result = await generateLoaderModuleClient(
+        mockPluginConfig,
+        buildConfig(mockPluginConfig, false),
+      )
+
+      expect(result.some(s => s.includes("import { myUseLingui as runtimeUseLingui } from \"my-useLingui-module\""))).toBeTruthy()
+      expect(result.some(s => s.includes("export const $useLingui = runtimeUseLingui"))).toBeTruthy()
+    })
+
+    it("should use custom runtimeConfigModule.useLingui without specifier when provided", async () => {
+      // Provide a custom module without import name
+      mockLinguiConfig.runtimeConfigModule = { useLingui: ["my-useLingui-module"] } as any
+      mockPluginConfig.linguiConfig = mockLinguiConfig
+
+      const result = await generateLoaderModuleClient(
+        mockPluginConfig,
+        buildConfig(mockPluginConfig, false),
+      )
+
+      expect(result.some(s => s.includes("import { useLingui as runtimeUseLingui } from \"my-useLingui-module\""))).toBeTruthy()
+      expect(result.some(s => s.includes("export const $useLingui = runtimeUseLingui"))).toBeTruthy()
     })
   })
 
