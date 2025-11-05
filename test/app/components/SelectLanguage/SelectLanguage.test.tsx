@@ -25,7 +25,9 @@ describe("SelectLanguage", () => {
     expect(select).toBeTruthy()
 
     // Default locale should be 'en'
-    expect((select as HTMLSelectElement).value).toBe("en")
+    await waitFor(() => {
+      expect((select as HTMLSelectElement).value).toBe("en")
+    })
   })
 
   it("renders all available locales except pseudo", async () => {
@@ -58,7 +60,9 @@ describe("SelectLanguage", () => {
     render(<Stub initialEntries={[url]} />)
 
     const select = await screen.findByRole("combobox")
-    expect((select as HTMLSelectElement).value).toBe("it")
+    await waitFor(() => {
+      expect((select as HTMLSelectElement).value).toBe("it")
+    })
   })
 
   it("renders localized label text", async () => {
@@ -79,7 +83,9 @@ describe("SelectLanguage", () => {
     render(<Stub initialEntries={[url]} />)
 
     const select = await screen.findByRole("combobox")
-    expect((select as HTMLSelectElement).value).toBe("en")
+    await waitFor(() => {
+      expect((select as HTMLSelectElement).value).toBe("en")
+    })
 
     // Change to Italian
     await user.selectOptions(select, "it")
@@ -120,7 +126,9 @@ describe("SelectLanguage", () => {
     render(<Stub initialEntries={[url]} />)
 
     const select = await screen.findByRole("combobox")
-    expect((select as HTMLSelectElement).value).toBe("en")
+    await waitFor(() => {
+      expect((select as HTMLSelectElement).value).toBe("en")
+    })
 
     // Change to en-GB (note: value is lowercase 'en-gb')
     await user.selectOptions(select, "en-gb")
