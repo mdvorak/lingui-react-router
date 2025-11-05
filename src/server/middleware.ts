@@ -4,7 +4,7 @@ import { $detectLocale, $getI18nInstance } from "virtual:lingui-router-loader"
 import { findLocale, stripPathnameLocalePrefix } from "../i18n"
 import { config, loadLocaleCatalog } from "../runtime"
 import "./assert-server"
-import { LocaleContext } from "./context"
+import { LocaleServerContext } from "./context"
 
 /**
  * Locale middleware implementation. Determines the locale from the URL or the
@@ -60,7 +60,7 @@ export async function localeMiddleware(
   }
 
   // Set the locale context
-  context.set(LocaleContext, {
+  context.set(LocaleServerContext, {
     locale: resolvedLocale,
     i18n,
     _: i18n._.bind(i18n),

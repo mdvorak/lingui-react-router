@@ -1,9 +1,6 @@
-import { setupI18n } from "@lingui/core"
-import { type Location, useLocation, useParams } from "react-router"
-import { beforeEach, describe, expect, it, vi } from "vitest"
-import { normalizeLocaleKey } from "./config"
-import { findLocale, stripPathnameLocalePrefix, usePathLocale } from "./i18n"
-import { $useLingui } from "./runtime"
+import type { ContextType } from "react"
+import { describe, expect, it, vi } from "vitest"
+import { findLocale, LocalePathContext, stripPathnameLocalePrefix, usePathLocale } from "./i18n"
 
 // Mock the virtual loader used by runtime.ts before importing the tested module.
 // This is shorter and more direct than mocking ./runtime.
@@ -29,15 +26,13 @@ vi.mock("virtual:lingui-router-loader", () => ({
 }))
 
 // Mock react hooks to avoid DOM dependency
-vi.mock("react", () => ({
-  useMemo: vi.fn(fn => fn()),
-}))
-
-// Mock react-router hooks
-vi.mock("react-router", () => ({
-  useLocation: vi.fn(),
-  useParams: vi.fn(),
-}))
+vi.mock("react", () => {
+  const react = {
+    useContext: vi.fn((context: any) => context.Provider.value),
+    createContext: vi.fn((defaultValue: any) => ({ Provider: { value: defaultValue } })),
+  }
+  return { default: react }
+})
 
 describe("findLocale", () => {
   it("returns no locale when localeParam is undefined", () => {
@@ -150,152 +145,27 @@ describe("stripPathnameLocalePrefix", () => {
 })
 
 describe("usePathLocale", () => {
-  let location: Location
-  let params: Record<string, string | undefined>
-
-  function setI18nContext(locale: string) {
-    const localeKey = normalizeLocaleKey(locale)
-    const i18n = setupI18n({ locale: localeKey, messages: { [localeKey]: {} } })
-    vi.mocked($useLingui).mockReturnValue({
-      i18n,
-      _: i18n._.bind(i18n),
-    })
+  function setLocalePathContext(value: ContextType<typeof LocalePathContext>) {
+    const context = LocalePathContext.Provider as unknown as {
+      value: ContextType<typeof LocalePathContext>
+    }
+    context.value = value
   }
 
-  beforeEach(() => {
-    location = {
-      pathname: "/about",
-      search: "",
-      hash: "",
-      state: null,
-      key: "default",
+  it("returns the context value", () => {
+    const contextValue = {
+      locale: "en",
+      requestLocale: undefined,
+      requestPathname: "/about",
     }
-    params = {}
-
-    vi.mocked(useParams).mockReturnValue(params)
-    vi.mocked(useLocation).mockReturnValue(location)
-  })
-
-  it("returns default locale when no locale param is present", () => {
-    setI18nContext("en")
-    const result = usePathLocale()
-
-    expect(result).toEqual({
-      locale: "en",
-      requestLocale: undefined,
-      requestPathname: "/about",
-    })
-  })
-
-  it("returns resolved locale and strips pathname prefix when locale param is present", () => {
-    params.locale = "fr"
-    location.pathname = "/fr/products"
-    setI18nContext("fr")
+    setLocalePathContext(contextValue)
 
     const result = usePathLocale()
-
-    expect(result).toEqual({
-      locale: "fr",
-      requestLocale: "fr",
-      requestPathname: "/products",
-    })
+    expect(result).toBe(contextValue)
   })
 
-  it("normalizes locale param and strips pathname prefix", () => {
-    params.locale = "en-US"
-    location.pathname = "/en-US/products"
-    setI18nContext("en-us")
-
-    const result = usePathLocale()
-
-    expect(result).toEqual({
-      locale: "en-us",
-      requestLocale: "en-us",
-      requestPathname: "/products",
-    })
-  })
-
-  it("handles locale mapping", () => {
-    params.locale = "de"
-    location.pathname = "/de/home"
-
-    const result = usePathLocale()
-
-    expect(result).toEqual({
-      locale: "en-us",
-      requestLocale: "en-us",
-      requestPathname: "/home",
-    })
-  })
-
-  it("handles excluded prefixes", () => {
-    setI18nContext("en")
-    location.pathname = "/api/about"
-
-    const result = usePathLocale()
-
-    expect(result).toEqual({
-      locale: "en",
-      requestLocale: undefined,
-      requestPathname: "/api/about",
-    })
-  })
-
-  it("handles root pathname with locale", () => {
-    setI18nContext("fr")
-    params.locale = "fr"
-    location.pathname = "/fr"
-
-    const result = usePathLocale()
-
-    expect(result).toEqual({
-      locale: "fr",
-      requestLocale: "fr",
-      requestPathname: "/",
-    })
-  })
-
-  it("handles root pathname with locale and trailing slash", () => {
-    setI18nContext("fr")
-    params.locale = "fr"
-    location.pathname = "/fr/"
-
-    const result = usePathLocale()
-
-    expect(result).toEqual({
-      locale: "fr",
-      requestLocale: "fr",
-      requestPathname: "/",
-    })
-  })
-
-  it("preserves query strings and hashes in requestPathname", () => {
-    setI18nContext("en")
-    params.locale = "en"
-    location.pathname = "/en/about"
-    location.search = "?foo=bar"
-    location.hash = "#section"
-
-    const result = usePathLocale()
-
-    expect(result).toEqual({
-      locale: "en",
-      requestLocale: "en",
-      requestPathname: "/about",
-    })
-  })
-
-  it("handles extended locale codes", () => {
-    setI18nContext("en-US-x-twain")
-    params.locale = "en-US-x-twain"
-    location.pathname = "/en-US-x-twain/page"
-
-    const result = usePathLocale()
-
-    expect(result).toEqual({
-      locale: "en-us-x-twain",
-      requestLocale: "en-us-x-twain",
-      requestPathname: "/page",
-    })
+  it("throws error when used outside I18nApp component", () => {
+    setLocalePathContext(null)
+    expect(() => usePathLocale()).toThrowError(/must be used within a I18nApp component/i)
   })
 })
