@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
+import { loadInitialLocale } from "lingui-react-router/client"
 import { createLocaleRouteStub } from "lingui-react-router/test"
 import { describe, expect, it } from "vitest"
 import SelectLanguage from "./SelectLanguage"
@@ -12,6 +13,8 @@ describe("SelectLanguage", () => {
 
   it("renders the language selector with the default locale", async () => {
     const url = "/test"
+
+    await loadInitialLocale(url)
     render(<Stub initialEntries={[url]} />)
 
     // Check that the label is rendered
@@ -27,6 +30,8 @@ describe("SelectLanguage", () => {
 
   it("renders all available locales except pseudo", async () => {
     const url = "/test"
+
+    await loadInitialLocale(url)
     render(<Stub initialEntries={[url]} />)
 
     // Get all options
@@ -48,6 +53,8 @@ describe("SelectLanguage", () => {
 
   it("displays the current locale in the selector", async () => {
     const url = "/it/test"
+
+    await loadInitialLocale(url)
     render(<Stub initialEntries={[url]} />)
 
     const select = await screen.findByRole("combobox")
@@ -56,6 +63,8 @@ describe("SelectLanguage", () => {
 
   it("renders localized label text", async () => {
     const url = "/it/test"
+
+    await loadInitialLocale(url)
     render(<Stub initialEntries={[url]} />)
 
     // In Italian, "Language" should be translated to "Lingua"
@@ -65,6 +74,8 @@ describe("SelectLanguage", () => {
   it("navigates to the correct locale path when changed", async () => {
     const user = userEvent.setup()
     const url = "/en/test"
+
+    await loadInitialLocale(url)
     render(<Stub initialEntries={[url]} />)
 
     const select = await screen.findByRole("combobox")
@@ -82,6 +93,8 @@ describe("SelectLanguage", () => {
   it("preserves query parameters and hash when changing locale", async () => {
     const user = userEvent.setup()
     const url = "/en/test?foo=bar#section"
+
+    await loadInitialLocale(url)
     render(<Stub initialEntries={[url]} />)
 
     const select = await screen.findByRole("combobox")
@@ -98,6 +111,8 @@ describe("SelectLanguage", () => {
   it("handles locale change from default locale path", async () => {
     const user = userEvent.setup()
     const url = "/test"
+
+    await loadInitialLocale(url)
     render(<Stub initialEntries={[url]} />)
 
     const select = await screen.findByRole("combobox")
@@ -113,6 +128,8 @@ describe("SelectLanguage", () => {
 
   it("renders with correct CSS classes", async () => {
     const url = "/test"
+
+    await loadInitialLocale(url)
     render(<Stub initialEntries={[url]} />)
 
     const select = await screen.findByRole("combobox")
@@ -122,6 +139,8 @@ describe("SelectLanguage", () => {
 
   it("has proper accessibility attributes", async () => {
     const url = "/test"
+
+    await loadInitialLocale(url)
     render(<Stub initialEntries={[url]} />)
 
     // Check that label and select are properly associated

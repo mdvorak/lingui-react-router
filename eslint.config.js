@@ -11,7 +11,6 @@ export default [
     ignores: [
       "dist/**",
       "test/build/**",
-      "test/fixtures/**",
       "test/.react-router/**",
       "node_modules/**",
       "coverage/**",
@@ -34,7 +33,13 @@ export default [
         "ignoreTemplateLiterals": true,
         "ignoreComments": true,
       }],
-      "@stylistic/indent": ["error", 2],
+      // Indentation: align continuation function parameters with the first parameter
+      "@stylistic/indent": ["error", 2, {
+        "SwitchCase": 1,
+        "FunctionDeclaration": { "parameters": "first" },
+        "FunctionExpression": { "parameters": "first" },
+        "CallExpression": { "arguments": "first" },
+      }],
       "@stylistic/comma-dangle": ["error", "always-multiline"],
       "@stylistic/brace-style": ["error", "1tbs", { "allowSingleLine": true }],
       "@stylistic/object-curly-spacing": ["error", "always"],

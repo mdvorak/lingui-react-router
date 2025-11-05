@@ -1,7 +1,7 @@
 import { useMemo } from "react"
 import { useLocation, useParams } from "react-router"
 import { normalizeLocaleKey } from "./config"
-import { config, defaultLocale, localeMapping, supportedLocales } from "./runtime"
+import { $useLingui, config, localeMapping, supportedLocales } from "./runtime"
 
 /**
  * Represents the locale information derived from the URL path.
@@ -26,22 +26,27 @@ export type PathLocale = {
 export function usePathLocale(): PathLocale {
   const location = useLocation()
   const params = useParams()
+  const { i18n } = $useLingui()
   const localeParamName = config.localeParamName
 
   return useMemo(() => {
     const localeParam = params[localeParamName]
-    const { locale } = findLocale(localeParam)
-    // Use relative pathname only if locale was found
-    const requestPathname = locale
+    // This is a shortcut - we assume that if localeParam is present, i18n.locale has
+    // the corresponding locale code (normalized and found in supportedLocales)
+    // This is ensured by I18nApp component
+    const requestLocale = localeParam ? i18n.locale : undefined
+
+    // Use relative pathname only if locale is in the URL
+    const requestPathname = localeParam
       ? stripPathnameLocalePrefix(location.pathname, localeParam)
       : location.pathname
 
     return {
-      requestLocale: locale,
-      locale: locale || defaultLocale,
+      requestLocale,
+      locale: i18n.locale,
       requestPathname,
     }
-  }, [params[localeParamName], location.pathname])
+  }, [params[localeParamName], location.pathname, i18n.locale])
 }
 
 /**

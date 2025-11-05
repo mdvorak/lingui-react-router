@@ -1,6 +1,6 @@
+import { i18n } from "@lingui/core"
 import { loadInitialLocale } from "lingui-react-router/client"
 import { afterEach, beforeEach, describe, expect, it } from "vitest"
-import { i18n } from "@lingui/core"
 
 function resetLocale() {
   if (i18n.locale) {

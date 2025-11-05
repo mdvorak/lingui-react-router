@@ -13,7 +13,7 @@ export default function SelectLanguage() {
   const onChange = (e: ChangeEvent<HTMLSelectElement>) => {
     const nextLang = e.target.value
     const nextPath = `/${nextLang}${requestPathname}${location.search}${location.hash}`
-    navigate(nextPath)
+    navigate(nextPath, { preventScrollReset: true })
   }
 
   return (

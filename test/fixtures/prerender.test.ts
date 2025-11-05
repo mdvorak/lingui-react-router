@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises"
 import { dirname, join } from "node:path"
-import { describe, expect, it } from "vitest"
 import { fileURLToPath } from "url"
+import { describe, expect, it } from "vitest"
 
 const projectDir = join(dirname(fileURLToPath(import.meta.url)), "..")
 

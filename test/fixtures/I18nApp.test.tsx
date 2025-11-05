@@ -1,9 +1,11 @@
+import { i18n } from "@lingui/core"
+import { useLingui } from "@lingui/react"
 import { cleanup, render, screen, waitFor } from "@testing-library/react"
 import { userEvent } from "@testing-library/user-event"
+import { loadInitialLocale } from "lingui-react-router/client"
 import { createLocaleRouteStub } from "lingui-react-router/test"
-import { afterEach, describe, expect, it } from "vitest"
-import { useLingui } from "@lingui/react"
 import { Link } from "react-router"
+import { afterEach, describe, expect, it } from "vitest"
 
 // Component that displays the current locale and a test message
 function LocaleDisplay() {
@@ -37,6 +39,7 @@ function LocaleDisplayWithLinks() {
 describe("I18nApp", () => {
   afterEach(() => {
     cleanup()
+    i18n.loadAndActivate({ locale: "", messages: {} })
   })
 
   describe("locale initialization", () => {
@@ -46,7 +49,9 @@ describe("I18nApp", () => {
         Component: LocaleDisplay,
       })
 
-      render(<Stub initialEntries={["/test"]} />)
+      const url = "/test"
+      await loadInitialLocale(url)
+      render(<Stub initialEntries={[url]} />)
 
       await waitFor(() => {
         const localeElement = screen.getByTestId("current-locale")
@@ -64,7 +69,9 @@ describe("I18nApp", () => {
         Component: LocaleDisplayWithLinks,
       })
 
-      render(<Stub initialEntries={["/en/test"]} />)
+      const url = "/en/test"
+      await loadInitialLocale(url)
+      render(<Stub initialEntries={[url]} />)
 
       // Verify initial locale
       await waitFor(() => {
@@ -86,14 +93,14 @@ describe("I18nApp", () => {
 
   describe("locale switching between different locales", () => {
     it("switches between multiple locales correctly via navigation", async () => {
-      const user = userEvent.setup()
-
       const Stub = createLocaleRouteStub({
         path: "test",
         Component: LocaleDisplayWithLinks,
       })
 
-      render(<Stub initialEntries={["/en/test"]} />)
+      const url = "/en/test"
+      await loadInitialLocale(url)
+      render(<Stub initialEntries={[url]} />)
 
       // Start with English
       await waitFor(() => {
@@ -103,7 +110,7 @@ describe("I18nApp", () => {
 
       // Switch to Italian
       const itLink = screen.getByTestId("link-it")
-      await user.click(itLink)
+      await userEvent.setup().click(itLink)
       await waitFor(() => {
         const localeElement = screen.getByTestId("current-locale")
         expect(localeElement.textContent).toBe("it")
@@ -111,24 +118,26 @@ describe("I18nApp", () => {
 
       // Switch to Czech
       const csLink = screen.getByTestId("link-cs")
-      await user.click(csLink)
+      await userEvent.setup().click(csLink)
       await waitFor(() => {
         const localeElement = screen.getByTestId("current-locale")
+        console.log("localeElement.textContent:", localeElement.textContent)
         expect(localeElement.textContent).toBe("cs")
       })
 
       // Switch to British English
       const enGbLink = screen.getByTestId("link-en-GB")
-      await user.click(enGbLink)
+      await userEvent.setup().click(enGbLink)
       await waitFor(() => {
         const localeElement = screen.getByTestId("current-locale")
-        // Locale keys are normalized to lowercase
+        // Locale keys are normalized in the process
         expect(localeElement.textContent).toBe("en-gb")
       })
 
       // Switch back to default
       const defaultLink = screen.getByTestId("link-default")
-      await user.click(defaultLink)
+      await userEvent.setup().click(defaultLink)
+      console.log("waiting for default")
       await waitFor(() => {
         const localeElement = screen.getByTestId("current-locale")
         expect(localeElement.textContent).toBe("en")
@@ -153,7 +162,9 @@ describe("I18nApp", () => {
         Component: TestComponent,
       })
 
-      render(<Stub initialEntries={["/it/test"]} />)
+      const url = "/it/test"
+      await loadInitialLocale(url)
+      render(<Stub initialEntries={[url]} />)
 
       await waitFor(() => {
         const i18nAvailable = screen.getByTestId("i18n-available")
