@@ -1,11 +1,12 @@
 import type { Messages } from "@lingui/core"
+import type { LocaleLoaderMap, LocaleMapping } from "virtual:lingui-router-loader"
 import * as loader from "virtual:lingui-router-loader"
 import { type LinguiRouterConfig } from "./config"
 
 /**
  * Runtime configuration and utilities for Lingui React Router.
  */
-export const config: LinguiRouterConfig = loader.config
+export const config: Readonly<LinguiRouterConfig> = loader.config
 /**
  * The default locale used when no locale can be detected.
  */
@@ -13,16 +14,15 @@ export const defaultLocale: string = loader.config.defaultLocale
 /**
  * Mapping of locale codes to message catalog locations.
  */
-export const localeMapping: Record<string, string> | undefined = loader.localeMapping
+export const localeMapping: Readonly<LocaleMapping> | undefined = loader.localeMapping
 /**
  * Functions to load message catalogs for each supported locale.
  */
-export const localeLoaders: Record<string, () => Promise<{ messages: Messages }>> =
-  loader.localeLoaders
+export const localeLoaders: Readonly<LocaleLoaderMap> = loader.localeLoaders
 /**
  * A set of all supported locales.
  */
-export const supportedLocales = new Set<string>(loader.config.locales)
+export const supportedLocales: ReadonlySet<string> = new Set<string>(loader.config.locales)
 
 /**
  * Loads the message catalog for the specified locale.

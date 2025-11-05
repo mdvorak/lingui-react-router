@@ -22,6 +22,9 @@ export type I18nRequestContext = PathLocale & {
 
 /**
  * Context to hold server-side i18n information.
+ *
+ * Note that this is react-router context, not a React context. Use `RouterContextProvider`
+ * to access it.
  */
 export const LocaleContext = createContext<I18nRequestContext>()
 

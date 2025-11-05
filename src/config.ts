@@ -6,7 +6,7 @@ export type LinguiRouterConfig = {
    * Supported locales in priority order (e.g., ["en", "it"]).
    * Uses BCP 47 codes or project-specific variants.
    */
-  locales: string[]
+  locales: readonly string[]
   /**
    * Default locale used when no locale can be detected.
    * Should be included in `locales`.
@@ -20,7 +20,7 @@ export type LinguiRouterConfig = {
    * One or more top-level path segments that must not be treated as locales.
    * For example, ["api"].
    */
-  exclude: string[]
+  exclude: readonly string[]
   /**
    * Redirect policy when a locale is detected.
    */
