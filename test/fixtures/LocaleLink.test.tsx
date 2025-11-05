@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react"
+import { render, screen, waitFor } from "@testing-library/react"
 import { LocaleLink } from "lingui-react-router"
 import { loadInitialLocale } from "lingui-react-router/client"
 import { createLocaleRouteStub } from "lingui-react-router/test"
@@ -29,7 +29,10 @@ describe("LocaleLink", () => {
 
       const link = await screen.findByRole("link", { name: "Test Link" })
       expect(link).toBeTruthy()
-      expect((link as HTMLAnchorElement).getAttribute("href")).toBe("/hello")
+
+      await waitFor(() => {
+        expect(link.getAttribute("href")).toBe("/hello")
+      })
     })
 
     it("prefixes the link with the current locale when locale is in the path", async () => {
@@ -42,7 +45,10 @@ describe("LocaleLink", () => {
 
       const link = await screen.findByRole("link", { name: "Test Link" })
       expect(link).toBeTruthy()
-      expect((link as HTMLAnchorElement).getAttribute("href")).toBe("/en/hello")
+
+      await waitFor(() => {
+        expect(link.getAttribute("href")).toBe("/en/hello")
+      })
     })
 
     it("handles different locales correctly", async () => {
@@ -55,7 +61,10 @@ describe("LocaleLink", () => {
 
       const link = await screen.findByRole("link", { name: "Test Link" })
       expect(link).toBeTruthy()
-      expect((link as HTMLAnchorElement).getAttribute("href")).toBe("/it/hello")
+
+      await waitFor(() => {
+        expect(link.getAttribute("href")).toBe("/it/hello")
+      })
     })
 
     it("handles locale with country code", async () => {
@@ -68,7 +77,10 @@ describe("LocaleLink", () => {
 
       const link = await screen.findByRole("link", { name: "Test Link" })
       expect(link).toBeTruthy()
-      expect((link as HTMLAnchorElement).getAttribute("href")).toBe("/en-gb/hello")
+
+      await waitFor(() => {
+        expect(link.getAttribute("href")).toBe("/en-gb/hello")
+      })
     })
 
     it("handles root path correctly", async () => {
@@ -81,7 +93,10 @@ describe("LocaleLink", () => {
 
       const link = await screen.findByRole("link", { name: "Test Link" })
       expect(link).toBeTruthy()
-      expect((link as HTMLAnchorElement).getAttribute("href")).toBe("/en/")
+
+      await waitFor(() => {
+        expect(link.getAttribute("href")).toBe("/en/")
+      })
     })
 
     it("handles paths with existing leading slash", async () => {
@@ -94,7 +109,10 @@ describe("LocaleLink", () => {
 
       const link = await screen.findByRole("link", { name: "Test Link" })
       expect(link).toBeTruthy()
-      expect((link as HTMLAnchorElement).getAttribute("href")).toBe("/cs/path/to/page")
+
+      await waitFor(() => {
+        expect(link.getAttribute("href")).toBe("/cs/path/to/page")
+      })
     })
   })
 
@@ -118,7 +136,10 @@ describe("LocaleLink", () => {
 
       const link = await screen.findByRole("link", { name: "Test Link" })
       expect(link).toBeTruthy()
-      expect((link as HTMLAnchorElement).getAttribute("href")).toBe("/hello")
+
+      await waitFor(() => {
+        expect(link.getAttribute("href")).toBe("/hello")
+      })
     })
 
     it("prefixes the pathname with the current locale when locale is in the path", async () => {
@@ -140,7 +161,10 @@ describe("LocaleLink", () => {
 
       const link = await screen.findByRole("link", { name: "Test Link" })
       expect(link).toBeTruthy()
-      expect((link as HTMLAnchorElement).getAttribute("href")).toBe("/en/hello")
+
+      await waitFor(() => {
+        expect(link.getAttribute("href")).toBe("/en/hello")
+      })
     })
 
     it("preserves search params when locale is present", async () => {
@@ -162,7 +186,10 @@ describe("LocaleLink", () => {
 
       const link = await screen.findByRole("link", { name: "Test Link" })
       expect(link).toBeTruthy()
-      expect((link as HTMLAnchorElement).getAttribute("href")).toBe("/en/hello?foo=bar")
+
+      await waitFor(() => {
+        expect(link.getAttribute("href")).toBe("/en/hello?foo=bar")
+      })
     })
 
     it("preserves hash when locale is present", async () => {
@@ -184,7 +211,10 @@ describe("LocaleLink", () => {
 
       const link = await screen.findByRole("link", { name: "Test Link" })
       expect(link).toBeTruthy()
-      expect((link as HTMLAnchorElement).getAttribute("href")).toBe("/en/hello#section")
+
+      await waitFor(() => {
+        expect(link.getAttribute("href")).toBe("/en/hello#section")
+      })
     })
 
     it("preserves both search and hash when locale is present", async () => {
@@ -209,7 +239,10 @@ describe("LocaleLink", () => {
 
       const link = await screen.findByRole("link", { name: "Test Link" })
       expect(link).toBeTruthy()
-      expect((link as HTMLAnchorElement).getAttribute("href")).toBe("/it/hello?foo=bar#section")
+
+      await waitFor(() => {
+        expect(link.getAttribute("href")).toBe("/it/hello?foo=bar#section")
+      })
     })
 
     it("handles object with different locale in path", async () => {
@@ -231,7 +264,10 @@ describe("LocaleLink", () => {
 
       const link = await screen.findByRole("link", { name: "Test Link" })
       expect(link).toBeTruthy()
-      expect((link as HTMLAnchorElement).getAttribute("href")).toBe("/cs/about")
+
+      await waitFor(() => {
+        expect(link.getAttribute("href")).toBe("/cs/about")
+      })
     })
   })
 
@@ -255,7 +291,10 @@ describe("LocaleLink", () => {
 
       const link = await screen.findByRole("link", { name: "Test Link" })
       expect(link).toBeTruthy()
-      expect((link as HTMLAnchorElement).getAttribute("href")).toBe("/en")
+
+      await waitFor(() => {
+        expect(link.getAttribute("href")).toBe("/en")
+      })
     })
 
     it("handles object with empty pathname", async () => {
@@ -277,8 +316,10 @@ describe("LocaleLink", () => {
 
       const link = await screen.findByRole("link", { name: "Test Link" })
       expect(link).toBeTruthy()
-      expect((link as HTMLAnchorElement).getAttribute("href")).toBe("/en")
+
+      await waitFor(() => {
+        expect(link.getAttribute("href")).toBe("/en")
+      })
     })
   })
 })
-
