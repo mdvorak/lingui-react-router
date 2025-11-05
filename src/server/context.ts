@@ -26,7 +26,7 @@ export type I18nRequestContext = PathLocale & {
  * Note that this is react-router context, not a React context. Use `RouterContextProvider`
  * to access it.
  */
-export const LocaleContext = createContext<I18nRequestContext>()
+export const LocaleServerContext = createContext<I18nRequestContext>()
 
 /**
  * Server-side i18n context with additional properties.
@@ -57,7 +57,7 @@ export type I18nRouterContext = I18nRequestContext & {
  */
 export function useLinguiServer(context: Readonly<RouterContextProvider>): I18nRouterContext {
   try {
-    const serverContext = context.get(LocaleContext)
+    const serverContext = context.get(LocaleServerContext)
     const pathnamePrefix = serverContext.requestLocale ? `/${serverContext.requestLocale}` : ""
 
     return {
