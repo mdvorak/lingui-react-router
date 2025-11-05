@@ -11,12 +11,15 @@ declare module "virtual:lingui-router-locale-*" {
 
 declare module "virtual:lingui-router-loader" {
   import type { I18n, Messages } from "@lingui/core"
+  import { I18nContext } from "@lingui/react"
   import type { LinguiRouterConfig } from "./config"
 
   export const config: LinguiRouterConfig
   export const localeLoaders: Record<string, () => Promise<{ messages: Messages }>>
 
   export function $getI18nInstance(locale: string): I18n
+
+  export function $useLingui(): I18nContext
 
   export function $detectLocale(
     headers: Record<string, string | undefined>,

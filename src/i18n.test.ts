@@ -10,6 +10,7 @@ vi.mock("virtual:lingui-router-loader", () => ({
     locales: ["en", "fr", "en-us", "en-us-x-twain"],
     localeParamName: "locale",
   },
+  $useLingui: vi.fn(),
   // localeMapping keys should be normalized keys as findLocale looks up by normalized locale
   localeMapping: {
     a: "b",

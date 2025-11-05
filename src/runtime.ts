@@ -42,3 +42,8 @@ export async function loadLocaleCatalog(locale: string): Promise<Messages> {
   const mod = await loaderFunc()
   return mod.messages
 }
+
+/**
+ * Wrapper function that uses user-configured useLingui function.
+ */
+export const $useLingui = loader.$useLingui

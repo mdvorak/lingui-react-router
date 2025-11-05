@@ -1,4 +1,3 @@
-import type { LinguiConfigNormalized } from "@lingui/conf"
 import { type LinguiRouterConfig, normalizeLocaleKey } from "../../config"
 import {
   type LinguiRouterPluginConfigFull,
@@ -48,7 +47,8 @@ export async function generateLoaderModuleServer(
     `const i18nInstances = {`,
     ...bundleMap,
     `}`,
-    generateGetI18nInstanceServer(),
+    ...generateGetI18nInstanceServer(),
+    ...generateUseLingui(pluginConfig),
   )
 
   return lines
@@ -78,7 +78,8 @@ export async function generateLoaderModuleClient(
 
   lines.push(
     `}`,
-    generateGetI18nInstanceClient(pluginConfig.linguiConfig),
+    ...generateGetI18nInstanceClient(pluginConfig),
+    ...generateUseLingui(pluginConfig),
   )
 
   return lines
@@ -161,25 +162,26 @@ export async function buildLocaleMapping(
 }
 
 function generateGetI18nInstanceServer() {
-  return `
+  return [`
 export function $getI18nInstance(locale) {
   const i18n = i18nInstances[locale]
   if (!i18n) {
     throw new Error("Unsupported locale: " + locale)
   }
   return i18n
-}
-`
+}`]
 }
 
-function generateGetI18nInstanceClient(linguiConfig: Readonly<LinguiConfigNormalized>) {
+function generateGetI18nInstanceClient({ linguiConfig }: Readonly<LinguiRouterPluginConfigFull>) {
   // modulePath can be specified without an importName
   const [modulePath, importName] = linguiConfig.runtimeConfigModule?.i18n ?? []
 
-  return `import { ${importName || "i18n"} as i18n } from "${modulePath || "@lingui/core"}"
-export function $getI18nInstance(_locale) {
-  return i18n
-}`
+  return [
+    `import { ${importName || "i18n"} as runtimeI18n } from "${modulePath || "@lingui/core"}"`,
+    `export function $getI18nInstance(_locale) {`,
+    `  return runtimeI18n`,
+    `}`,
+  ]
 }
 
 export async function generateLocaleMapping(pluginConfig: Readonly<LinguiRouterPluginConfigFull>) {
@@ -205,3 +207,14 @@ export function generateDetectLocale(enabled: boolean) {
     return [`export const $detectLocale = () => undefined`]
   }
 }
+
+function generateUseLingui({ linguiConfig }: Readonly<LinguiRouterPluginConfigFull>) {
+  const [modulePath, importName] = linguiConfig.runtimeConfigModule?.useLingui ?? []
+
+  return [
+    `import { ${importName || "useLingui"} as runtimeUseLingui } from "${modulePath || "@lingui/react"}"`,
+    `export const $useLingui = runtimeUseLingui`,
+  ]
+}
+
+

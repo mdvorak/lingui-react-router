@@ -14,6 +14,7 @@ vi.mock("virtual:lingui-router-loader", () => ({
     en: async () => ({ messages: { greeting: "hello" } }),
     fr: async () => ({ messages: { greeting: "bonjour" } }),
   },
+  $useLingui: vi.fn(),
 }))
 
 describe("runtime supportedLocales", () => {
