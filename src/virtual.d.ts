@@ -14,8 +14,12 @@ declare module "virtual:lingui-router-loader" {
   import { I18nContext } from "@lingui/react"
   import type { LinguiRouterConfig } from "./config"
 
+  export type LocaleLoader = () => Promise<{ messages: Messages }>
+  export type LocaleLoaderMap = Record<string, LocaleLoader | undefined>
+  export type LocaleMapping = Record<string, string | undefined>
+
   export const config: LinguiRouterConfig
-  export const localeLoaders: Record<string, () => Promise<{ messages: Messages }>>
+  export const localeLoaders: LocaleLoaderMap
 
   export function $getI18nInstance(locale: string): I18n
 
@@ -26,5 +30,5 @@ declare module "virtual:lingui-router-loader" {
     locales: readonly string[],
   ): string | undefined
 
-  export const localeMapping: Record<string, string> | undefined
+  export const localeMapping: LocaleMapping | undefined
 }
