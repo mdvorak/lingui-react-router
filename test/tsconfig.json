@@ -5,6 +5,9 @@
     "**/.client/**/*",
     ".react-router/types/**/*"
   ],
+  "exclude": [
+    "build"
+  ],
   "compilerOptions": {
     "lib": [
       "DOM",
@@ -35,8 +38,5 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "strict": true
-  },
-  "exclude": [
-    "dist"
-  ]
+  }
 }

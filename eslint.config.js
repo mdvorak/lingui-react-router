@@ -71,11 +71,9 @@ export default [
     languageOptions: {
       parser: tsparser,
       parserOptions: {
-        ecmaVersion: "latest",
-        sourceType: "module",
+        project: true,
       },
       globals: {
-        ...globals.node,
         ...globals.browser,
       },
     },
@@ -97,6 +95,14 @@ export default [
       "@stylistic/type-annotation-spacing": "error",
       "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
       "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+    },
+  },
+  {
+    files: ["src/plugin/**/*", "src/server/**/*", "src/test/**/*"],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
     },
   },
   {
