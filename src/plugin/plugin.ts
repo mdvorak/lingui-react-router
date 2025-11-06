@@ -8,6 +8,7 @@ import {
   generateLoaderModuleClient,
   generateLoaderModuleServer,
   generateLocaleMapping,
+  generateLoggerModule,
 } from "./generators/loader-module"
 import { generateLocaleModule } from "./generators/locale-module"
 import {
@@ -20,6 +21,7 @@ import {
   type LinguiRouterPluginConfig,
   type LinguiRouterPluginConfigFull,
   PLUGIN_NAME,
+  pluginConfigDefaults,
   VIRTUAL_LOADER,
   VIRTUAL_LOCALE_PREFIX,
   VIRTUAL_MANIFEST,
@@ -55,21 +57,22 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
 
       // Build plugin config with defaults and normalization
       const localeMapping = Object.fromEntries(
-        Object.entries(pluginConfig.localeMapping ?? {}).map(([k, v]) => [
+        Object.entries(pluginConfig.localeMapping ?? pluginConfigDefaults.localeMapping).map(([k, v]) => [
           normalizeLocaleKey(k),
           normalizeLocaleKey(v),
         ]),
       )
 
+      const defaultLocale = normalizeLocaleKey(pluginConfig.defaultLocale
+        ?? locales[0]
+        ?? pluginConfigDefaults.defaultLocale)
+
       config.linguiRouterConfig = {
+        ...pluginConfigDefaults,
+        ...pluginConfig,
         linguiConfig,
-        exclude: pluginConfig.exclude ?? [],
-        detectLocale: pluginConfig.detectLocale ?? true,
-        redirect: pluginConfig.redirect ?? "auto",
         localeMapping,
-        defaultLocaleMapping: pluginConfig.defaultLocaleMapping ?? true,
-        localeParamName: pluginConfig.localeParamName ?? "locale",
-        defaultLocale: normalizeLocaleKey(pluginConfig.defaultLocale ?? locales[0] ?? "und"),
+        defaultLocale: defaultLocale,
         locales: locales.map(normalizeLocaleKey),
         pseudoLocale: pseudoLocale ? normalizeLocaleKey(pseudoLocale) : undefined,
       }
@@ -175,6 +178,9 @@ async function generateLoaderModule(pluginConfig: Readonly<LinguiRouterPluginCon
   }
   lines.push(
     ...generateDetectLocale(isServer && pluginConfig.detectLocale),
+    ...generateLoggerModule(isServer
+      ? pluginConfig.loggerServerModule
+      : pluginConfig.loggerClientModule),
   )
 
   return lines.join("\n")

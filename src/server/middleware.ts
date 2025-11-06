@@ -2,14 +2,14 @@ import { setI18n } from "@lingui/react/server"
 import type { RouterContextProvider } from "react-router"
 import { $detectLocale, $getI18nInstance } from "virtual:lingui-router-loader"
 import { findLocale, stripPathnameLocalePrefix } from "../client-context"
+import { logger } from "../logger"
 import { config, loadLocaleCatalog } from "../runtime"
 import "./assert-server"
 import { changeLocaleRedirect, createRequestContext, LocaleServerContext } from "./server-context"
 
 /**
  * Locale middleware implementation. Determines the locale from the URL or the
- * Accept-Language header, initializes i18n, and runs the request with a
- * LocaleServerContext.
+ * Accept-Language header, initializes i18n, and runs the request with a LocaleServerContext.
  *
  * Use `useLinguiServer` in loaders and actions to access the server-side i18n context.
  *
@@ -56,6 +56,8 @@ export async function localeMiddleware(
 
   // Get or create the i18n instance for the resolved locale
   const resolvedLocale = requestLocale || config.defaultLocale
+  logger?.debug("Resolved path", url.pathname, "as locale", resolvedLocale)
+
   const i18n = $getI18nInstance(resolvedLocale)
   if (!i18n) {
     throw new Error(`Missing i18n instance for ${resolvedLocale}`)
@@ -104,6 +106,7 @@ function handleRequestLocale(
 
   if (excluded) {
     // Always use preferred locale for API requests
+    logger?.debug("Path", url.pathname, "is excluded, using preferred locale:", preferredLocale)
     return preferredLocale
   } else if (
     config.redirect === "always" ||
@@ -124,4 +127,3 @@ function getRequestHeaders(headers: Headers): Record<string, string | undefined>
     "accept-language": headers.get("accept-language") ?? undefined,
   }
 }
-

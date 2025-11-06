@@ -6,10 +6,12 @@ export const VIRTUAL_LOCALE_PREFIX = "virtual:lingui-router-locale-"
 export const VIRTUAL_MANIFEST = "virtual:lingui-router-manifest"
 export const VIRTUAL_LOADER = "virtual:lingui-router-loader"
 
+export type LoggerModuleConfig = "none" | "console" | [string, string]
+
 export type LinguiRouterPluginConfigFull = {
   /**
    * One or more root-level path prefixes that should NOT be treated as locales.
-   * For example, ["api"].
+   * For example, ["api", "favicon.ico"].
    */
   exclude: string[]
   /**
@@ -55,6 +57,18 @@ export type LinguiRouterPluginConfigFull = {
    * If not provided, the plugin will attempt to load the Lingui config from the project root.
    */
   linguiConfig: Readonly<LinguiConfigNormalized>
+  /**
+   * Logger module to use on the server, for example `["./my-logger", "logger"]`.
+   *
+   * Defaults to "console".
+   */
+  loggerServerModule: LoggerModuleConfig
+  /**
+   * Logger module to use on the client, for example `["./my-logger", "logger"]`.
+   *
+   * Defaults to "none".
+   */
+  loggerClientModule: LoggerModuleConfig
   /**
    * Default locale to use when no locale can be detected. Must be included in `locales`.
    *
@@ -105,10 +119,12 @@ export function defineLinguiRouterConfig(
 
 export const pluginConfigDefaults = {
   defaultLocale: "und",
-  exclude: [],
+  exclude: ["favicon.ico"],
   detectLocale: true,
   redirect: "auto" as RedirectBehavior,
   localeMapping: {} as Record<string, string>,
   defaultLocaleMapping: true,
   localeParamName: "locale",
+  loggerServerModule: "console" as LoggerModuleConfig,
+  loggerClientModule: "none" as LoggerModuleConfig,
 }

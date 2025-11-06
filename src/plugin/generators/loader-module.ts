@@ -1,6 +1,7 @@
 import { type LinguiRouterConfig, normalizeLocaleKey } from "../../config"
 import {
   type LinguiRouterPluginConfigFull,
+  type LoggerModuleConfig,
   PLUGIN_NAME,
   VIRTUAL_LOCALE_PREFIX,
 } from "../plugin-config"
@@ -217,4 +218,19 @@ function generateUseLingui({ linguiConfig }: Readonly<LinguiRouterPluginConfigFu
   ]
 }
 
-
+export function generateLoggerModule(loggerModule: LoggerModuleConfig) {
+  if (loggerModule === "none") {
+    return [`export const $logger = undefined`]
+  }
+  if (loggerModule === "console") {
+    return [`export const $logger = console`]
+  }
+  if (loggerModule.length !== 2) {
+    throw new Error("Invalid logger module configuration")
+  }
+  const [modulePath, importName] = loggerModule
+  return [
+    `import { ${importName} as runtimeLogger } from "${modulePath}"`,
+    `export const $logger = runtimeLogger`,
+  ]
+}

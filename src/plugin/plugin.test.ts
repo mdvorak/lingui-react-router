@@ -30,6 +30,7 @@ vi.mock("./generators/loader-module", () => ({
   generateDetectLocale: vi.fn().mockReturnValue(["DETECT_LOCALE_LINE"]),
   buildConfig: vi.fn().mockReturnValue({}),
   generateEmptyLocaleMapping: vi.fn().mockReturnValue(["EMPTY_LOCALE_MAPPING"]),
+  generateLoggerModule: vi.fn().mockReturnValue(["LOGGER_MODULE_LINE"]),
 }))
 
 beforeEach(() => {
@@ -89,7 +90,9 @@ describe("linguiRouterPlugin - configResolved", () => {
 
     expect(config.linguiRouterConfig).toEqual({
       linguiConfig: expect.any(Object),
-      exclude: [],
+      loggerClientModule: "none",
+      loggerServerModule: "console",
+      exclude: ["favicon.ico"],
       detectLocale: true,
       redirect: "auto",
       localeMapping: {},
@@ -104,6 +107,8 @@ describe("linguiRouterPlugin - configResolved", () => {
   it("should use custom configuration values", () => {
     const plugin = linguiRouterPlugin({
       linguiConfig: mockLinguiConfig as any,
+      loggerClientModule: "console",
+      loggerServerModule: ["./my-logger", "log"],
       exclude: ["/admin"],
       detectLocale: false,
       redirect: "never",
@@ -123,6 +128,8 @@ describe("linguiRouterPlugin - configResolved", () => {
 
     expect(config.linguiRouterConfig).toEqual({
       linguiConfig: mockLinguiConfig,
+      loggerClientModule: "console",
+      loggerServerModule: ["./my-logger", "log"],
       exclude: ["/admin"],
       detectLocale: false,
       redirect: "never",
@@ -471,6 +478,7 @@ describe("linguiRouterPlugin - load", () => {
     expect(result).toContain("SERVER_LOADER_LINE")
     expect(result).toContain("LOCALE_MAPPING_LINE")
     expect(result).toContain("DETECT_LOCALE_LINE")
+    expect(result).toContain("LOGGER_MODULE_LINE")
   })
 
   it("should load client loader in production and not include locale mapping but include detect noop", async () => {
@@ -504,6 +512,7 @@ describe("linguiRouterPlugin - load", () => {
     expect(result).toContain("CLIENT_LOADER_LINE")
     expect(result).toContain("EMPTY_LOCALE_MAPPING")
     expect(result).toContain("DETECT_LOCALE_LINE")
+    expect(result).toContain("LOGGER_MODULE_LINE")
   })
 
   it("should include locale mapping for client dev mode", async () => {
@@ -537,5 +546,6 @@ describe("linguiRouterPlugin - load", () => {
     expect(result).toContain("CLIENT_LOADER_LINE")
     expect(result).toContain("LOCALE_MAPPING_LINE")
     expect(result).toContain("DETECT_LOCALE_LINE")
+    expect(result).toContain("LOGGER_MODULE_LINE")
   })
 })

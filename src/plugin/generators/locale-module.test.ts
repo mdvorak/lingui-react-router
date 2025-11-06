@@ -39,6 +39,8 @@ describe("locale-module", () => {
       defaultLocaleMapping: true,
       localeParamName: "locale",
       linguiConfig: mockLinguiConfig,
+      loggerClientModule: "none",
+      loggerServerModule: "none",
     }
 
     vi.clearAllMocks()

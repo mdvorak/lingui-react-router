@@ -25,9 +25,10 @@ export default defineConfig({
 })
 
 export const linguiRouterConfig = defineLinguiRouterConfig({
-  exclude: ["api"],
+  exclude: ["favicon.ico", "api"],
   localeParamName: "locale",
   localeMapping: {
     de: "cs",
   },
+  loggerClientModule: "console",
 })

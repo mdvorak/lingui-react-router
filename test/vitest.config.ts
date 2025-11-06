@@ -11,7 +11,11 @@ export default defineConfig({
     tailwindcss(),
     macrosPlugin(),
     lingui(),
-    linguiRouterPlugin(linguiRouterConfig),
+    linguiRouterPlugin({
+      ...linguiRouterConfig,
+      loggerServerModule: "none",
+      loggerClientModule: "none",
+    }),
     tsconfigPaths(),
   ],
   test: {

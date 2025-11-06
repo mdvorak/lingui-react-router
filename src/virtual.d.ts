@@ -13,6 +13,7 @@ declare module "virtual:lingui-router-loader" {
   import type { I18n, Messages } from "@lingui/core"
   import { I18nContext } from "@lingui/react"
   import type { LinguiRouterConfig } from "./config"
+  import type { Logger } from "./logger"
 
   export type LocaleLoader = () => Promise<{ messages: Messages }>
   export type LocaleLoaderMap = Record<string, LocaleLoader | undefined>
@@ -31,4 +32,6 @@ declare module "virtual:lingui-router-loader" {
   ): string | undefined
 
   export const localeMapping: LocaleMapping | undefined
+
+  export const $logger: Logger | undefined
 }

@@ -10,7 +10,8 @@ import {
 } from "react-router"
 import { $getI18nInstance } from "virtual:lingui-router-loader"
 import { findLocale, LocalePathContext, stripPathnameLocalePrefix } from "../client-context"
-import { config, loadLocaleCatalog, logger } from "../runtime"
+import { logger } from "../logger"
+import { config, loadLocaleCatalog } from "../runtime"
 
 
 /**
@@ -60,6 +61,7 @@ export function I18nApp({ children }: Readonly<{ children: React.ReactNode }>) {
 
   const { i18n, locale } = useMemo(() => {
     const resolvedLocale = findLocale(localeParam).locale ?? config.defaultLocale
+    logger?.debug("Resolved path", location.pathname, "as locale", resolvedLocale)
     return {
       locale: resolvedLocale,
       i18n: $getI18nInstance(resolvedLocale),
@@ -109,15 +111,15 @@ function loadAndActivateLocale(i18n: I18n, locale: string) {
   if (locale !== i18n.locale) {
     if (locale in i18n.messages) {
       // Already loaded
-      logger.log(`Activating locale ${locale}`)
+      logger?.log(`Activating locale ${locale}`)
       i18n.activate(locale)
     } else {
       // Load locale catalog and set the locale when loaded
       // Note that this presents a race condition, but there is no way to avoid it
-      logger.log(`Loading locale catalog for ${locale}`)
+      logger?.log(`Loading locale catalog for ${locale}`)
       loadLocaleCatalog(locale)
         .then(messages => i18n.loadAndActivate({ locale, messages }))
-        .catch(err => logger.error(`Failed to load locale "${locale}" catalog:`, err))
+        .catch(err => logger?.error(`Failed to load locale "${locale}" catalog:`, err))
     }
   }
 }
@@ -129,7 +131,7 @@ function normalizeLocationLocale(localeParam: string | undefined,
   if (localeParam && localeParam !== locale) {
     const requestPathname = stripPathnameLocalePrefix(location.pathname, localeParam)
     const nextPath = `/${locale}${requestPathname}${location.search}${location.hash}`
-    logger.log(`Detected badly formatted locale (${localeParam}) navigating to ${locale}:`, nextPath)
+    logger?.log(`Detected badly formatted locale (${localeParam}) navigating to ${locale}:`, nextPath)
 
     navigate(nextPath, {
       replace: true,

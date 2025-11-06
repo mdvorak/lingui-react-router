@@ -136,7 +136,6 @@ describe("I18nApp", () => {
       await userEvent.setup().click(csLink)
       await waitFor(() => {
         const localeElement = screen.getByTestId("current-locale")
-        console.log("localeElement.textContent:", localeElement.textContent)
         expect(localeElement.textContent).toBe("cs")
       })
 
@@ -152,7 +151,6 @@ describe("I18nApp", () => {
       // Switch back to default
       const defaultLink = screen.getByTestId("link-default")
       await userEvent.setup().click(defaultLink)
-      console.log("waiting for default")
       await waitFor(() => {
         const localeElement = screen.getByTestId("current-locale")
         expect(localeElement.textContent).toBe("en")

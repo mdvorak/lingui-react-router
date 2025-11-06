@@ -2,6 +2,18 @@ import { i18n, type I18n } from "@lingui/core"
 import { describe, expect, it, vi } from "vitest"
 import { changeLocaleRedirect, createRequestContext } from "./server-context"
 
+vi.mock("virtual:lingui-router-loader", () => ({
+  config: {
+    exclude: [],
+    defaultLocale: "en",
+    locales: ["en"],
+    localeParamName: "locale",
+  },
+  $logger: undefined,
+  localeMapping: {},
+  localeLoaders: {},
+}))
+
 describe("changeLocaleRedirect", () => {
   it("should redirect to target locale with request pathname", () => {
     const url = new URL("https://example.com/about")

@@ -7,6 +7,7 @@ import {
 } from "react-router"
 import type { PathLocale } from "../client-context"
 import "./assert-server"
+import { logger } from "../logger"
 
 type ChangeLocaleServerFunction = (locale: string | undefined) => Response
 
@@ -109,6 +110,8 @@ function localeAwareRedirect(requestLocale: string | undefined,
   if (!targetPath.startsWith("/")) {
     throw new Error(`target path must start with a '/': '${targetPath}'`)
   }
+
+  logger?.log("Redirecting to", targetPath, "with locale", requestLocale)
   const pathnamePrefix = requestLocale ? `/${requestLocale}` : ""
   return redirect(`${pathnamePrefix}${targetPath}`, init)
 }
@@ -123,5 +126,6 @@ function localeAwareRedirect(requestLocale: string | undefined,
  */
 export function changeLocaleRedirect(targetLocale: string | undefined, requestPathname: string, url: URL) {
   const targetLocalePath = targetLocale ? `/${targetLocale}` : ""
+  logger?.log("Redirecting path", requestPathname, "to locale", targetLocale)
   return redirect(`${targetLocalePath}${requestPathname}${url.search}${url.hash}`)
 }
