@@ -1,5 +1,5 @@
 import { getConfig } from "@lingui/conf"
-import type { Plugin, UserConfig } from "vite"
+import { type Environment, type Plugin, type UserConfig } from "vite"
 import { normalizeLocaleKey } from "../config"
 import {
   buildConfig,
@@ -12,7 +12,7 @@ import {
 import { generateLocaleModule } from "./generators/locale-module"
 import {
   generateBundleClient,
-  generateBundleServer,
+  generateEmptyManifestModule,
   generateManifestModule,
   getManifestChunkName,
 } from "./generators/manifest-module"
@@ -128,23 +128,15 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
       if (!linguiRouterConfig) throw new Error("linguiRouterConfig not loaded")
 
       if (id === "\0" + VIRTUAL_MANIFEST) {
-        return generateManifestModule(server, this.environment.mode)
+        if (server && this.environment.mode !== "dev") {
+          return await generateManifestModule(this, this.environment.config)
+        } else {
+          return generateEmptyManifestModule()
+        }
       }
 
       if (id === "\0" + VIRTUAL_LOADER) {
-        const configObject = buildConfig(linguiRouterConfig, server)
-        const lines = server
-          ? await generateLoaderModuleServer(linguiRouterConfig, configObject)
-          : await generateLoaderModuleClient(linguiRouterConfig, configObject)
-
-        if (server || this.environment.mode === "dev") {
-          lines.push(...await generateLocaleMapping(linguiRouterConfig))
-        } else {
-          lines.push(...generateEmptyLocaleMapping())
-        }
-        lines.push(...generateDetectLocale(server && linguiRouterConfig.detectLocale))
-
-        return lines.join("\n")
+        return await generateLoaderModule(linguiRouterConfig, this.environment)
       }
 
       if (id.startsWith("\0" + VIRTUAL_LOCALE_PREFIX)) {
@@ -162,11 +154,30 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
     async generateBundle(_options, bundle) {
       if (this.environment.name === "client") {
         await generateBundleClient(this, this.environment.config, bundle)
-      } else {
-        await generateBundleServer(this, this.environment.config, bundle)
       }
     },
   } satisfies Plugin
+}
+
+async function generateLoaderModule(pluginConfig: Readonly<LinguiRouterPluginConfigFull>,
+                                    environment: Readonly<Environment>) {
+  const isServer = environment.name === SERVER_ENVIRONMENT_NAME
+
+  const configObject = buildConfig(pluginConfig, isServer)
+  const lines = isServer
+    ? await generateLoaderModuleServer(pluginConfig, configObject)
+    : await generateLoaderModuleClient(pluginConfig, configObject)
+
+  if (isServer || environment.mode === "dev") {
+    lines.push(...await generateLocaleMapping(pluginConfig))
+  } else {
+    lines.push(...generateEmptyLocaleMapping())
+  }
+  lines.push(
+    ...generateDetectLocale(isServer && pluginConfig.detectLocale),
+  )
+
+  return lines.join("\n")
 }
 
 /**

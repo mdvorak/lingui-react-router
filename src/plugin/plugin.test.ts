@@ -6,7 +6,7 @@ import {
   generateLoaderModuleServer,
   generateLocaleMapping,
 } from "./generators/loader-module"
-import { generateBundleClient, generateBundleServer } from "./generators/manifest-module"
+import { generateBundleClient } from "./generators/manifest-module"
 import { addToList, linguiRouterPlugin } from "./plugin"
 import {
   PLUGIN_NAME,
@@ -18,7 +18,6 @@ import {
 // Mock the generator modules
 vi.mock("./generators/manifest-module", () => ({
   generateBundleClient: vi.fn(),
-  generateBundleServer: vi.fn(),
   generateManifestModule: vi.fn(),
   getManifestChunkName: vi.fn(() => "manifest-chunk"),
 }))
@@ -422,31 +421,6 @@ describe("linguiRouterPlugin - generateBundle", () => {
     )
   })
 
-  it("should call generateBundleServer for server environment", async () => {
-    const plugin = linguiRouterPlugin()
-    const mockContext = {
-      environment: {
-        name: "ssr",
-        config: {
-          linguiRouterConfig: {
-            locales: ["en", "fr"],
-            defaultLocale: "en",
-          },
-        },
-      },
-    }
-    const mockBundle = {}
-
-    await plugin.generateBundle.call(mockContext, {}, mockBundle)
-
-    expect(generateBundleServer).toHaveBeenCalledTimes(1)
-    expect(generateBundleServer).toHaveBeenCalledWith(
-      mockContext,
-      mockContext.environment.config,
-      mockBundle,
-    )
-  })
-
   it("should not call client generator for non-client environment", async () => {
     const plugin = linguiRouterPlugin()
     const mockContext = {
@@ -464,27 +438,6 @@ describe("linguiRouterPlugin - generateBundle", () => {
     await plugin.generateBundle.call(mockContext, {}, {})
 
     expect(generateBundleClient).not.toHaveBeenCalled()
-    expect(generateBundleServer).toHaveBeenCalledTimes(1)
-  })
-
-  it("should not call server generator for client environment", async () => {
-    const plugin = linguiRouterPlugin()
-    const mockContext = {
-      environment: {
-        name: "client",
-        config: {
-          linguiRouterConfig: {
-            locales: ["en"],
-            defaultLocale: "en",
-          },
-        },
-      },
-    }
-
-    await plugin.generateBundle.call(mockContext, {}, {})
-
-    expect(generateBundleServer).not.toHaveBeenCalled()
-    expect(generateBundleClient).toHaveBeenCalledTimes(1)
   })
 })
 

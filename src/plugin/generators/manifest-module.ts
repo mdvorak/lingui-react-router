@@ -7,22 +7,27 @@ import { resolveImportPath } from "./import-path"
 
 const LOCALE_MANIFEST_FILENAME = ".client-locale-manifest.json"
 const MANIFEST_CHUNK_NAME = "locale-manifest"
-const MANIFEST_PLACEHOLDER = "__$$_LINGUI_REACT_ROUTER_MANIFEST_PLACEHOLDER_$$__"
 const EMPTY_DEFAULT_EXPORT = "export default {}"
 
 /**
  * Generate the manifest module code for server builds in non-dev modes.
  *
- * @param server - Whether the build is for the server
- * @param mode - The current build mode (e.g., "dev", "production")
+ * @param context - The Vite plugin context
+ * @param config - The resolved Vite config
  * @returns The generated module code as a string
  */
-export function generateManifestModule(server: boolean, mode: string) {
-  if (server && mode !== "dev") {
-    return `export default JSON.parse(${MANIFEST_PLACEHOLDER})`
-  } else {
-    return EMPTY_DEFAULT_EXPORT
-  }
+export async function generateManifestModule(context: ConfigPluginContext, config: ResolvedConfig) {
+  // Parse and stringify to validate the JSON
+  const manifestPath = resolveManifestPath(config)
+  context.info(`reading ${path.relative(config.root, manifestPath)}`)
+  const manifestJson = JSON.parse(await fs.readFile(manifestPath, { encoding: "utf8" }))
+
+  const finalJson = stringifyJsonToString(manifestJson)
+  return `export default JSON.parse(${finalJson})`
+}
+
+export function generateEmptyManifestModule() {
+  return EMPTY_DEFAULT_EXPORT
 }
 
 /**
@@ -71,32 +76,6 @@ export async function generateBundleClient(
   const manifestJson = JSON.stringify(localeChunks, null, 2)
   await fs.mkdir(path.dirname(manifestPath), { recursive: true })
   await fs.writeFile(manifestPath, manifestJson, { encoding: "utf8" })
-}
-
-/**
- * Generate the locale manifest for server builds.
- *
- * @param context - The Vite plugin context
- * @param config - The resolved Vite config
- * @param bundle - The Rollup output bundle
- */
-export async function generateBundleServer(
-  context: ConfigPluginContext,
-  config: ResolvedConfig,
-  bundle: OutputBundle,
-) {
-  // Parse and stringify to validate the JSON
-  const manifestPath = resolveManifestPath(config)
-  context.info(`reading ${path.relative(config.root, manifestPath)}`)
-  const manifestJson = JSON.parse(await fs.readFile(manifestPath, { encoding: "utf8" }))
-
-  for (const chunk of Object.values(bundle)) {
-    if (chunk.type === "chunk" && chunk.name === MANIFEST_CHUNK_NAME) {
-      const finalJson = stringifyJsonToString(manifestJson)
-      chunk.code = chunk.code.replace(MANIFEST_PLACEHOLDER, finalJson)
-      break
-    }
-  }
 }
 
 function resolveManifestPath(config: ResolvedConfig): string {
