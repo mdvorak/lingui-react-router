@@ -8,6 +8,8 @@ import {
 import type { PathLocale } from "../i18n"
 import "./assert-server"
 
+type ChangeLocaleFunction = (locale: string | undefined) => Response
+
 /**
  * Server-side i18n context.
  */
@@ -26,6 +28,13 @@ export type I18nRequestContext = PathLocale & {
    * @returns A redirect response to the specified URL with the current locale prefix
    */
   redirect: RedirectFunction
+  /**
+   * Change the locale and redirect to the same path.
+   *
+   * @param locale The new locale code
+   * @returns A redirect response to the same path with the new locale prefix
+   */
+  changeLocale: ChangeLocaleFunction
 }
 
 /**
@@ -81,7 +90,8 @@ export function createRequestContext(value: {
   return {
     ...value,
     _: value.i18n._.bind(value.i18n),
-    redirect: (targetPath, init) => redirectToLocale(value.requestLocale, targetPath, init),
+    redirect: (targetPath, init) => localeAwareRedirect(value.requestLocale, targetPath, init),
+    changeLocale: locale => changeLocaleRedirect(locale, value.requestPathname, value.url),
   }
 }
 
@@ -93,12 +103,25 @@ export function createRequestContext(value: {
  * @param init Optional redirect initialization options
  * @returns A redirect response to the specified URL with the current locale prefix
  */
-function redirectToLocale(requestLocale: string | undefined,
-                          targetPath: string,
-                          init?: number | ResponseInit) {
+function localeAwareRedirect(requestLocale: string | undefined,
+                             targetPath: string,
+                             init?: number | ResponseInit) {
   if (!targetPath.startsWith("/")) {
     throw new Error(`target path must start with a '/': '${targetPath}'`)
   }
   const pathnamePrefix = requestLocale ? `/${requestLocale}` : ""
   return redirect(`${pathnamePrefix}${targetPath}`, init)
+}
+
+/**
+ * Changes the current locale in the URL.
+ *
+ * @param targetLocale The locale to change to.
+ * @param requestPathname Request pathname without the locale prefix.
+ * @param url The URL object for the current request.
+ * @returns A redirect response to the same path with the new locale prefix
+ */
+export function changeLocaleRedirect(targetLocale: string | undefined, requestPathname: string, url: URL) {
+  const targetLocalePath = targetLocale ? `/${targetLocale}` : ""
+  return redirect(`${targetLocalePath}${requestPathname}${url.search}${url.hash}`)
 }

@@ -64,6 +64,7 @@ export default [
         },
       }],
       "import/no-duplicates": "error",
+      "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
     },
   },
   {
@@ -93,7 +94,7 @@ export default [
         },
       }],
       "@stylistic/type-annotation-spacing": "error",
-      "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+      "no-unused-vars": ["off"],
       "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
     },
   },

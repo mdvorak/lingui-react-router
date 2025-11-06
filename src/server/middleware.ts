@@ -1,10 +1,10 @@
 import { setI18n } from "@lingui/react/server"
-import { redirect, type RouterContextProvider } from "react-router"
+import type { RouterContextProvider } from "react-router"
 import { $detectLocale, $getI18nInstance } from "virtual:lingui-router-loader"
 import { findLocale, stripPathnameLocalePrefix } from "../i18n"
 import { config, loadLocaleCatalog } from "../runtime"
 import "./assert-server"
-import { createRequestContext, LocaleServerContext } from "./context"
+import { changeLocaleRedirect, createRequestContext, LocaleServerContext } from "./context"
 
 /**
  * Locale middleware implementation. Determines the locale from the URL or the
@@ -42,7 +42,7 @@ export async function localeMiddleware(
       // Redirect to normalized locale URL
       // Note that this intentionally ignores redirect config, but we might add a new option later
       // Without this, pre-rendered URLs would not match
-      throw changeLocale(requestLocale, requestPathname, url)
+      throw changeLocaleRedirect(requestLocale, requestPathname, url)
     }
   } else {
     // Detect locale from request headers
@@ -110,7 +110,7 @@ function handleRequestLocale(
     (config.redirect === "auto" && preferredLocale !== config.defaultLocale)
   ) {
     // Redirect to a page with the preferred locale
-    throw changeLocale(preferredLocale, requestPathname, url)
+    throw changeLocaleRedirect(preferredLocale, requestPathname, url)
   }
 }
 
@@ -125,13 +125,3 @@ function getRequestHeaders(headers: Headers): Record<string, string | undefined>
   }
 }
 
-/**
- * Changes the current locale in the URL.
- *
- * @param targetLocale The locale to change to.
- * @param requestPathname Request pathname without the locale prefix.
- * @param url The URL object for the current request.
- */
-function changeLocale(targetLocale: string, requestPathname: string, url: URL) {
-  return redirect(`/${targetLocale}${requestPathname}${url.search}${url.hash}`)
-}
