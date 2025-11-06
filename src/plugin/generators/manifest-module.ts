@@ -19,10 +19,7 @@ const EMPTY_DEFAULT_EXPORT = "export default {}"
  */
 export function generateManifestModule(server: boolean, mode: string) {
   if (server && mode !== "dev") {
-    //language=js
-    return `const manifest = JSON.parse(\`${MANIFEST_PLACEHOLDER}\`)
-export default manifest
-`
+    return `export default JSON.parse(${MANIFEST_PLACEHOLDER})`
   } else {
     return EMPTY_DEFAULT_EXPORT
   }
@@ -95,7 +92,8 @@ export async function generateBundleServer(
 
   for (const chunk of Object.values(bundle)) {
     if (chunk.type === "chunk" && chunk.name === MANIFEST_CHUNK_NAME) {
-      chunk.code = chunk.code.replace(MANIFEST_PLACEHOLDER, JSON.stringify(manifestJson))
+      const finalJson = stringifyJsonToString(manifestJson)
+      chunk.code = chunk.code.replace(MANIFEST_PLACEHOLDER, finalJson)
       break
     }
   }
@@ -104,4 +102,17 @@ export async function generateBundleServer(
 function resolveManifestPath(config: ResolvedConfig): string {
   // outDir always consists of buildDirectory/consumer
   return resolveImportPath(config.root, config.build.outDir, "..", LOCALE_MANIFEST_FILENAME)
+}
+
+/**
+ * Stringify a JSON object to an escaped string.
+ *
+ * For example `{"key": "value"}` will be converted to `"{\"key\": \"value\"}"`
+ *
+ * @param manifestJson - The JSON object to stringify
+ * @returns The escaped string representation of the JSON object
+ */
+export function stringifyJsonToString(manifestJson: object): string {
+  // Use double stringify - the outer one will escape the inner JSON string properly
+  return JSON.stringify(JSON.stringify(manifestJson))
 }

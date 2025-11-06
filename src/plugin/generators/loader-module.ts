@@ -190,7 +190,7 @@ export async function generateLocaleMapping(pluginConfig: Readonly<LinguiRouterP
     pluginConfig.localeMapping,
     pluginConfig.defaultLocaleMapping,
   )
-  return [`export const localeMapping = JSON.parse(\`${JSON.stringify(allLocaleMapping)}\`)`]
+  return [`export const localeMapping = ${JSON.stringify(allLocaleMapping)}`]
 }
 
 export function generateEmptyLocaleMapping() {

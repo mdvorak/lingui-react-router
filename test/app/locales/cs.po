@@ -53,8 +53,8 @@ msgid "Oops!"
 msgstr "Jejda!"
 
 #: app/routes/hello.tsx
-msgid "Special chars: \"'$.*+@!"
-msgstr ""
+msgid "Special chars: \"'$.*+@!`"
+msgstr "Speciální znaky: \"'$.*+@!`"
 
 #: app/root.tsx
 msgid "The requested page could not be found."

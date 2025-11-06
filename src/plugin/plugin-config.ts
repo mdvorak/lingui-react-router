@@ -102,3 +102,15 @@ export function defineLinguiRouterConfig(
 ): LinguiRouterPluginConfig {
   return config
 }
+
+export const pluginConfigDefaults = {
+  defaultLocale: "und",
+  exclude: [],
+  detectLocale: true,
+  redirect: "auto" as RedirectBehavior,
+  localeMapping: {} as Record<string, string>,
+  defaultLocaleMapping: true,
+  localeParamName: "locale",
+  loggerServerModule: "console" as LoggerModuleConfig,
+  loggerClientModule: "none" as LoggerModuleConfig,
+}
