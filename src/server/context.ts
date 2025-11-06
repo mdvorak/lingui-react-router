@@ -65,7 +65,13 @@ export function useLinguiServer(context: Readonly<RouterContextProvider>): I18nR
   }
 }
 
-export function createRequestContext(context: {
+/**
+ * Creates a server-side i18n context instance.
+ *
+ * @param value The request context object parameters.
+ * @returns The server-side i18n context object.
+ */
+export function createRequestContext(value: {
   locale: string
   i18n: I18n
   url: URL
@@ -73,12 +79,20 @@ export function createRequestContext(context: {
   requestPathname: string
 }): I18nRequestContext {
   return {
-    ...context,
-    _: context.i18n._.bind(context.i18n),
-    redirect: (targetPath, init) => redirectToLocale(context.requestLocale, targetPath, init),
+    ...value,
+    _: value.i18n._.bind(value.i18n),
+    redirect: (targetPath, init) => redirectToLocale(value.requestLocale, targetPath, init),
   }
 }
 
+/**
+ * Redirects to a path with the current locale prefix.
+ *
+ * @param requestLocale The locale explicitly requested by the client, if any
+ * @param targetPath The target path to redirect to, without the locale prefix
+ * @param init Optional redirect initialization options
+ * @returns A redirect response to the specified URL with the current locale prefix
+ */
 function redirectToLocale(requestLocale: string | undefined,
                           targetPath: string,
                           init?: number | ResponseInit) {
