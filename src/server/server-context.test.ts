@@ -1,6 +1,6 @@
 import { i18n, type I18n } from "@lingui/core"
 import { describe, expect, it, vi } from "vitest"
-import { changeLocaleRedirect, createRequestContext } from "./context"
+import { changeLocaleRedirect, createRequestContext } from "./server-context"
 
 describe("changeLocaleRedirect", () => {
   it("should redirect to target locale with request pathname", () => {

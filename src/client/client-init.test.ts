@@ -1,10 +1,10 @@
 import { setupI18n } from "@lingui/core"
 import { beforeEach, describe, expect, it, vi } from "vitest"
-import * as i18nModule from "../i18n"
+import * as i18nModule from "../client-context"
 import * as runtimeModule from "../runtime"
 import { loadInitialLocale } from "./client-init"
 
-vi.mock("../i18n", () => ({
+vi.mock("../client-context", () => ({
   findLocale: vi.fn(),
 }))
 

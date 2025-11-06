@@ -9,7 +9,7 @@ import {
   useParams,
 } from "react-router"
 import { $getI18nInstance } from "virtual:lingui-router-loader"
-import { findLocale, LocalePathContext, stripPathnameLocalePrefix } from "../i18n"
+import { findLocale, LocalePathContext, stripPathnameLocalePrefix } from "../client-context"
 import { config, loadLocaleCatalog, logger } from "../runtime"
 
 

@@ -1,6 +1,6 @@
 import React from "react"
 import { Link, type LinkProps, type To } from "react-router"
-import { usePathLocale } from "../i18n"
+import { usePathLocale } from "../client-context"
 
 /**
  * A drop-in replacement for react-router's Link that automatically prefixes the

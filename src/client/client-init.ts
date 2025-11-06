@@ -1,5 +1,5 @@
 import { $getI18nInstance } from "virtual:lingui-router-loader"
-import { findLocale } from "../i18n"
+import { findLocale } from "../client-context"
 import { defaultLocale, loadLocaleCatalog } from "../runtime"
 import "./assert-client"
 

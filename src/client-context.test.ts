@@ -1,6 +1,11 @@
 import type { ContextType } from "react"
 import { describe, expect, it, vi } from "vitest"
-import { findLocale, LocalePathContext, stripPathnameLocalePrefix, usePathLocale } from "./i18n"
+import {
+  findLocale,
+  LocalePathContext,
+  stripPathnameLocalePrefix,
+  usePathLocale,
+} from "./client-context"
 
 // Mock the virtual loader used by runtime.ts before importing the tested module.
 // This is shorter and more direct than mocking ./runtime.

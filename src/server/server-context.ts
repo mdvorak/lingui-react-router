@@ -5,10 +5,10 @@ import {
   type RedirectFunction,
   type RouterContextProvider,
 } from "react-router"
-import type { PathLocale } from "../i18n"
+import type { PathLocale } from "../client-context"
 import "./assert-server"
 
-type ChangeLocaleFunction = (locale: string | undefined) => Response
+type ChangeLocaleServerFunction = (locale: string | undefined) => Response
 
 /**
  * Server-side i18n context.
@@ -34,7 +34,7 @@ export type I18nRequestContext = PathLocale & {
    * @param locale The new locale code
    * @returns A redirect response to the same path with the new locale prefix
    */
-  changeLocale: ChangeLocaleFunction
+  changeLocale: ChangeLocaleServerFunction
 }
 
 /**
