@@ -1,15 +1,9 @@
 import type { I18n } from "@lingui/core"
 import { I18nProvider } from "@lingui/react"
 import React, { useEffect, useMemo } from "react"
-import {
-  type Location,
-  type NavigateFunction,
-  useLocation,
-  useNavigate,
-  useParams,
-} from "react-router"
+import { useLocation, useNavigate, useParams } from "react-router"
 import { $getI18nInstance } from "virtual:lingui-router-loader"
-import { findLocale, LocalePathContext, stripPathnameLocalePrefix } from "../client-context"
+import { createLocalePathContext, findLocale, LocalePathContext } from "../client-context"
 import { config, loadLocaleCatalog, logger } from "../runtime"
 
 
@@ -67,8 +61,8 @@ export function I18nApp({ children }: Readonly<{ children: React.ReactNode }>) {
   }, [localeParam])
 
   const context = useMemo(() => {
-    return resolveLocalePathContext(localeParam, locale, location)
-  }, [localeParam, locale, location.pathname])
+    return createLocalePathContext(navigate, localeParam, locale, location)
+  }, [localeParam, locale, location.pathname, navigate])
 
   // Configure i18n instance based on selected locale
   useEffect(() => {
@@ -77,32 +71,17 @@ export function I18nApp({ children }: Readonly<{ children: React.ReactNode }>) {
 
   // Normalize locale in the url path, if needed
   useEffect(() => {
-    // Navigate to normalize locale in the url
-    normalizeLocationLocale(localeParam, locale, location, navigate)
-  }, [localeParam, locale]) // We don't need to re-run this effect if location changes
+    // Navigate to normalized locale in the url
+    if (localeParam && localeParam !== context.locale) {
+      context.changeLocale(context.locale)
+    }
+  }, [localeParam, context])
 
   return (
     <LocalePathContext value={context}>
       <I18nProvider i18n={i18n}>{children}</I18nProvider>
     </LocalePathContext>
   )
-}
-
-function resolveLocalePathContext(localeParam: string | undefined, locale: string, location: Location<any>) {
-  if (localeParam) {
-    // Use resolved locale only if locale is in the URL (localeParam is not empty)
-    return {
-      locale,
-      requestLocale: locale,
-      requestPathname: stripPathnameLocalePrefix(location.pathname, localeParam),
-    }
-  } else {
-    // No locale in the URL, pass it as it is
-    return {
-      locale,
-      requestPathname: location.pathname,
-    }
-  }
 }
 
 function loadAndActivateLocale(i18n: I18n, locale: string) {
@@ -119,21 +98,5 @@ function loadAndActivateLocale(i18n: I18n, locale: string) {
         .then(messages => i18n.loadAndActivate({ locale, messages }))
         .catch(err => logger.error(`Failed to load locale "${locale}" catalog:`, err))
     }
-  }
-}
-
-function normalizeLocationLocale(localeParam: string | undefined,
-                                 locale: string,
-                                 location: Location,
-                                 navigate: NavigateFunction) {
-  if (localeParam && localeParam !== locale) {
-    const requestPathname = stripPathnameLocalePrefix(location.pathname, localeParam)
-    const nextPath = `/${locale}${requestPathname}${location.search}${location.hash}`
-    logger.log(`Detected badly formatted locale (${localeParam}) navigating to ${locale}:`, nextPath)
-
-    navigate(nextPath, {
-      replace: true,
-      preventScrollReset: true,
-    })
   }
 }

@@ -1,19 +1,14 @@
 import { useLingui } from "@lingui/react/macro"
 import { config, usePathLocale } from "lingui-react-router"
 import { type ChangeEvent } from "react"
-import { useLocation, useNavigate } from "react-router"
 
 export default function SelectLanguage() {
   const { t } = useLingui()
-  const navigate = useNavigate()
-  const location = useLocation()
-  const { locale, requestPathname } = usePathLocale()
+  const { locale, changeLocale } = usePathLocale()
   const { locales, pseudoLocale } = config
 
-  const onChange = (e: ChangeEvent<HTMLSelectElement>) => {
-    const nextLang = e.target.value
-    const nextPath = `/${nextLang}${requestPathname}${location.search}${location.hash}`
-    navigate(nextPath, { preventScrollReset: true })
+  const onChange = async (e: ChangeEvent<HTMLSelectElement>) => {
+    await changeLocale(e.target.value)
   }
 
   return (

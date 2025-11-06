@@ -1,8 +1,11 @@
 import type { ContextType } from "react"
-import { describe, expect, it, vi } from "vitest"
+import type { Location, NavigateFunction } from "react-router"
+import { beforeEach, describe, expect, it, vi } from "vitest"
 import {
+  createLocalePathContext,
   findLocale,
   LocalePathContext,
+  type PathLocale,
   stripPathnameLocalePrefix,
   usePathLocale,
 } from "./client-context"
@@ -13,7 +16,7 @@ vi.mock("virtual:lingui-router-loader", () => ({
   config: {
     exclude: ["api", "static"],
     defaultLocale: "en",
-    locales: ["en", "fr", "en-us", "en-us-x-twain"],
+    locales: ["en", "it", "en-us", "en-us-x-twain"],
     localeParamName: "locale",
   },
   $useLingui: vi.fn(),
@@ -115,7 +118,7 @@ describe("stripPathnameLocalePrefix", () => {
   })
 
   it("does not strip when locale doesn't match exactly", () => {
-    expect(stripPathnameLocalePrefix("/fr/about", "en")).toBe("/fr/about")
+    expect(stripPathnameLocalePrefix("/it/about", "en")).toBe("/it/about")
   })
 
   it("does not strip locale in middle of path", () => {
@@ -158,10 +161,12 @@ describe("usePathLocale", () => {
   }
 
   it("returns the context value", () => {
-    const contextValue = {
+    const contextValue: PathLocale = {
       locale: "en",
       requestLocale: undefined,
       requestPathname: "/about",
+      changeLocale: () => {
+      },
     }
     setLocalePathContext(contextValue)
 
@@ -172,5 +177,269 @@ describe("usePathLocale", () => {
   it("throws error when used outside I18nApp component", () => {
     setLocalePathContext(null)
     expect(() => usePathLocale()).toThrowError(/must be used within a I18nApp component/i)
+  })
+})
+
+describe("createLocalePathContext", () => {
+  function createMockLocation(
+    pathname: string,
+    search = "",
+    hash = "",
+  ): Location<any> {
+    return {
+      pathname,
+      search,
+      hash,
+      state: null,
+      key: "default",
+    }
+  }
+
+  let navigate: NavigateFunction
+
+  beforeEach(() => {
+    navigate = vi.fn() as NavigateFunction
+  })
+
+  describe("basic context creation", () => {
+    it("creates context with localeParam and strips prefix from pathname", () => {
+      const location = createMockLocation("/en/about")
+
+      const context = createLocalePathContext(navigate, "en", "en", location)
+
+      expect(context).toEqual({
+        locale: "en",
+        requestLocale: "en",
+        requestPathname: "/about",
+        changeLocale: expect.any(Function),
+      })
+    })
+
+    it("creates context without localeParam using full pathname", () => {
+      const location = createMockLocation("/about")
+
+      const context = createLocalePathContext(navigate, undefined, "en", location)
+
+      expect(context).toEqual({
+        locale: "en",
+        requestPathname: "/about",
+        changeLocale: expect.any(Function),
+      })
+      expect(context.requestLocale).toBeUndefined()
+    })
+
+    it("handles root pathname with locale", () => {
+      const location = createMockLocation("/en")
+
+      const context = createLocalePathContext(navigate, "en", "en", location)
+
+      expect(context.requestPathname).toBe("/")
+    })
+
+    it("handles root pathname without locale", () => {
+      const location = createMockLocation("/")
+
+      const context = createLocalePathContext(navigate, undefined, "en", location)
+
+      expect(context.requestPathname).toBe("/")
+    })
+
+    it("handles complex pathnames with nested routes", () => {
+      const location = createMockLocation("/it/products/123/details")
+
+      const context = createLocalePathContext(navigate, "it", "it", location)
+
+      expect(context.requestPathname).toBe("/products/123/details")
+    })
+
+    it("preserves locale in context even when different from localeParam", () => {
+      const location = createMockLocation("/en-US/about")
+
+      // Normalized locale is passed as locale param
+      const context = createLocalePathContext(navigate, "en-US", "en-us", location)
+
+      expect(context.locale).toBe("en-us")
+      expect(context.requestLocale).toBe("en-us")
+    })
+  })
+
+  describe("changeLocale behavior", () => {
+    it("navigates to new locale with same pathname", () => {
+      const location = createMockLocation("/en/about")
+
+      const context = createLocalePathContext(navigate, "en", "en", location)
+      context.changeLocale("it")
+
+      expect(navigate).toHaveBeenCalledWith(
+        { pathname: "/it/about", search: "", hash: "" },
+        { preventScrollReset: true },
+      )
+    })
+
+    it("preserves query parameters when changing locale", () => {
+      const location = createMockLocation("/en/search", "?q=test&page=2", "")
+
+      const context = createLocalePathContext(navigate, "en", "en", location)
+      context.changeLocale("it")
+
+      expect(navigate).toHaveBeenCalledWith(
+        { pathname: "/it/search", search: "?q=test&page=2", hash: "" },
+        { preventScrollReset: true },
+      )
+    })
+
+    it("preserves hash fragment when changing locale", () => {
+      const location = createMockLocation("/en/docs", "", "#section-1")
+
+      const context = createLocalePathContext(navigate, "en", "en", location)
+      context.changeLocale("it")
+
+      expect(navigate).toHaveBeenCalledWith(
+        { pathname: "/it/docs", search: "", hash: "#section-1" },
+        { preventScrollReset: true },
+      )
+    })
+
+    it("preserves both query and hash when changing locale", () => {
+      const location = createMockLocation("/en/page", "?foo=bar", "#top")
+
+      const context = createLocalePathContext(navigate, "en", "en", location)
+      context.changeLocale("it")
+
+      expect(navigate).toHaveBeenCalledWith(
+        { pathname: "/it/page", search: "?foo=bar", hash: "#top" },
+        { preventScrollReset: true },
+      )
+    })
+
+    it("handles changing locale from root path", () => {
+      const location = createMockLocation("/en")
+
+      const context = createLocalePathContext(navigate, "en", "en", location)
+      context.changeLocale("it")
+
+      expect(navigate).toHaveBeenCalledWith(
+        { pathname: "/it/", search: "", hash: "" },
+        { preventScrollReset: true },
+      )
+    })
+
+    it("handles undefined locale param (default locale) when changing", () => {
+      const location = createMockLocation("/about")
+
+      const context = createLocalePathContext(navigate, undefined, "en", location)
+      context.changeLocale("it")
+
+      expect(navigate).toHaveBeenCalledWith(
+        { pathname: "/it/about", search: "", hash: "" },
+        { preventScrollReset: true },
+      )
+    })
+
+    it("handles changing to undefined locale", () => {
+      const location = createMockLocation("/en/about")
+
+      const context = createLocalePathContext(navigate, "en", "en", location)
+      context.changeLocale(undefined)
+
+      // When undefined is passed, it should remove the locale prefix and navigate to the base path
+      expect(navigate).toHaveBeenCalledWith(
+        { pathname: "/about", search: "", hash: "" },
+        { preventScrollReset: true },
+      )
+    })
+
+    it("always uses preventScrollReset option", () => {
+      const location = createMockLocation("/en/page")
+
+      const context = createLocalePathContext(navigate, "en", "en", location)
+      context.changeLocale("it")
+
+      expect(navigate).toHaveBeenCalledWith(
+        { pathname: "/it/page", search: "", hash: "" },
+        { preventScrollReset: true },
+      )
+    })
+
+    it("handles special characters in pathname", () => {
+      const location = createMockLocation("/en/search/term%20with%20spaces")
+
+      const context = createLocalePathContext(navigate, "en", "en", location)
+      context.changeLocale("it")
+
+      expect(navigate).toHaveBeenCalledWith(
+        { pathname: "/it/search/term%20with%20spaces", search: "", hash: "" },
+        { preventScrollReset: true },
+      )
+    })
+
+    it("handles empty requestPathname as root", () => {
+      const location = createMockLocation("/en/")
+
+      const context = createLocalePathContext(navigate, "en", "en", location)
+      context.changeLocale("it")
+
+      expect(navigate).toHaveBeenCalledWith(
+        { pathname: "/it/", search: "", hash: "" },
+        { preventScrollReset: true },
+      )
+    })
+
+    it("does not navigate when the next pathname equals current location", () => {
+      // Case 1: no locale param, changing to undefined should result in same pathname
+      const location1 = createMockLocation("/about")
+
+      const context1 = createLocalePathContext(navigate, undefined, "en", location1)
+      context1.changeLocale(undefined)
+      expect(navigate).not.toHaveBeenCalled()
+
+      // Case 2: locale param present, changing to the same locale should not navigate
+      navigate = vi.fn() as NavigateFunction
+      const location2 = createMockLocation("/en/about")
+      const context2 = createLocalePathContext(navigate, "en", "en", location2)
+      context2.changeLocale("EN")
+      expect(navigate).not.toHaveBeenCalled()
+    })
+  })
+
+  it("normalizes next locale before navigation", () => {
+    const location = createMockLocation("/en/about")
+
+    const context = createLocalePathContext(navigate, "en", "en", location)
+    context.changeLocale("en_US")
+
+    expect(navigate).toHaveBeenCalledWith(
+      { pathname: "/en-us/about", search: "", hash: "" },
+      { preventScrollReset: true },
+    )
+  })
+
+  it("handles localeParam that doesn't match pathname prefix", () => {
+    // This might happen in edge cases with URL manipulation
+    const location = createMockLocation("/about")
+
+    const context = createLocalePathContext(navigate, "en", "en", location)
+    context.changeLocale("it")
+
+    // localeParam is "en" but pathname doesn't start with "/en"
+    expect(context.requestPathname).toBe("/about")
+    expect(context.requestLocale).toBe("en")
+
+    expect(navigate).toHaveBeenCalledWith(
+      { pathname: "/it/about", search: "", hash: "" },
+      { preventScrollReset: true },
+    )
+  })
+
+  it("handles query string with special characters", () => {
+    const location = createMockLocation("/en/page", "?url=https://example.com&foo=bar+baz", "")
+
+    const context = createLocalePathContext(navigate, "en", "en", location)
+    context.changeLocale("it")
+
+    expect(navigate).toHaveBeenCalledWith(
+      { pathname: "/it/page", search: "?url=https://example.com&foo=bar+baz", hash: "" },
+      { preventScrollReset: true },
+    )
   })
 })
