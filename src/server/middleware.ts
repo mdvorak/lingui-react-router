@@ -4,12 +4,20 @@ import { $detectLocale, $getI18nInstance } from "virtual:lingui-router-loader"
 import { findLocale, stripPathnameLocalePrefix } from "../i18n"
 import { config, loadLocaleCatalog } from "../runtime"
 import "./assert-server"
-import { LocaleServerContext } from "./context"
+import { createRequestContext, LocaleServerContext } from "./context"
 
 /**
  * Locale middleware implementation. Determines the locale from the URL or the
- * Accept-Language header, initializes i18n, and runs the request within an
- * AsyncLocalStorage context containing i18n and request metadata.
+ * Accept-Language header, initializes i18n, and runs the request with a
+ * LocaleServerContext.
+ *
+ * Use `useLinguiServer` in loaders and actions to access the server-side i18n context.
+ *
+ * @param request The request object
+ * @param context The router context
+ * @param params The route parameters
+ * @param next The next middleware function
+ * @returns The response from the next middleware or route handler
  */
 export async function localeMiddleware(
   {
@@ -19,7 +27,7 @@ export async function localeMiddleware(
   }: { request: Request; context: Readonly<RouterContextProvider>; params: unknown },
   next: () => Promise<Response>,
 ): Promise<Response> {
-  const url = new URL(request.url)
+  const url = Object.freeze(new URL(request.url))
   const paramsMap = params as Record<string, string | undefined>
   const localeParam = paramsMap[config.localeParamName]
   const requestPathname = localeParam
@@ -27,14 +35,14 @@ export async function localeMiddleware(
     : url.pathname
   const foundLocale = findLocale(localeParam)
 
-  let requestLocale = foundLocale.locale
+  let requestLocale: string | undefined = foundLocale.locale
 
   if (requestLocale) {
     if (requestLocale !== localeParam) {
       // Redirect to normalized locale URL
       // Note that this intentionally ignores redirect config, but we might add a new option later
       // Without this, pre-rendered URLs would not match
-      throw redirectToLocale(requestLocale, requestPathname, url)
+      throw changeLocale(requestLocale, requestPathname, url)
     }
   } else {
     // Detect locale from request headers
@@ -60,14 +68,13 @@ export async function localeMiddleware(
   }
 
   // Set the locale context
-  context.set(LocaleServerContext, {
+  context.set(LocaleServerContext, createRequestContext({
     locale: resolvedLocale,
     i18n,
-    _: i18n._.bind(i18n),
     url,
     requestLocale,
     requestPathname,
-  })
+  }))
 
   setI18n(i18n)
 
@@ -80,6 +87,12 @@ export async function localeMiddleware(
   return response
 }
 
+/**
+ * Handles the request locale based on the Accept-Language header and the excluded flag.
+ *
+ * Performs locale detection from the Accept-Language header and returns the preferred locale.
+ * If the redirect option is configured, it will throw a redirect response.
+ */
 function handleRequestLocale(
   request: Request,
   url: URL,
@@ -97,16 +110,28 @@ function handleRequestLocale(
     (config.redirect === "auto" && preferredLocale !== config.defaultLocale)
   ) {
     // Redirect to a page with the preferred locale
-    throw redirectToLocale(preferredLocale, requestPathname, url)
+    throw changeLocale(preferredLocale, requestPathname, url)
   }
 }
 
+/**
+ * Extracts request headers into a record.
+ * @param headers The request headers.
+ * @returns A record of header names and their values.
+ */
 function getRequestHeaders(headers: Headers): Record<string, string | undefined> {
   return {
     "accept-language": headers.get("accept-language") ?? undefined,
   }
 }
 
-function redirectToLocale(requestLocale: string, requestPathname: string, url: URL) {
-  return redirect(`/${requestLocale}${requestPathname}${url.search}${url.hash}`)
+/**
+ * Changes the current locale in the URL.
+ *
+ * @param targetLocale The locale to change to.
+ * @param requestPathname Request pathname without the locale prefix.
+ * @param url The URL object for the current request.
+ */
+function changeLocale(targetLocale: string, requestPathname: string, url: URL) {
+  return redirect(`/${targetLocale}${requestPathname}${url.search}${url.hash}`)
 }
