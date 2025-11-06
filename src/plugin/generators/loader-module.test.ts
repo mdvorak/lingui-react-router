@@ -1,6 +1,6 @@
 import type { LinguiConfigNormalized } from "@lingui/conf"
 import { beforeEach, describe, expect, it, vi } from "vitest"
-import type { LinguiRouterPluginConfigFull } from "../plugin-config"
+import { type LinguiRouterPluginConfigFull, pluginConfigDefaults } from "../plugin-config"
 import {
   buildConfig,
   buildLocaleMapping,
@@ -55,16 +55,12 @@ describe("loader-module", () => {
     } as LinguiConfigNormalized
 
     mockPluginConfig = {
+      ...pluginConfigDefaults,
       locales: ["en", "fr", "es"],
       defaultLocale: "en",
-      pseudoLocale: undefined,
       exclude: ["api"],
-      redirect: "auto",
-      detectLocale: true,
-      localeMapping: {},
-      defaultLocaleMapping: true,
-      localeParamName: "locale",
       linguiConfig: mockLinguiConfig,
+      loggerServerModule: "none",
     }
   })
 
@@ -505,7 +501,8 @@ describe("loader-module", () => {
 
       expect(result).toHaveLength(1)
 
-      const localeMapMatch = result[0].match(/export const localeMapping = JSON\.parse\(`([^`]+)`\)/)
+      const localeMapMatch = result[0].match(/export const localeMapping = (\{.*})$/)
+      expect(localeMapMatch?.[1]).toBeDefined()
       const localeMap = JSON.parse(localeMapMatch![1])
 
       expect(localeMap).toMatchObject({
@@ -524,7 +521,8 @@ describe("loader-module", () => {
 
       expect(result).toHaveLength(1)
 
-      const localeMapMatch = result[0].match(/export const localeMapping = JSON\.parse\(`([^`]+)`\)/)
+      const localeMapMatch = result[0].match(/export const localeMapping = (\{.*})$/)
+      expect(localeMapMatch?.[1]).toBeDefined()
       const localeMap = JSON.parse(localeMapMatch![1])
 
       expect(localeMap).toMatchObject({
@@ -541,7 +539,9 @@ describe("loader-module", () => {
 
       expect(result).toHaveLength(1)
 
-      const localeMapMatch = result[0].match(/export const localeMapping = JSON\.parse\(`([^`]+)`\)/)
+
+      const localeMapMatch = result[0].match(/export const localeMapping = (\{.*})$/)
+      expect(localeMapMatch).toHaveLength(2)
       const localeMap = JSON.parse(localeMapMatch![1])
 
       // CLDR fallbacks should be present
@@ -560,7 +560,8 @@ describe("loader-module", () => {
 
       expect(result).toHaveLength(1)
 
-      const localeMapMatch = result[0].match(/export const localeMapping = JSON\.parse\(`([^`]+)`\)/)
+      const localeMapMatch = result[0].match(/export const localeMapping = (\{.*})$/)
+      expect(localeMapMatch?.[1]).toBeDefined()
       const localeMap = JSON.parse(localeMapMatch![1])
 
       // Should be empty

@@ -17,7 +17,7 @@ export default defineConfig({
     tsconfigPaths(),
   ],
   build: {
-    minify: false,
+    minify: true,
   },
   // Note this is not needed in the user application. Here it's because we use the lib from a workspace
   ssr: {

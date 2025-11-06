@@ -36,7 +36,7 @@ describe("/:locale?/hello", () => {
     await expect(screen.findByText(/Anche dal loader!/i)).resolves.toBeTruthy()
 
     // Special chars and variable-translated text should render
-    await expect(screen.findByText("Caratteri speciali: \"'$.*+@!")).resolves.toBeTruthy()
+    await expect(screen.findByText("Caratteri speciali: \"'$.*+@!`")).resolves.toBeTruthy()
     await expect(screen.findByText(/Testo di colore grigio con una variabile:/)).resolves.toBeTruthy()
   })
 

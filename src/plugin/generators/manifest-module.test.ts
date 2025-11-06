@@ -8,6 +8,7 @@ import {
   generateBundleServer,
   generateManifestModule,
   getManifestChunkName,
+  stringifyJsonToString,
 } from "./manifest-module"
 
 vi.mock("node:fs/promises")
@@ -22,16 +23,13 @@ describe("manifest-module", () => {
     it("should return placeholder code for server builds in non-dev mode", () => {
       const result = generateManifestModule(true, "production")
 
-      expect(result).toContain("const manifest = JSON.parse")
-      expect(result).toContain("__$$_LINGUI_REACT_ROUTER_MANIFEST_PLACEHOLDER_$$__")
-      expect(result).toContain("export default manifest")
+      expect(result).toContain("export default JSON.parse(__$$_LINGUI_REACT_ROUTER_MANIFEST_PLACEHOLDER_$$__)")
     })
 
     it("should return placeholder code for server builds in test mode", () => {
       const result = generateManifestModule(true, "test")
 
-      expect(result).toContain("const manifest = JSON.parse")
-      expect(result).toContain("__$$_LINGUI_REACT_ROUTER_MANIFEST_PLACEHOLDER_$$__")
+      expect(result).toContain("export default JSON.parse(__$$_LINGUI_REACT_ROUTER_MANIFEST_PLACEHOLDER_$$__)")
     })
 
     it("should return empty default export for server builds in dev mode", () => {
@@ -54,7 +52,7 @@ describe("manifest-module", () => {
       // Note: We define only the properties we need for the test
       const info = {
         id: "test-module",
-        code: "const manifest = JSON.parse(`...`)\nexport default manifest",
+        code: "export default JSON.parse(\"...\")",
       } as unknown as ModuleInfo
 
       const result = getManifestChunkName(info)
@@ -256,7 +254,7 @@ describe("manifest-module", () => {
           type: "chunk",
           name: "locale-manifest",
           fileName: "locale-manifest-xyz.js",
-          code: "const manifest = JSON.parse(`__$$_LINGUI_REACT_ROUTER_MANIFEST_PLACEHOLDER_$$__`)\nexport default manifest",
+          code: "export default JSON.parse(__$$_LINGUI_REACT_ROUTER_MANIFEST_PLACEHOLDER_$$__)",
           moduleIds: [],
         } as unknown as OutputChunk,
       }
@@ -265,8 +263,8 @@ describe("manifest-module", () => {
 
       const chunk = bundle["locale-manifest-xyz.js"] as OutputChunk
       expect(chunk.code).not.toContain("__$$_LINGUI_REACT_ROUTER_MANIFEST_PLACEHOLDER_$$__")
-      expect(chunk.code).toContain("\"en\":\"/locale-en-abc123.js\"")
-      expect(chunk.code).toContain("\"fr\":\"/locale-fr-def456.js\"")
+      expect(chunk.code).toContain(`\\"en\\":\\"/locale-en-abc123.js\\"`)
+      expect(chunk.code).toContain(`\\"fr\\":\\"/locale-fr-def456.js\\"`)
       expect(mockContext.info).toHaveBeenCalledWith(
         expect.stringContaining(".client-locale-manifest.json"),
       )
@@ -280,7 +278,7 @@ describe("manifest-module", () => {
           type: "chunk",
           name: "locale-manifest",
           fileName: "locale-manifest-xyz.js",
-          code: "const manifest = JSON.parse(`__$$_LINGUI_REACT_ROUTER_MANIFEST_PLACEHOLDER_$$__`)\nexport default manifest",
+          code: "export default JSON.parse(__$$_LINGUI_REACT_ROUTER_MANIFEST_PLACEHOLDER_$$__)",
           moduleIds: [],
         } as unknown as OutputChunk,
       }
@@ -303,7 +301,7 @@ describe("manifest-module", () => {
           type: "chunk",
           name: "locale-manifest",
           fileName: "locale-manifest-xyz.js",
-          code: "const manifest = JSON.parse(`__$$_LINGUI_REACT_ROUTER_MANIFEST_PLACEHOLDER_$$__`)\nexport default manifest",
+          code: "export default JSON.parse(__$$_LINGUI_REACT_ROUTER_MANIFEST_PLACEHOLDER_$$__)",
           moduleIds: [],
         } as unknown as OutputChunk,
       }
@@ -311,14 +309,14 @@ describe("manifest-module", () => {
       await generateBundleServer(mockContext, mockConfig, bundle)
 
       const chunk = bundle["locale-manifest-xyz.js"] as OutputChunk
-      expect(chunk.code).toContain("JSON.parse(`{}`)")
+      expect(chunk.code).toContain("JSON.parse(\"{}\")")
     })
 
     it("should skip chunks that are not named locale-manifest", async () => {
       vi.mocked(fs.readFile).mockResolvedValue("{}")
 
       const originalCode =
-        "const manifest = JSON.parse(`__$$_LINGUI_REACT_ROUTER_MANIFEST_PLACEHOLDER_$$__`)\nexport default manifest"
+        "export default JSON.parse(__$$_LINGUI_REACT_ROUTER_MANIFEST_PLACEHOLDER_$$__)"
       const bundle: OutputBundle = {
         "other-chunk.js": {
           type: "chunk",
@@ -334,5 +332,19 @@ describe("manifest-module", () => {
       const chunk = bundle["other-chunk.js"] as OutputChunk
       expect(chunk.code).toBe(originalCode)
     })
+  })
+})
+
+describe("stringifyJsonToString", () => {
+  it("should stringify empty JSON object", () => {
+    const result = stringifyJsonToString({})
+    expect(result).toBe(`"{}"`)
+  })
+
+  it("should stringify JSON object to escaped string", () => {
+    const manifestJson = { key: "value`$\"", nested: { a: 3 } }
+    const result = stringifyJsonToString(manifestJson)
+
+    expect(result).toBe(`"{\\"key\\":\\"value\`$\\\\\\"\\",\\"nested\\":{\\"a\\":3}}"`)
   })
 })
