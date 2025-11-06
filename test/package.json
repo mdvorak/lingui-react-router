@@ -3,6 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "clean:build": "node -e 'require(\"fs\").rmSync(\"build\", { recursive: true, force: true })'",
+    "clean:types": "node -e 'require(\"fs\").rmSync(\".react-router\", { recursive: true, force: true })'",
+    "clean": "pnpm run clean:build && pnpm run clean:types",
     "extract": "lingui extract",
     "prebuild": "react-router typegen && tsc --noEmit --strict && lingui extract --clean",
     "build": "react-router build",
