@@ -13,7 +13,7 @@ type ChangeLocaleServerFunction = (locale: string | undefined) => Response
 /**
  * Server-side i18n context.
  */
-export type I18nRequestContext = PathLocale & {
+export type I18nRequestContext = Omit<PathLocale, "changeLocale"> & {
   /** The internationalization processing object, which manages locale-specific content and configurations. */
   i18n: I18n
   /** The translation function bound to the current i18n instance. */
