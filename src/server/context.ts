@@ -116,10 +116,10 @@ function localeAwareRedirect(requestLocale: string | undefined,
 /**
  * Changes the current locale in the URL.
  *
- * @param targetLocale The locale to change to.
+ * @param targetLocale The locale to change to, or undefined to remove the locale prefix.
  * @param requestPathname Request pathname without the locale prefix.
  * @param url The URL object for the current request.
- * @returns A redirect response to the same path with the new locale prefix
+ * @returns A redirect response to the same path with the new locale prefix or without a locale prefix if targetLocale is undefined.
  */
 export function changeLocaleRedirect(targetLocale: string | undefined, requestPathname: string, url: URL) {
   const targetLocalePath = targetLocale ? `/${targetLocale}` : ""
