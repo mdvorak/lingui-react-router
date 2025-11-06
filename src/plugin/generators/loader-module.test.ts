@@ -60,7 +60,6 @@ describe("loader-module", () => {
       defaultLocale: "en",
       exclude: ["api"],
       linguiConfig: mockLinguiConfig,
-      loggerServerModule: "none",
     }
   })
 

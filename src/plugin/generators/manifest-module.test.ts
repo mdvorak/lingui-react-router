@@ -5,7 +5,7 @@ import type { ConfigPluginContext, ResolvedConfig } from "vite"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import {
   generateBundleClient,
-  generateBundleServer,
+  generateEmptyManifestModule,
   generateManifestModule,
   getManifestChunkName,
   stringifyJsonToString,
@@ -20,30 +20,49 @@ function normalizePath(p: string) {
 
 describe("manifest-module", () => {
   describe("generateManifestModule", () => {
-    it("should return placeholder code for server builds in non-dev mode", () => {
-      const result = generateManifestModule(true, "production")
+    let mockContext: ConfigPluginContext
+    let mockConfig: ResolvedConfig
 
-      expect(result).toContain("export default JSON.parse(__$$_LINGUI_REACT_ROUTER_MANIFEST_PLACEHOLDER_$$__)")
+    beforeEach(() => {
+      mockContext = {
+        info: vi.fn(),
+      } as unknown as ConfigPluginContext
+
+      mockConfig = {
+        root: "/project",
+        build: {
+          outDir: "/project/build/client",
+        },
+      } as ResolvedConfig
+
+      // Default fs.readFile behaviour for most tests
+      vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify({ en: "/locale-en-abc123.js" }))
     })
 
-    it("should return placeholder code for server builds in test mode", () => {
-      const result = generateManifestModule(true, "test")
-
-      expect(result).toContain("export default JSON.parse(__$$_LINGUI_REACT_ROUTER_MANIFEST_PLACEHOLDER_$$__)")
+    afterEach(() => {
+      vi.clearAllMocks()
     })
 
-    it("should return empty default export for server builds in dev mode", () => {
-      const result = generateManifestModule(true, "dev")
+    it("should read manifest file and return parsed module code", async () => {
+      const manifestJson = { en: "/locale-en-abc123.js" }
+      vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify(manifestJson))
 
+      const result = await generateManifestModule(mockContext, mockConfig)
+
+      const expected = `export default JSON.parse(${JSON.stringify(JSON.stringify(manifestJson))})`
+      expect(result).toBe(expected)
+      expect(mockContext.info).toHaveBeenCalledWith(expect.stringContaining(".client-locale-manifest.json"))
+      expect(fs.readFile).toHaveBeenCalled()
+    })
+
+    it("should throw when manifest file contains invalid JSON", async () => {
+      vi.mocked(fs.readFile).mockResolvedValue("invalid json")
+      await expect(generateManifestModule(mockContext, mockConfig)).rejects.toThrow()
+    })
+
+    it("generateEmptyManifestModule should return empty default export", () => {
+      const result = generateEmptyManifestModule()
       expect(result).toBe("export default {}")
-    })
-
-    it("should return empty default export for client builds", () => {
-      const resultProd = generateManifestModule(false, "production")
-      const resultDev = generateManifestModule(false, "dev")
-
-      expect(resultProd).toBe("export default {}")
-      expect(resultDev).toBe("export default {}")
     })
   })
 
@@ -221,116 +240,6 @@ describe("manifest-module", () => {
       await generateBundleClient(mockContext, mockConfig, bundle)
 
       expect(fs.writeFile).toHaveBeenCalledWith(expect.any(String), "{}", expect.any(Object))
-    })
-  })
-
-  describe("generateBundleServer", () => {
-    let mockContext: ConfigPluginContext
-    let mockConfig: ResolvedConfig
-
-    beforeEach(() => {
-      mockContext = {
-        info: vi.fn(),
-      } as unknown as ConfigPluginContext
-
-      mockConfig = {
-        root: "/project",
-        build: {
-          outDir: "/project/build/server",
-        },
-      } as ResolvedConfig
-    })
-
-    afterEach(() => {
-      vi.clearAllMocks()
-    })
-
-    it("should replace placeholder with manifest JSON in server bundle", async () => {
-      const manifestJson = { en: "/locale-en-abc123.js", fr: "/locale-fr-def456.js" }
-      vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify(manifestJson))
-
-      const bundle: OutputBundle = {
-        "locale-manifest-xyz.js": {
-          type: "chunk",
-          name: "locale-manifest",
-          fileName: "locale-manifest-xyz.js",
-          code: "export default JSON.parse(__$$_LINGUI_REACT_ROUTER_MANIFEST_PLACEHOLDER_$$__)",
-          moduleIds: [],
-        } as unknown as OutputChunk,
-      }
-
-      await generateBundleServer(mockContext, mockConfig, bundle)
-
-      const chunk = bundle["locale-manifest-xyz.js"] as OutputChunk
-      expect(chunk.code).not.toContain("__$$_LINGUI_REACT_ROUTER_MANIFEST_PLACEHOLDER_$$__")
-      expect(chunk.code).toContain(`\\"en\\":\\"/locale-en-abc123.js\\"`)
-      expect(chunk.code).toContain(`\\"fr\\":\\"/locale-fr-def456.js\\"`)
-      expect(mockContext.info).toHaveBeenCalledWith(
-        expect.stringContaining(".client-locale-manifest.json"),
-      )
-    })
-
-    it("should read manifest from correct path", async () => {
-      vi.mocked(fs.readFile).mockResolvedValue("{}")
-
-      const bundle: OutputBundle = {
-        "locale-manifest-xyz.js": {
-          type: "chunk",
-          name: "locale-manifest",
-          fileName: "locale-manifest-xyz.js",
-          code: "export default JSON.parse(__$$_LINGUI_REACT_ROUTER_MANIFEST_PLACEHOLDER_$$__)",
-          moduleIds: [],
-        } as unknown as OutputChunk,
-      }
-
-      await generateBundleServer(mockContext, mockConfig, bundle)
-
-      expect(fs.readFile).toHaveBeenCalledWith(
-        normalizePath("/project/build/.client-locale-manifest.json"),
-        {
-          encoding: "utf8",
-        },
-      )
-    })
-
-    it("should handle empty manifest", async () => {
-      vi.mocked(fs.readFile).mockResolvedValue("{}")
-
-      const bundle: OutputBundle = {
-        "locale-manifest-xyz.js": {
-          type: "chunk",
-          name: "locale-manifest",
-          fileName: "locale-manifest-xyz.js",
-          code: "export default JSON.parse(__$$_LINGUI_REACT_ROUTER_MANIFEST_PLACEHOLDER_$$__)",
-          moduleIds: [],
-        } as unknown as OutputChunk,
-      }
-
-      await generateBundleServer(mockContext, mockConfig, bundle)
-
-      const chunk = bundle["locale-manifest-xyz.js"] as OutputChunk
-      expect(chunk.code).toContain("JSON.parse(\"{}\")")
-    })
-
-    it("should skip chunks that are not named locale-manifest", async () => {
-      vi.mocked(fs.readFile).mockResolvedValue("{}")
-
-      const originalCode =
-        "export default JSON.parse(__$$_LINGUI_REACT_ROUTER_MANIFEST_PLACEHOLDER_$$__)"
-      const bundle: OutputBundle = {
-        "other-chunk.js": {
-          type: "chunk",
-          name: "other-chunk",
-          fileName: "other-chunk.js",
-          code: originalCode,
-          moduleIds: [],
-        } as unknown as OutputChunk,
-      }
-
-      await generateBundleServer(mockContext, mockConfig, bundle)
-
-      const chunk = bundle["other-chunk.js"] as OutputChunk
-      expect(chunk.code).toBe(originalCode)
     })
   })
 })

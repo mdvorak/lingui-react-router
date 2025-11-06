@@ -111,6 +111,4 @@ export const pluginConfigDefaults = {
   localeMapping: {} as Record<string, string>,
   defaultLocaleMapping: true,
   localeParamName: "locale",
-  loggerServerModule: "console" as LoggerModuleConfig,
-  loggerClientModule: "none" as LoggerModuleConfig,
 }
