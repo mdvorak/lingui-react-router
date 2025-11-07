@@ -14,7 +14,6 @@ import {
   generateBundleClient,
   generateEmptyManifestModule,
   generateManifestModule,
-  getManifestChunkName,
 } from "./generators/manifest-module"
 import {
   type LinguiRouterPluginConfig,
@@ -78,33 +77,29 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
     },
 
     config(config) {
+      const isClientBuild = !config?.build?.ssr
+
       return {
         resolve: {
-          dedupe: addToList(config.resolve?.dedupe, PLUGIN_NAME),
+          dedupe: [PLUGIN_NAME],
         },
         build: {
           rollupOptions: {
-            output: {
-              manualChunks(id, { getModuleInfo }) {
-                if (id === "\0" + VIRTUAL_MANIFEST) {
-                  const info = getModuleInfo(id)
-                  if (!info) throw new Error(`Module info not found for \\0${VIRTUAL_MANIFEST}`)
-                  return getManifestChunkName(info)
-                }
+            output: isClientBuild ? {
+              manualChunks(id) {
                 if (id.startsWith("\0" + VIRTUAL_LOCALE_PREFIX)) {
                   const locale = id.replace("\0" + VIRTUAL_LOCALE_PREFIX, "")
                   return `locale-${locale}`
                 }
               },
-            },
+            } : undefined,
           },
         },
         ssr: {
           // This library must be included, otherwise virtual imports won't work
-          noExternal:
-            config.ssr?.noExternal === true || addToList(config.ssr?.noExternal, PLUGIN_NAME),
+          noExternal: config.ssr?.noExternal === true || [PLUGIN_NAME],
           optimizeDeps: {
-            include: addToList(config.ssr?.optimizeDeps?.include, "negotiator"),
+            include: ["negotiator"],
           },
         },
       } satisfies UserConfig
@@ -182,21 +177,3 @@ async function generateLoaderModule(pluginConfig: Readonly<LinguiRouterPluginCon
   return lines.join("\n")
 }
 
-/**
- * Add a value to a list, initializing or converting as necessary.
- *
- * @param list The existing list, which may be undefined, a single value, or an array
- * @param value The value to add to the list
- * @returns A new array containing the original values plus the new value
- */
-export function addToList<T>(list: T | T[] | undefined, value: T): T[] {
-  if (!list) {
-    return [value]
-  }
-
-  if (Array.isArray(list)) {
-    return [...list, value]
-  } else {
-    return [list, value]
-  }
-}
