@@ -4,7 +4,7 @@ import React, { useEffect, useMemo } from "react"
 import { useLocation, useNavigate, useParams } from "react-router"
 import { $getI18nInstance } from "virtual:lingui-router-loader"
 import { createLocalePathContext, findLocale, LocalePathContext } from "../client-context"
-import { config, loadLocaleCatalog, logger } from "../runtime"
+import { config, loadLocaleCatalog } from "../runtime"
 
 
 /**
@@ -88,15 +88,13 @@ function loadAndActivateLocale(i18n: I18n, locale: string) {
   if (locale !== i18n.locale) {
     if (locale in i18n.messages) {
       // Already loaded
-      logger.log(`Activating locale ${locale}`)
       i18n.activate(locale)
     } else {
       // Load locale catalog and set the locale when loaded
       // Note that this presents a race condition, but there is no way to avoid it
-      logger.log(`Loading locale catalog for ${locale}`)
       loadLocaleCatalog(locale)
         .then(messages => i18n.loadAndActivate({ locale, messages }))
-        .catch(err => logger.error(`Failed to load locale "${locale}" catalog:`, err))
+        .catch(err => console.error(`Failed to load locale '${locale}' catalog:`, err))
     }
   }
 }

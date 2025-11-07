@@ -1,7 +1,7 @@
 import { Trans, useLingui } from "@lingui/react/macro"
 import { I18nApp, LocaleLink, LocalePreload } from "lingui-react-router"
 import { localeMiddleware } from "lingui-react-router/server"
-import { type ReactNode } from "react"
+import { type ReactNode, useEffect } from "react"
 import { isRouteErrorResponse, Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router"
 import type { Route } from "./+types/root"
 import SelectLanguage from "~/components/SelectLanguage"
@@ -28,6 +28,10 @@ export function meta() {
 
 function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   const { i18n } = useLingui()
+
+  useEffect(() => {
+    console.log("Locale selected:", i18n.locale)
+  }, [i18n.locale])
 
   return (
     <html lang={i18n.locale}>

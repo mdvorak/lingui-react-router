@@ -20,6 +20,7 @@ import {
   type LinguiRouterPluginConfig,
   type LinguiRouterPluginConfigFull,
   PLUGIN_NAME,
+  pluginConfigDefaults,
   VIRTUAL_LOADER,
   VIRTUAL_LOCALE_PREFIX,
   VIRTUAL_MANIFEST,
@@ -48,28 +49,29 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
   return {
     name: PLUGIN_NAME,
 
-    configResolved(config) {
+    configResolved: function(config) {
       const linguiConfig = pluginConfig.linguiConfig ?? getConfig({ cwd: config.root })
       const locales = pluginConfig.locales ?? linguiConfig.locales ?? []
       const pseudoLocale = pluginConfig.pseudoLocale ?? linguiConfig.pseudoLocale
 
       // Build plugin config with defaults and normalization
       const localeMapping = Object.fromEntries(
-        Object.entries(pluginConfig.localeMapping ?? {}).map(([k, v]) => [
+        Object.entries(pluginConfig.localeMapping ?? pluginConfigDefaults.localeMapping).map(([k, v]) => [
           normalizeLocaleKey(k),
           normalizeLocaleKey(v),
         ]),
       )
 
+      const defaultLocale = normalizeLocaleKey(pluginConfig.defaultLocale
+        ?? locales[0]
+        ?? pluginConfigDefaults.defaultLocale)
+
       config.linguiRouterConfig = {
+        ...pluginConfigDefaults,
+        ...pluginConfig,
         linguiConfig,
-        exclude: pluginConfig.exclude ?? [],
-        detectLocale: pluginConfig.detectLocale ?? true,
-        redirect: pluginConfig.redirect ?? "auto",
         localeMapping,
-        defaultLocaleMapping: pluginConfig.defaultLocaleMapping ?? true,
-        localeParamName: pluginConfig.localeParamName ?? "locale",
-        defaultLocale: normalizeLocaleKey(pluginConfig.defaultLocale ?? locales[0] ?? "und"),
+        defaultLocale,
         locales: locales.map(normalizeLocaleKey),
         pseudoLocale: pseudoLocale ? normalizeLocaleKey(pseudoLocale) : undefined,
       }

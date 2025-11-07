@@ -8,8 +8,7 @@ import { changeLocaleRedirect, createRequestContext, LocaleServerContext } from 
 
 /**
  * Locale middleware implementation. Determines the locale from the URL or the
- * Accept-Language header, initializes i18n, and runs the request with a
- * LocaleServerContext.
+ * Accept-Language header, initializes i18n, and runs the request with a LocaleServerContext.
  *
  * Use `useLinguiServer` in loaders and actions to access the server-side i18n context.
  *
@@ -124,4 +123,3 @@ function getRequestHeaders(headers: Headers): Record<string, string | undefined>
     "accept-language": headers.get("accept-language") ?? undefined,
   }
 }
-

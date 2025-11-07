@@ -169,4 +169,3 @@ describe("SelectLanguage", () => {
     expect(select).toBeTruthy()
   })
 })
-

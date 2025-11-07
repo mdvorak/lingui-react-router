@@ -1,7 +1,7 @@
 import React from "react"
 import type { Location, NavigateFunction } from "react-router"
 import { normalizeLocaleKey } from "./config"
-import { config, localeMapping, logger, supportedLocales } from "./runtime"
+import { config, localeMapping, supportedLocales } from "./runtime"
 
 /**
  * The context for locale information derived from the URL path.
@@ -141,7 +141,6 @@ export function createLocalePathContext(navigate: NavigateFunction,
     ...(localeParam && { requestLocale: locale }),
     requestPathname,
     changeLocale(nextLocale) {
-      logger?.log("Changing locale from", locale, "to", nextLocale)
       return navigateToLocale(navigate, nextLocale, requestPathname, location)
     },
   }
