@@ -6,12 +6,12 @@ import { config, localeMapping, supportedLocales } from "./runtime"
 /**
  * The context for locale information derived from the URL path.
  */
-export const LocalePathContext = React.createContext<PathLocale | null>(null)
+export const RouteLocaleContext = React.createContext<RouteLocale | null>(null)
 
 /**
  * Represents the locale information derived from the URL path.
  */
-export type PathLocale = {
+export type RouteLocale = {
   /**
    * The resolved locale code (falls back to defaultLocale).
    */
@@ -35,12 +35,12 @@ export type PathLocale = {
 /**
  * React hook that derives the active locale from the current URL path.
  *
- * @returns A `PathLocale` object containing locale information.
+ * @returns A `RouteLocale` object containing locale information.
  */
-export function usePathLocale(): PathLocale {
-  const context = React.useContext(LocalePathContext)
+export function useRouteLocale(): RouteLocale {
+  const context = React.useContext(RouteLocaleContext)
   if (!context) {
-    throw new Error("usePathLocale must be used within a I18nApp component")
+    throw new Error("useRouteLocale must be used within a I18nApp component")
   }
   return context
 }
@@ -119,7 +119,7 @@ export function stripPathnameLocalePrefix(
 }
 
 /**
- * Creates a PathLocale context object.
+ * Creates a RouteLocale context object.
  *
  * This is an internal function used by I18nApp.
  *
@@ -131,7 +131,7 @@ export function stripPathnameLocalePrefix(
 export function createLocalePathContext(navigate: NavigateFunction,
                                         localeParam: string | undefined,
                                         locale: string,
-                                        location: Location<any>): PathLocale {
+                                        location: Location<any>): RouteLocale {
   const requestPathname = localeParam
     ? stripPathnameLocalePrefix(location.pathname, localeParam)
     : location.pathname

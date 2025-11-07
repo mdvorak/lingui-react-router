@@ -1,6 +1,6 @@
 import React from "react"
 import { Link, type LinkProps, type To } from "react-router"
-import { usePathLocale } from "../client-context"
+import { useRouteLocale } from "../client-context"
 
 /**
  * A drop-in replacement for react-router's Link that automatically prefixes the
@@ -16,7 +16,7 @@ import { usePathLocale } from "../client-context"
 export function LocaleLink(
   props: LinkProps & React.RefAttributes<HTMLAnchorElement>,
 ): React.ReactNode {
-  const { requestLocale } = usePathLocale()
+  const { requestLocale } = useRouteLocale()
   if (!requestLocale) return React.createElement(Link, props)
 
   const { to } = props

@@ -4,10 +4,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 import {
   createLocalePathContext,
   findLocale,
-  LocalePathContext,
-  type PathLocale,
+  RouteLocaleContext,
+  type RouteLocale,
   stripPathnameLocalePrefix,
-  usePathLocale,
+  useRouteLocale,
 } from "./client-context"
 
 // Mock the virtual loader used by runtime.ts before importing the tested module.
@@ -152,16 +152,16 @@ describe("stripPathnameLocalePrefix", () => {
   })
 })
 
-describe("usePathLocale", () => {
-  function setLocalePathContext(value: ContextType<typeof LocalePathContext>) {
-    const context = LocalePathContext.Provider as unknown as {
-      value: ContextType<typeof LocalePathContext>
+describe("useRouteLocale", () => {
+  function setLocalePathContext(value: ContextType<typeof RouteLocaleContext>) {
+    const context = RouteLocaleContext.Provider as unknown as {
+      value: ContextType<typeof RouteLocaleContext>
     }
     context.value = value
   }
 
   it("returns the context value", () => {
-    const contextValue: PathLocale = {
+    const contextValue: RouteLocale = {
       locale: "en",
       requestLocale: undefined,
       requestPathname: "/about",
@@ -170,13 +170,13 @@ describe("usePathLocale", () => {
     }
     setLocalePathContext(contextValue)
 
-    const result = usePathLocale()
+    const result = useRouteLocale()
     expect(result).toBe(contextValue)
   })
 
   it("throws error when used outside I18nApp component", () => {
     setLocalePathContext(null)
-    expect(() => usePathLocale()).toThrowError(/must be used within a I18nApp component/i)
+    expect(() => useRouteLocale()).toThrowError(/must be used within a I18nApp component/i)
   })
 })
 

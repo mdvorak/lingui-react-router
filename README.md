@@ -183,10 +183,10 @@ Note that since this library is always inlined, it's only required as a dev depe
    correctness.
 
     ```tsx
-    import { LocaleLink, usePathLocale, config } from "lingui-react-router"
+    import { LocaleLink, useRouteLocale, config } from "lingui-react-router"
 
     function Header() {
-      const { locale, requestLocale } = usePathLocale()
+      const { locale, requestLocale } = useRouteLocale()
       return (
         <nav>
           <LocaleLink to="/hello">Hello</LocaleLink>
@@ -198,6 +198,7 @@ Note that since this library is always inlined, it's only required as a dev depe
       )
     }
     ```
+
    Notes about LocaleLink:
 
 - Pass locale-less paths such as `to="/hello"` or an object pathname without a locale, and the
@@ -238,28 +239,85 @@ Note that since this library is always inlined, it's only required as a dev depe
    }
    ```
 
-## API summary
+## API Reference
 
-- `I18nApp`: wraps the application and synchronizes the i18n instance across server and client
-  boundaries for SSR.
-- `localeMiddleware`: detects locale from the URL, normalizes paths, initializes i18n, and enables
-  locale-aware redirects.
-- `loadInitialLocale`: preloads the correct catalog on the client before hydration based on the
-  initial path.
-- `localeRoutes`: generates localized route entries and helpers for index and child routes from a
-  single i18n config.
-- `LocaleLink`: a Link drop-in that prefixes locale automatically; always pass locale-less paths to
-  ensure correct URL generation.
-- `usePathLocale`: runtime hook for the active locale, requestLocale, and path information.
-- `useLinguiServer`: loader/action helper with i18n instance, request locale, localized redirect,
-  and convenience values like pathnamePrefix.
+### Main Exports (`lingui-react-router`)
+
+#### Components
+
+- **`I18nApp`**: Wraps the application and synchronizes the i18n instance across server and client
+  boundaries for SSR. Must be used in the Layout component.
+- **`LocaleLink`**: A drop-in replacement for react-router's Link that automatically prefixes the
+  current locale. Always pass locale-less paths to ensure correct URL generation.
+- **`LocalePreload`**: Preloads the locale script on the client. Add to your HTML `<head>` section.
+
+#### Hooks
+
+- **`useRouteLocale()`**: Runtime hook that returns the active locale context with:
+  - `locale`: The resolved locale code (falls back to defaultLocale)
+  - `requestLocale`: The locale explicitly requested from the URL (optional)
+  - `requestPathname`: The pathname without the locale prefix
+  - `changeLocale(locale)`: Navigate to a new locale while preserving the current path
+
+#### Types
+
+- **`RouteLocale`**: Type representing the locale information derived from the URL path
+- **`LinguiRouterConfig`**: Runtime configuration for locale detection, routing, and fallbacks
+- **`RedirectBehavior`**: Type for redirect policy (`"auto" | "always" | "never"`)
+
+#### Runtime Utilities
+
+- **`config`**: Runtime configuration object with locales, defaultLocale, exclude paths, and more
+- **`defaultLocale`**: The default locale string
+- **`userLocales`**: Array of user-defined locales (excludes pseudo-locale)
+- **`findLocale(localeParam)`**: Finds and resolves the locale from a URL path segment
+- **`stripPathnameLocalePrefix(pathname, localeParam)`**: Removes the locale prefix from a pathname
+- **`normalizeLocaleKey(locale)`**: Normalizes a locale code (lowercase, hyphens)
+
+### Client Exports (`lingui-react-router/client`)
+
+- **`loadInitialLocale(pathname)`**: Preloads the correct catalog on the client before hydration
+  based on the initial path. Use in `entry.client.tsx` before hydrating the router.
+
+### Server Exports (`lingui-react-router/server`)
+
+- **`localeMiddleware`**: React Router middleware that detects locale from the URL, normalizes
+  paths, initializes i18n, and enables locale-aware redirects. Add to your root route module.
+- **`useLinguiServer(context)`**: Hook for loaders and actions that returns:
+  - `i18n`: The internationalization processing object
+  - `_`: The translation function bound to the current i18n instance
+  - `url`: The URL object for the current request
+  - `locale`: The resolved locale code
+  - `requestLocale`: The locale explicitly requested by the client (optional)
+  - `requestPathname`: The pathname without the locale prefix
+  - `redirect(to, init)`: Locale-aware redirect function
+  - `changeLocale(locale)`: Change locale and redirect to the same path
+- **`I18nRequestContext`**: Type for the server-side i18n context
+
+### Plugin Exports (`lingui-react-router/plugin`)
+
+- **`linguiRouterPlugin(config?)`**: Vite plugin that generates locale loaders and manifests. Add to
+  your `vite.config.ts`.
+- **`defineLinguiRouterConfig(config)`**: Helper to define plugin configuration with type safety
+- **`LinguiRouterPluginConfig`**: Type for the plugin configuration
+
+### Routes Exports (`lingui-react-router/routes`)
+
+- **`localePaths(config, path, withDefault?)`**: Generate all locale-specific paths for a given base
+  path. Useful for prerendering in `react-router.config.ts`.
+
+### Test Exports (`lingui-react-router/test`)
+
+- **`createRouteLocaleStub(routeConfig)`**: Creates a test wrapper that mounts your route under a
+  localized parent route with `I18nApp` and `localeMiddleware`. Returns a component that accepts
+  `initialEntries` prop for testing different locales.
 
 ## Testing components
 
 This package provides a lightweight helper to test route modules and components with i18n and
 locale context set up exactly like your app does in production.
 
-- The `createLocaleRouteStub` test utility mounts your route under a localized parent route and
+- The `createRouteLocaleStub` test utility mounts your route under a localized parent route and
   wraps it with `I18nApp` and the server `localeMiddleware`.
 - Import it from `lingui-react-router/test` and render with an initial URL such as `/hello` or
   `/en/hello`.
@@ -365,6 +423,57 @@ options are optional and have sensible defaults.
 - `"always"`: Always redirect to the detected locale, even if it's the default locale. All users
   will see locale-prefixed URLs.
 - `"never"`: Never redirect based on detected locale. Users remain on the URL they requested.
+
+#### `localeMapping`
+
+- **Type:** `Record<string, string>`
+- **Default:** `{}`
+- **Description:** Mapping of locale codes to fallback locale codes, used for locale detection and
+  redirection. For example, `{ "fr-CA": "fr", "es-MX": "es" }` where your lingui config only
+  includes `["fr", "es"]`. It's also possible to map to a different locale, e.g. `{ "de": "en" }`.
+
+#### `defaultLocaleMapping`
+
+- **Type:** `boolean`
+- **Default:** `true`
+- **Description:** Whether to enable default locale mapping according to CLDR data. When set to
+  false, only identity mappings and custom `localeMapping` entries will be included, without
+  automatic CLDR fallbacks. For example, mapping "en-GB" to "en", "pt-BR" to "pt", etc.
+
+#### `localeParamName`
+
+- **Type:** `string`
+- **Default:** `"locale"`
+- **Description:** Name of the URL parameter used to specify the locale. Defaults to "locale", e.g.
+  `"/:locale?/*"`. Change this if you need a different parameter name in your routes.
+
+#### `linguiConfig`
+
+- **Type:** `LinguiConfigNormalized`
+- **Default:** Auto-loaded from project root
+- **Description:** Explicit Lingui configuration to use. If not provided, the plugin will attempt to
+  load the Lingui config from the project root.
+
+#### `defaultLocale`
+
+- **Type:** `string`
+- **Default:** First locale from `locales`
+- **Description:** Default locale to use when no locale can be detected. Must be included in
+  `locales`. By default, the first locale from the Lingui config is used.
+
+#### `locales`
+
+- **Type:** `string[]`
+- **Default:** From Lingui config
+- **Description:** Override locales list defined in Lingui config. Normally, you should not need to
+  set this.
+
+#### `pseudoLocale`
+
+- **Type:** `string | undefined`
+- **Default:** From Lingui config
+- **Description:** Overrides the pseudo-locale defined in Lingui config. Normally, you should not
+  need to set this.
 
 ### Complete Example
 
