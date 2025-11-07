@@ -23,6 +23,11 @@ export const localeLoaders: Readonly<LocaleLoaderMap> = loader.localeLoaders
  * A set of all supported locales.
  */
 export const supportedLocales: ReadonlySet<string> = new Set<string>(loader.config.locales)
+/**
+ * An array of all user-defined locales.
+ */
+export const userLocales: readonly string[] = config.locales
+  .filter(l => l !== config.pseudoLocale)
 
 /**
  * Loads the message catalog for the specified locale.

@@ -1,27 +1,23 @@
 import { useLingui } from "@lingui/react/macro"
-import { config, usePathLocale } from "lingui-react-router"
-import { type ChangeEvent } from "react"
+import { usePathLocale, userLocales } from "lingui-react-router"
+import { useNavigation } from "react-router"
 
 export default function SelectLanguage() {
   const { t } = useLingui()
+  const navigation = useNavigation()
   const { locale, changeLocale } = usePathLocale()
-  const { locales, pseudoLocale } = config
-
-  const onChange = async (e: ChangeEvent<HTMLSelectElement>) => {
-    await changeLocale(e.target.value)
-  }
 
   return (
     <div style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
       <label>{t`Language`}</label>
-      <select value={locale} onChange={onChange} className="data-hover:outline-1 border-0!">
-        {locales
-          .filter(loc => loc !== pseudoLocale)
-          .map(loc => (
-            <option key={loc} value={loc}>
-              {loc.toUpperCase()}
-            </option>
-          ))}
+      <select value={locale} onChange={e => changeLocale(e.target.value)}
+              disabled={navigation.state !== "idle"}
+              className="data-hover:outline-1 border-0!">
+        {userLocales.map(loc => (
+          <option key={loc} value={loc}>
+            {loc.toUpperCase()}
+          </option>
+        ))}
       </select>
     </div>
   )
