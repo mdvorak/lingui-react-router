@@ -232,7 +232,7 @@ describe("linguiRouterPlugin - config", () => {
       expect(manualChunks("@lingui/react", { getModuleInfo })).toBeUndefined()
     })
 
-    it("should not configure rollout output if its a server build", () => {
+    it("should not configure rollup output if it's a server build", () => {
       const plugin = linguiRouterPlugin()
       const userConfig = { build: { ssr: true } } as any
 
