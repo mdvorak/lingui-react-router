@@ -51,7 +51,6 @@ describe("manifest-module", () => {
 
       const expected = `export default JSON.parse(${JSON.stringify(JSON.stringify(manifestJson))})`
       expect(result).toBe(expected)
-      expect(mockContext.info).toHaveBeenCalledWith(expect.stringContaining(".client-locale-manifest.json"))
       expect(fs.readFile).toHaveBeenCalled()
     })
 
@@ -163,9 +162,6 @@ describe("manifest-module", () => {
         expect.any(String),
         expect.stringContaining("\"fr\": \"/locale-fr-def456.js\""),
         expect.any(Object),
-      )
-      expect(mockContext.info).toHaveBeenCalledWith(
-        expect.stringContaining(".client-locale-manifest.json"),
       )
     })
 

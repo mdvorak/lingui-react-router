@@ -216,5 +216,3 @@ function generateUseLingui({ linguiConfig }: Readonly<LinguiRouterPluginConfigFu
     `export const $useLingui = runtimeUseLingui`,
   ]
 }
-
-
