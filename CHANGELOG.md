@@ -18,7 +18,7 @@
 * enhance i18n handling in I18nApp and usePathLocale ([6a362c6](https://github.com/mdvorak/lingui-react-router/commit/6a362c6b197f7b4ea38cd5c5d1730002f5689857))
 * fix minified code build and backticks in locales ([036f465](https://github.com/mdvorak/lingui-react-router/commit/036f46598cc93e7fb813b4a9cc3983c24ff002f3))
 * further optimize usePathLocale, main logic now moved to I18nApp component ([4815ff0](https://github.com/mdvorak/lingui-react-router/commit/4815ff095f0061cbe1ac0e20a0dd567915d40924))
-* remove I18App dependency on usePathLocale ([d9a6fd9](https://github.com/mdvorak/lingui-react-router/commit/d9a6fd9cff6cb782e2769f49310c3c7d0e581fcf))
+* remove I18nApp dependency on usePathLocale ([d9a6fd9](https://github.com/mdvorak/lingui-react-router/commit/d9a6fd9cff6cb782e2769f49310c3c7d0e581fcf))
 * remove identity mappings from localeMapping ([6c9ce2e](https://github.com/mdvorak/lingui-react-router/commit/6c9ce2ef27339c1bd8ac3118a45cdc76625d0f0a))
 
 ## [1.0.1](https://github.com/mdvorak/lingui-react-router/compare/v1.0.0...v1.0.1) (2025-11-04)
