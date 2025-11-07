@@ -4,3 +4,4 @@ export * from "./components/LocalePreload"
 export * from "./config"
 export * from "./client-context"
 export { config, defaultLocale, userLocales } from "./runtime"
+export * from "./deprecated" // Remove in a 2.x release

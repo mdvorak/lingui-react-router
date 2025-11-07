@@ -1,11 +1,11 @@
 import { useLingui } from "@lingui/react/macro"
-import { usePathLocale, userLocales } from "lingui-react-router"
+import { useRouteLocale, userLocales } from "lingui-react-router"
 import { useNavigation } from "react-router"
 
 export default function SelectLanguage() {
   const { t } = useLingui()
   const navigation = useNavigation()
-  const { locale, changeLocale } = usePathLocale()
+  const { locale, changeLocale } = useRouteLocale()
 
   return (
     <div style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>

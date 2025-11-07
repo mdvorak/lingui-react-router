@@ -3,7 +3,7 @@ import { I18nProvider } from "@lingui/react"
 import React, { useEffect, useMemo } from "react"
 import { useLocation, useNavigate, useParams } from "react-router"
 import { $getI18nInstance } from "virtual:lingui-router-loader"
-import { createLocalePathContext, findLocale, LocalePathContext } from "../client-context"
+import { createLocalePathContext, findLocale, RouteLocaleContext } from "../client-context"
 import { config, loadLocaleCatalog } from "../runtime"
 
 
@@ -78,9 +78,9 @@ export function I18nApp({ children }: Readonly<{ children: React.ReactNode }>) {
   }, [localeParam, context])
 
   return (
-    <LocalePathContext value={context}>
+    <RouteLocaleContext value={context}>
       <I18nProvider i18n={i18n}>{children}</I18nProvider>
-    </LocalePathContext>
+    </RouteLocaleContext>
   )
 }
 

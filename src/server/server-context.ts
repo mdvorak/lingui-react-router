@@ -5,7 +5,7 @@ import {
   type RedirectFunction,
   type RouterContextProvider,
 } from "react-router"
-import type { PathLocale } from "../client-context"
+import type { RouteLocale } from "../client-context"
 import "./assert-server"
 
 type ChangeLocaleServerFunction = (locale: string | undefined) => Response
@@ -13,7 +13,7 @@ type ChangeLocaleServerFunction = (locale: string | undefined) => Response
 /**
  * Server-side i18n context.
  */
-export type I18nRequestContext = Omit<PathLocale, "changeLocale"> & {
+export type I18nRequestContext = Omit<RouteLocale, "changeLocale"> & {
   /** The internationalization processing object, which manages locale-specific content and configurations. */
   i18n: I18n
   /** The translation function bound to the current i18n instance. */
@@ -36,11 +36,6 @@ export type I18nRequestContext = Omit<PathLocale, "changeLocale"> & {
    */
   changeLocale: ChangeLocaleServerFunction
 }
-
-/**
- * @deprecated Use I18nRequestContext instead. Will be removed in 2.0.0
- */
-export type I18nRouterContext = I18nRequestContext
 
 /**
  * Context to hold server-side i18n information.

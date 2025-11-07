@@ -2,7 +2,7 @@ import { i18n } from "@lingui/core"
 import { useLingui } from "@lingui/react"
 import { cleanup, render, screen, waitFor } from "@testing-library/react"
 import { userEvent } from "@testing-library/user-event"
-import { usePathLocale } from "lingui-react-router"
+import { useRouteLocale } from "lingui-react-router"
 import { loadInitialLocale } from "lingui-react-router/client"
 import { createLocaleRouteStub } from "lingui-react-router/test"
 import { Link } from "react-router"
@@ -19,16 +19,16 @@ function LocaleDisplay() {
   )
 }
 
-// Component that displays PathLocale context values
-function PathLocaleDisplay() {
+// Component that displays RouteLocale context values
+function RouteLocaleDisplay() {
   const { i18n } = useLingui()
-  const pathLocale = usePathLocale()
+  const routeLocale = useRouteLocale()
   return (
     <div>
       <div data-testid="current-locale">{i18n.locale}</div>
-      <div data-testid="path-locale">{pathLocale.locale}</div>
-      <div data-testid="path-request-locale">{pathLocale.requestLocale ?? "undefined"}</div>
-      <div data-testid="path-request-pathname">{pathLocale.requestPathname}</div>
+      <div data-testid="locale-route">{routeLocale.locale}</div>
+      <div data-testid="path-request-locale">{routeLocale.requestLocale ?? "undefined"}</div>
+      <div data-testid="path-request-pathname">{routeLocale.requestPathname}</div>
     </div>
   )
 }
@@ -191,11 +191,11 @@ describe("I18nApp", () => {
     })
   })
 
-  describe("LocalePathContext with usePathLocale", () => {
+  describe("LocalePathContext with useRouteLocale", () => {
     it("provides correct context when locale is in URL path", async () => {
       const Stub = createLocaleRouteStub({
         path: "test",
-        Component: PathLocaleDisplay,
+        Component: RouteLocaleDisplay,
       })
 
       const url = "/it/test"
@@ -203,11 +203,11 @@ describe("I18nApp", () => {
       render(<Stub initialEntries={[url]} />)
 
       await waitFor(() => {
-        const pathLocale = screen.getByTestId("path-locale")
+        const routeLocale = screen.getByTestId("locale-route")
         const pathRequestLocale = screen.getByTestId("path-request-locale")
         const pathRequestPathname = screen.getByTestId("path-request-pathname")
 
-        expect(pathLocale.textContent).toBe("it")
+        expect(routeLocale.textContent).toBe("it")
         expect(pathRequestLocale.textContent).toBe("it")
         expect(pathRequestPathname.textContent).toBe("/test")
       })
@@ -216,7 +216,7 @@ describe("I18nApp", () => {
     it("provides correct context when using default locale without locale in URL", async () => {
       const Stub = createLocaleRouteStub({
         path: "test",
-        Component: PathLocaleDisplay,
+        Component: RouteLocaleDisplay,
       })
 
       const url = "/test"
@@ -224,26 +224,26 @@ describe("I18nApp", () => {
       render(<Stub initialEntries={[url]} />)
 
       await waitFor(() => {
-        const pathLocale = screen.getByTestId("path-locale")
+        const routeLocale = screen.getByTestId("locale-route")
         const pathRequestLocale = screen.getByTestId("path-request-locale")
         const pathRequestPathname = screen.getByTestId("path-request-pathname")
 
-        expect(pathLocale.textContent).toBe("en") // default locale
+        expect(routeLocale.textContent).toBe("en") // default locale
         expect(pathRequestLocale.textContent).toBe("undefined") // no locale in URL
         expect(pathRequestPathname.textContent).toBe("/test")
       })
     })
 
     it("updates context when navigating between locales", async () => {
-      const PathLocaleDisplayWithLinks = () => {
+      const RouteLocaleDisplayWithLinks = () => {
         const { i18n } = useLingui()
-        const pathLocale = usePathLocale()
+        const routeLocale = useRouteLocale()
         return (
           <div>
             <div data-testid="current-locale">{i18n.locale}</div>
-            <div data-testid="path-locale">{pathLocale.locale}</div>
-            <div data-testid="path-request-locale">{pathLocale.requestLocale ?? "undefined"}</div>
-            <div data-testid="path-request-pathname">{pathLocale.requestPathname}</div>
+            <div data-testid="locale-route">{routeLocale.locale}</div>
+            <div data-testid="path-request-locale">{routeLocale.requestLocale ?? "undefined"}</div>
+            <div data-testid="path-request-pathname">{routeLocale.requestPathname}</div>
             <nav>
               <Link to="/en/about" data-testid="link-en">English</Link>
               <Link to="/cs/about" data-testid="link-cs">Czech</Link>
@@ -254,7 +254,7 @@ describe("I18nApp", () => {
 
       const Stub = createLocaleRouteStub({
         path: "about",
-        Component: PathLocaleDisplayWithLinks,
+        Component: RouteLocaleDisplayWithLinks,
       })
 
       const url = "/en/about"
@@ -263,7 +263,7 @@ describe("I18nApp", () => {
 
       // Verify initial state
       await waitFor(() => {
-        expect(screen.getByTestId("path-locale").textContent).toBe("en")
+        expect(screen.getByTestId("locale-route").textContent).toBe("en")
         expect(screen.getByTestId("path-request-locale").textContent).toBe("en")
         expect(screen.getByTestId("path-request-pathname").textContent).toBe("/about")
       })
@@ -274,7 +274,7 @@ describe("I18nApp", () => {
 
       // Verify updated state
       await waitFor(() => {
-        expect(screen.getByTestId("path-locale").textContent).toBe("cs")
+        expect(screen.getByTestId("locale-route").textContent).toBe("cs")
         expect(screen.getByTestId("path-request-locale").textContent).toBe("cs")
         expect(screen.getByTestId("path-request-pathname").textContent).toBe("/about")
       })
@@ -283,7 +283,7 @@ describe("I18nApp", () => {
     it("strips locale prefix from requestPathname correctly", async () => {
       const Stub = createLocaleRouteStub({
         path: "nested/deep/path",
-        Component: PathLocaleDisplay,
+        Component: RouteLocaleDisplay,
       })
 
       const url = "/en-GB/nested/deep/path"
@@ -291,24 +291,24 @@ describe("I18nApp", () => {
       render(<Stub initialEntries={[url]} />)
 
       await waitFor(() => {
-        const pathLocale = screen.getByTestId("path-locale")
+        const routeLocale = screen.getByTestId("locale-route")
         const pathRequestLocale = screen.getByTestId("path-request-locale")
         const pathRequestPathname = screen.getByTestId("path-request-pathname")
 
-        expect(pathLocale.textContent).toBe("en-gb") // normalized
+        expect(routeLocale.textContent).toBe("en-gb") // normalized
         expect(pathRequestLocale.textContent).toBe("en-gb")
         expect(pathRequestPathname.textContent).toBe("/nested/deep/path")
       })
     })
 
     it("handles query parameters and hash in pathname", async () => {
-      const PathLocaleDisplayWithQuery = () => {
-        const pathLocale = usePathLocale()
+      const RouteLocaleDisplayWithQuery = () => {
+        const routeLocale = useRouteLocale()
         return (
           <div>
-            <div data-testid="path-locale">{pathLocale.locale}</div>
-            <div data-testid="path-request-locale">{pathLocale.requestLocale ?? "undefined"}</div>
-            <div data-testid="path-request-pathname">{pathLocale.requestPathname}</div>
+            <div data-testid="locale-route">{routeLocale.locale}</div>
+            <div data-testid="path-request-locale">{routeLocale.requestLocale ?? "undefined"}</div>
+            <div data-testid="path-request-pathname">{routeLocale.requestPathname}</div>
             <Link to="/it/page?foo=bar#section" data-testid="link-with-query">Link with query</Link>
           </div>
         )
@@ -316,7 +316,7 @@ describe("I18nApp", () => {
 
       const Stub = createLocaleRouteStub({
         path: "page",
-        Component: PathLocaleDisplayWithQuery,
+        Component: RouteLocaleDisplayWithQuery,
       })
 
       const url = "/en/page"
