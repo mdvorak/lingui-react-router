@@ -1,12 +1,11 @@
 import fs from "node:fs/promises"
 import path from "node:path"
-import type { ModuleInfo, OutputBundle } from "rollup"
+import type { OutputBundle } from "rollup"
 import type { ConfigPluginContext, ResolvedConfig } from "vite"
 import { VIRTUAL_LOCALE_PREFIX } from "../plugin-config"
 import { resolveImportPath } from "./import-path"
 
 const LOCALE_MANIFEST_FILENAME = ".client-locale-manifest.json"
-const MANIFEST_CHUNK_NAME = "locale-manifest"
 const EMPTY_DEFAULT_EXPORT = "export default {}"
 
 /**
@@ -28,19 +27,6 @@ export async function generateManifestModule(context: ConfigPluginContext, confi
 
 export function generateEmptyManifestModule() {
   return EMPTY_DEFAULT_EXPORT
-}
-
-/**
- * Determine the chunk name for the manifest module.
- *
- * @param info - Module information provided by Rollup
- * @returns The chunk name if applicable, otherwise undefined
- */
-export function getManifestChunkName(info: ModuleInfo): string | undefined {
-  // Don't split an empty chunk
-  if (!info.code?.includes(EMPTY_DEFAULT_EXPORT)) {
-    return MANIFEST_CHUNK_NAME
-  }
 }
 
 /**

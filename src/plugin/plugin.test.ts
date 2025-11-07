@@ -7,7 +7,7 @@ import {
   generateLocaleMapping,
 } from "./generators/loader-module"
 import { generateBundleClient } from "./generators/manifest-module"
-import { addToList, linguiRouterPlugin } from "./plugin"
+import { linguiRouterPlugin } from "./plugin"
 import {
   PLUGIN_NAME,
   VIRTUAL_LOADER,
@@ -34,41 +34,6 @@ vi.mock("./generators/loader-module", () => ({
 
 beforeEach(() => {
   vi.clearAllMocks()
-})
-
-describe("addToList", () => {
-  it("should create a new array with the value when list is undefined", () => {
-    const result = addToList(undefined, "test")
-    expect(result).toEqual(["test"])
-  })
-
-  it("should add value to an existing array", () => {
-    const result = addToList(["existing"], "new")
-    expect(result).toEqual(["existing", "new"])
-  })
-
-  it("should convert a single value to an array with both values", () => {
-    const result = addToList("existing", "new")
-    expect(result).toEqual(["existing", "new"])
-  })
-
-  it("should handle multiple values in existing array", () => {
-    const result = addToList(["first", "second"], "third")
-    expect(result).toEqual(["first", "second", "third"])
-  })
-
-  it("should not mutate the original array", () => {
-    const original = ["original"]
-    const result = addToList(original, "new")
-    expect(original).toEqual(["original"])
-    expect(result).toEqual(["original", "new"])
-    expect(result).not.toBe(original)
-  })
-
-  it("should work with different types", () => {
-    const result = addToList([1, 2], 3)
-    expect(result).toEqual([1, 2, 3])
-  })
 })
 
 describe("linguiRouterPlugin - configResolved", () => {
@@ -198,27 +163,6 @@ describe("linguiRouterPlugin - config", () => {
     expect(result.resolve?.dedupe).toContain(PLUGIN_NAME)
   })
 
-  it("should preserve existing dedupe entries", () => {
-    const plugin = linguiRouterPlugin()
-    const userConfig = {
-      resolve: {
-        dedupe: ["react", "react-dom"],
-      },
-    } as any
-
-    const result = plugin.config(userConfig)
-
-    expect(result.resolve?.dedupe).toEqual(["react", "react-dom", PLUGIN_NAME])
-  })
-
-  it("should configure manualChunks for locale and manifest modules", () => {
-    const plugin = linguiRouterPlugin()
-    const userConfig = {} as any
-
-    const result = plugin.config(userConfig)
-
-    expect(result.build?.rollupOptions?.output?.manualChunks).toBeDefined()
-  })
 
   it("should include plugin in ssr.noExternal", () => {
     const plugin = linguiRouterPlugin()
@@ -229,18 +173,6 @@ describe("linguiRouterPlugin - config", () => {
     expect(result.ssr?.noExternal).toContain(PLUGIN_NAME)
   })
 
-  it("should preserve existing ssr.noExternal array", () => {
-    const plugin = linguiRouterPlugin()
-    const userConfig = {
-      ssr: {
-        noExternal: ["other-package"],
-      },
-    } as any
-
-    const result = plugin.config(userConfig)
-
-    expect(result.ssr?.noExternal).toEqual(["other-package", PLUGIN_NAME])
-  })
 
   it("should keep ssr.noExternal as true when already true", () => {
     const plugin = linguiRouterPlugin()
@@ -264,48 +196,14 @@ describe("linguiRouterPlugin - config", () => {
     expect(result.ssr?.optimizeDeps?.include).toContain("negotiator")
   })
 
-  it("should preserve existing ssr.optimizeDeps.include entries", () => {
-    const plugin = linguiRouterPlugin()
-    const userConfig = {
-      ssr: {
-        optimizeDeps: {
-          include: ["other-dep"],
-        },
-      },
-    } as any
-
-    const result = plugin.config(userConfig)
-
-    expect(result.ssr?.optimizeDeps?.include).toContain("negotiator")
-    expect(result.ssr?.optimizeDeps?.include).toContain("other-dep")
-  })
-
   describe("manualChunks", () => {
-    it("should return manifest chunk name for virtual manifest module", () => {
-      const plugin = linguiRouterPlugin()
-      const userConfig = {} as any
-
-      const result = plugin.config(userConfig)
-      const manualChunks = result.build?.rollupOptions?.output?.manualChunks
-
-      const mockModuleInfo = {
-        importers: [],
-        dynamicImporters: [],
-      }
-      const getModuleInfo = vi.fn().mockReturnValue(mockModuleInfo)
-
-      const chunkName = manualChunks("\0" + VIRTUAL_MANIFEST, { getModuleInfo })
-
-      expect(getModuleInfo).toHaveBeenCalledWith("\0" + VIRTUAL_MANIFEST)
-      expect(chunkName).toBeDefined()
-    })
-
     it("should return locale chunk name for virtual locale modules", () => {
       const plugin = linguiRouterPlugin()
       const userConfig = {} as any
 
       const result = plugin.config(userConfig)
       const manualChunks = result.build?.rollupOptions?.output?.manualChunks
+      expect(manualChunks).toBeDefined()
 
       const getModuleInfo = vi.fn()
 
@@ -321,10 +219,11 @@ describe("linguiRouterPlugin - config", () => {
 
     it("should return undefined for non-virtual modules", () => {
       const plugin = linguiRouterPlugin()
-      const userConfig = {} as any
+      const userConfig = { build: { ssr: false } } as any
 
       const result = plugin.config(userConfig)
       const manualChunks = result.build?.rollupOptions?.output?.manualChunks
+      expect(manualChunks).toBeDefined()
 
       const getModuleInfo = vi.fn()
 
@@ -333,18 +232,13 @@ describe("linguiRouterPlugin - config", () => {
       expect(manualChunks("@lingui/react", { getModuleInfo })).toBeUndefined()
     })
 
-    it("should throw error when module info not found for manifest", () => {
+    it("should not configure rollout output if its a server build", () => {
       const plugin = linguiRouterPlugin()
-      const userConfig = {} as any
+      const userConfig = { build: { ssr: true } } as any
 
       const result = plugin.config(userConfig)
-      const manualChunks = result.build?.rollupOptions?.output?.manualChunks
 
-      const getModuleInfo = vi.fn().mockReturnValue(null)
-
-      expect(() => {
-        manualChunks("\0" + VIRTUAL_MANIFEST, { getModuleInfo })
-      }).toThrow(`Module info not found for \\0${VIRTUAL_MANIFEST}`)
+      expect(result.build?.rollupOptions?.output?.manualChunks).toBeUndefined()
     })
   })
 })

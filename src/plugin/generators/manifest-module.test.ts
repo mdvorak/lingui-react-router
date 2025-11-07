@@ -1,13 +1,12 @@
 import fs from "node:fs/promises"
 import path from "node:path"
-import type { ModuleInfo, OutputBundle, OutputChunk } from "rollup"
+import type { OutputBundle, OutputChunk } from "rollup"
 import type { ConfigPluginContext, ResolvedConfig } from "vite"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import {
   generateBundleClient,
   generateEmptyManifestModule,
   generateManifestModule,
-  getManifestChunkName,
   stringifyJsonToString,
 } from "./manifest-module"
 
@@ -62,44 +61,6 @@ describe("manifest-module", () => {
     it("generateEmptyManifestModule should return empty default export", () => {
       const result = generateEmptyManifestModule()
       expect(result).toBe("export default {}")
-    })
-  })
-
-  describe("getManifestChunkName", () => {
-    it("should return chunk name when module contains non-empty code", () => {
-      // Note: We define only the properties we need for the test
-      const info = {
-        id: "test-module",
-        code: "export default JSON.parse(\"...\")",
-      } as unknown as ModuleInfo
-
-      const result = getManifestChunkName(info)
-
-      expect(result).toBe("locale-manifest")
-    })
-
-    it("should return undefined when module contains empty default export", () => {
-      // Note: We define only the properties we need for the test
-      const info = {
-        id: "test-module",
-        code: "export default {}",
-      } as unknown as ModuleInfo
-
-      const result = getManifestChunkName(info)
-
-      expect(result).toBeUndefined()
-    })
-
-    it("should return chunk name when module has no code", () => {
-      // Note: We define only the properties we need for the test
-      const info = {
-        id: "test-module",
-        code: null,
-      } as unknown as ModuleInfo
-
-      const result = getManifestChunkName(info)
-
-      expect(result).toBe("locale-manifest")
     })
   })
 
