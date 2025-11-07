@@ -4,8 +4,9 @@ import * as runtime from "./runtime"
 // Mock the virtual loader before importing runtime so runtime.ts uses these values.
 vi.mock("virtual:lingui-router-loader", () => ({
   config: {
-    locales: ["en", "fr"],
+    locales: ["en", "fr", "pseudo-pseudo"],
     defaultLocale: "en",
+    pseudoLocale: "pseudo-pseudo",
     localeParamName: "locale",
     exclude: [],
   },
@@ -13,6 +14,8 @@ vi.mock("virtual:lingui-router-loader", () => ({
   localeLoaders: {
     en: async () => ({ messages: { greeting: "hello" } }),
     fr: async () => ({ messages: { greeting: "bonjour" } }),
+    "pseudo-pseudo": async () => ({ messages: { greeting: "pseudo" } }),
+
   },
   $useLingui: vi.fn(),
 }))
@@ -21,7 +24,8 @@ describe("runtime supportedLocales", () => {
   it("builds a Set from loader.config.locales", () => {
     expect(runtime.supportedLocales.has("en")).toBe(true)
     expect(runtime.supportedLocales.has("fr")).toBe(true)
-    expect(runtime.supportedLocales.size).toBe(2)
+    expect(runtime.supportedLocales.has("pseudo-pseudo")).toBe(true)
+    expect(runtime.supportedLocales.size).toBe(3)
   })
 })
 
@@ -33,5 +37,11 @@ describe("loadLocaleCatalog", () => {
 
   it("throws when locale has no loader", async () => {
     await expect(runtime.loadLocaleCatalog("de")).rejects.toThrow("Locale 'de' is not supported")
+  })
+})
+
+describe("runtime userLocales", () => {
+  it("returns all locales except pseudoLocale", () => {
+    expect(runtime.userLocales).toEqual(["en", "fr"])
   })
 })
