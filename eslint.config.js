@@ -39,6 +39,8 @@ export default [
         "FunctionDeclaration": { "parameters": "first" },
         "FunctionExpression": { "parameters": "first" },
         "CallExpression": { "arguments": "first" },
+        // Ignore JSX to prevent conflict with jsx-indent-props
+        "ignoredNodes": ["JSXAttribute"],
       }],
       "@stylistic/comma-dangle": ["error", "always-multiline"],
       "@stylistic/brace-style": ["error", "1tbs", { "allowSingleLine": true }],
@@ -96,6 +98,9 @@ export default [
       "@stylistic/type-annotation-spacing": "error",
       "no-unused-vars": ["off"],
       "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+
+      // JSX indentation: align additional attributes with the first prop
+      "@stylistic/jsx-indent-props": ["error", "first"],
     },
   },
   {
