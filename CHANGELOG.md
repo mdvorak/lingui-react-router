@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.1.0](https://github.com/mdvorak/lingui-react-router/compare/v1.0.1...v1.1.0) (2025-11-07)
+
+
+### Features
+
+* add changeLocale function to handle locale changes and redirects ([9234ef7](https://github.com/mdvorak/lingui-react-router/commit/9234ef7abeaa0d9c793928760cdceae354f85a47))
+* add changeLocale to RouteLocale object ([1693905](https://github.com/mdvorak/lingui-react-router/commit/16939053f38aca50b8ea6266f2a09f2f924a582c)), closes [#85](https://github.com/mdvorak/lingui-react-router/issues/85)
+* expose userLocales property ([4e80d14](https://github.com/mdvorak/lingui-react-router/commit/4e80d14a75ca56a5d838e4673a7e506dfd88f9e1))
+* rename usePathLocale to useRouteLocale, deprecate usePathLocale ([978dc70](https://github.com/mdvorak/lingui-react-router/commit/978dc70fcc01a768122b0f82fb31417e7c142c89))
+
+
+### Bug Fixes
+
+* add support for custom useLingui module configuration ([8c66dcc](https://github.com/mdvorak/lingui-react-router/commit/8c66dcc35bfdf4edd1a8be1b3c93b6c2a71cde87))
+* correct locale normalization in URL redirect ([c5626c3](https://github.com/mdvorak/lingui-react-router/commit/c5626c3fae1e169ef43c33166f31bb94fcc0fd3d))
+* enhance i18n handling in I18nApp and usePathLocale ([6a362c6](https://github.com/mdvorak/lingui-react-router/commit/6a362c6b197f7b4ea38cd5c5d1730002f5689857))
+* fix minified code build and backticks in locales ([036f465](https://github.com/mdvorak/lingui-react-router/commit/036f46598cc93e7fb813b4a9cc3983c24ff002f3))
+* further optimize usePathLocale, main logic now moved to I18nApp component ([4815ff0](https://github.com/mdvorak/lingui-react-router/commit/4815ff095f0061cbe1ac0e20a0dd567915d40924))
+* remove I18nApp dependency on usePathLocale ([d9a6fd9](https://github.com/mdvorak/lingui-react-router/commit/d9a6fd9cff6cb782e2769f49310c3c7d0e581fcf))
+* remove identity mappings from localeMapping ([6c9ce2e](https://github.com/mdvorak/lingui-react-router/commit/6c9ce2ef27339c1bd8ac3118a45cdc76625d0f0a))
+
 ## [1.0.1](https://github.com/mdvorak/lingui-react-router/compare/v1.0.0...v1.0.1) (2025-11-04)
 
 
