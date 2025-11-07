@@ -6,8 +6,8 @@
 ### Features
 
 * add changeLocale function to handle locale changes and redirects ([9234ef7](https://github.com/mdvorak/lingui-react-router/commit/9234ef7abeaa0d9c793928760cdceae354f85a47))
-* add changeLocale to PathLocale object ([1693905](https://github.com/mdvorak/lingui-react-router/commit/16939053f38aca50b8ea6266f2a09f2f924a582c)), closes [#85](https://github.com/mdvorak/lingui-react-router/issues/85)
-* expose userLocales property, optimize SelectLanguage component ([4e80d14](https://github.com/mdvorak/lingui-react-router/commit/4e80d14a75ca56a5d838e4673a7e506dfd88f9e1))
+* add changeLocale to RouteLocale object ([1693905](https://github.com/mdvorak/lingui-react-router/commit/16939053f38aca50b8ea6266f2a09f2f924a582c)), closes [#85](https://github.com/mdvorak/lingui-react-router/issues/85)
+* expose userLocales property ([4e80d14](https://github.com/mdvorak/lingui-react-router/commit/4e80d14a75ca56a5d838e4673a7e506dfd88f9e1))
 * rename usePathLocale to useRouteLocale, deprecate usePathLocale ([978dc70](https://github.com/mdvorak/lingui-react-router/commit/978dc70fcc01a768122b0f82fb31417e7c142c89))
 
 
