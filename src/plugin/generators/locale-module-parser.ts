@@ -165,7 +165,7 @@ function extractSingleArgumentLiteral(init: estree.CallExpression): string | und
 
 export function replaceCatalogVariables(code: string, moduleInfo: ParsedLocaleModule): string | undefined {
   const jsonString = stringifyJsonToString(moduleInfo.mergedCatalog.json)
-  let result = code.slice(0, moduleInfo.mergedCatalog.range[0]) + `JSON.parse(${jsonString});` + code.slice(moduleInfo.mergedCatalog.range[1])
+  let result = code.slice(0, moduleInfo.mergedCatalog.range[0]) + `JSON.parse(${jsonString})` + code.slice(moduleInfo.mergedCatalog.range[1])
 
   for (const [start, end] of moduleInfo.usedRanges) {
     result = result.slice(0, start) + result.slice(end)
