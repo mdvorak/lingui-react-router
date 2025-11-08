@@ -5,7 +5,7 @@
 
 ### Bug Fixes
 
-* don't force the client to the join multiple catalogs ([6dd7044](https://github.com/mdvorak/lingui-react-router/commit/6dd7044518982e918a0fb34d49037fd223bb7af9))
+* don't force the client to join multiple catalogs ([6dd7044](https://github.com/mdvorak/lingui-react-router/commit/6dd7044518982e918a0fb34d49037fd223bb7af9))
 * don't generate chunks for server ([0ea6858](https://github.com/mdvorak/lingui-react-router/commit/0ea68588472e55bb88cfe8bf925190301f46e425))
 
 ## [1.1.0](https://github.com/mdvorak/lingui-react-router/compare/v1.0.1...v1.1.0) (2025-11-07)
