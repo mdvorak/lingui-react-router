@@ -14,19 +14,22 @@ describe("locale-module-parser", () => {
     const result = parseLocaleModuleChunk(ast)
 
     expect(result).toBeDefined()
-    expect(result?.mergedCatalog?.json).toEqual({
+    expect(result?.catalogs).toHaveLength(2)
+    expect(result?.catalogs[0].messages).toEqual({
       hello: "world",
+    })
+    expect(result?.catalogs[1].messages).toEqual({
       goodbye: "world",
     })
-    expect(result?.usedRanges).toEqual([
-      [45, 91],
-      [0, 44],
-    ])
+    expect(result?.expressionRange).toEqual({
+      start: 109,
+      end: 136,
+    })
 
     const transformed = replaceCatalogVariables(chunk, result!)
     expect(transformed?.trimEnd().split("\n")).toEqual([
       ``, ``,
-      `const messages = JSON.parse("{\\"hello\\":\\"world\\",\\"goodbye\\":\\"world\\"}");`,
+      `const messages = JSON.parse("{\\"hello\\":\\"world\\",\\"goodbye\\":\\"world\\"}")`,
       `export { messages }`,
     ])
   })
@@ -62,8 +65,14 @@ describe("locale-module-parser", () => {
     const result = parseLocaleModuleChunk(ast)
 
     expect(result).toBeDefined()
-    expect(result?.mergedCatalog).toBeDefined()
-    expect(result?.usedRanges).toHaveLength(2)
+    expect(result?.catalogs).toHaveLength(2)
+    expect(result?.catalogs[0].messages).toEqual({
+      hello: "world",
+    })
+    expect(result?.catalogs[1].messages).toEqual({
+      goodbye: "world",
+    })
+    expect(result?.expressionRange).toBeDefined()
 
     const transformed = replaceCatalogVariables(chunk, result!)
     expect(transformed?.trimEnd().split("\n")).toEqual([
@@ -72,7 +81,7 @@ describe("locale-module-parser", () => {
       `const x = foo()`,
       `/* This is a comment */`,
       ` // This is a comment`,
-      `const messages = JSON.parse("{\\"hello\\":\\"world\\",\\"goodbye\\":\\"world\\"}"); // And this too`,
+      `const messages = JSON.parse("{\\"hello\\":\\"world\\",\\"goodbye\\":\\"world\\"}") // And this too`,
       `export const otherVar = 42`,
       `export default messages`,
       `export { x }`,
@@ -89,15 +98,19 @@ describe("locale-module-parser", () => {
     const result = parseLocaleModuleChunk(ast)
 
     expect(result).toBeDefined()
-    expect(result?.mergedCatalog?.json).toEqual({
+    expect(result?.catalogs).toHaveLength(2)
+    expect(result?.catalogs[0].messages).toEqual({
       hello: "world",
+    })
+    expect(result?.catalogs[1].messages).toEqual({
       goodbye: "world",
     })
+    expect(result?.expressionRange).toBeDefined()
 
     const transformed = replaceCatalogVariables(chunk, result!)
     expect(transformed).toBeDefined()
     expect(transformed?.split("\n").filter(Boolean)).toEqual([
-      `export const messages = JSON.parse("{\\"hello\\":\\"world\\",\\"goodbye\\":\\"world\\"}");`,
+      `export const messages = JSON.parse("{\\"hello\\":\\"world\\",\\"goodbye\\":\\"world\\"}")`,
     ])
   })
 
@@ -110,14 +123,18 @@ describe("locale-module-parser", () => {
     const result = parseLocaleModuleChunk(ast)
 
     expect(result).toBeDefined()
-    expect(result?.mergedCatalog?.json).toEqual({
+    expect(result?.catalogs).toHaveLength(2)
+    expect(result?.catalogs[0].messages).toEqual({
       hello: "world",
+    })
+    expect(result?.catalogs[1].messages).toEqual({
       goodbye: "world",
     })
+    expect(result?.expressionRange).toBeDefined()
 
     const transformed = replaceCatalogVariables(chunk, result!)
     expect(transformed?.split("\n").filter(Boolean)).toEqual([
-      `export default JSON.parse("{\\"hello\\":\\"world\\",\\"goodbye\\":\\"world\\"}");`,
+      `export default JSON.parse("{\\"hello\\":\\"world\\",\\"goodbye\\":\\"world\\"}")`,
     ])
   })
 
@@ -133,7 +150,7 @@ describe("locale-module-parser", () => {
   })
 
   it("should handle many catalog variables", () => {
-    const numbers = [1, 2, 3, 4, 5, 6, 7, 8]
+    const numbers = [0, 1, 2, 3, 4, 5, 6, 7]
     const catalogs = numbers.map(i => `const m$${i} = JSON.parse('{"hello${i}": "${i}"}')`).join("\n")
 
     const chunk = `${catalogs}
@@ -145,9 +162,11 @@ describe("locale-module-parser", () => {
     const result = parseLocaleModuleChunk(ast)
 
     expect(result).toBeDefined()
+    expect(result?.catalogs).toHaveLength(numbers.length)
     numbers.forEach(i => {
-      expect(result?.mergedCatalog?.json).toHaveProperty(`hello${i}`, `${i}`)
+      expect(result?.catalogs[i].messages).toHaveProperty(`hello${i}`, `${i}`)
     })
+    expect(result?.expressionRange).toBeDefined()
   })
 
   it("should ignore assign without default object", () => {
@@ -177,12 +196,16 @@ export { messages };`
     const result = parseLocaleModuleChunk(ast)
 
     expect(result).toBeDefined()
+    expect(result?.catalogs).toHaveLength(2)
     // noinspection SpellCheckingInspection
-    expect(result?.mergedCatalog?.json).toMatchObject({
+    expect(result?.catalogs[0].messages).toMatchObject({
       "5yIPLp": ["Jejda!"],
-      "vXIe7J": ["Jazyk"],
       "50W5Aa": ["Šedě zbarvený text s proměnnou: ", ["0"]],
     })
+    expect(result?.catalogs[1].messages).toMatchObject({
+      "vXIe7J": ["Jazyk"],
+    })
+    expect(result?.expressionRange).toBeDefined()
 
     const transformed = replaceCatalogVariables(chunk, result!)
     expect(transformed).toBeDefined()
@@ -190,8 +213,23 @@ export { messages };`
     expect(transformed?.split("\n").filter(Boolean)).toEqual([
       `/*eslint-disable*/`,
       `/*eslint-disable*/`,
-      `const messages = JSON.parse("{\\"50W5Aa\\":[\\"Šedě zbarvený text s proměnnou: \\",[\\"0\\"]],\\"5yIPLp\\":[\\"Jejda!\\"],\\"6H4Yw+\\":[\\"Pokračovat\\"],\\"EkLV1t\\":[\\"Také z loaderu!\\"],\\"HWi8gx\\":[\\"Příklad integrace Lingui React Router\\"],\\"NlhLzM\\":[\\"Požadovaná stránka nebyla nalezena.\\"],\\"W5A0Ly\\":[\\"Nastala neočekávaná chyba.\\"],\\"j3MwdC\\":[\\"Speciální znaky: \\\\\\"'$.*+@!\`\\"],\\"prQVd8\\":[\\"Lingui React Router Aplikace\\"],\\"pw0gj9\\":[\\"Hlavní stránka\\"],\\"uBHlUy\\":[\\"Ahoj světe!\\"],\\"vXIe7J\\":[\\"Jazyk\\"]}");;`,
+      `const messages = JSON.parse("{\\"50W5Aa\\":[\\"Šedě zbarvený text s proměnnou: \\",[\\"0\\"]],\\"5yIPLp\\":[\\"Jejda!\\"],\\"6H4Yw+\\":[\\"Pokračovat\\"],\\"EkLV1t\\":[\\"Také z loaderu!\\"],\\"HWi8gx\\":[\\"Příklad integrace Lingui React Router\\"],\\"NlhLzM\\":[\\"Požadovaná stránka nebyla nalezena.\\"],\\"W5A0Ly\\":[\\"Nastala neočekávaná chyba.\\"],\\"j3MwdC\\":[\\"Speciální znaky: \\\\\\"'$.*+@!\`\\"],\\"prQVd8\\":[\\"Lingui React Router Aplikace\\"],\\"pw0gj9\\":[\\"Hlavní stránka\\"],\\"uBHlUy\\":[\\"Ahoj světe!\\"],\\"vXIe7J\\":[\\"Jazyk\\"]}");`,
       `export { messages };`,
     ])
+  })
+
+  it("should throw if multiple Object.assign() calls", () => {
+    const chunk = `const m$1 = JSON.parse('{"hello": "world"}')
+    const m$2 = JSON.parse('{"goodbye": "world"}')
+    const messages = Object.assign({}, m$1, m$2)
+    const messages2 = Object.assign({}, m$1, m$2)
+    export { messages, messages2 }
+    `.replaceAll(/^\s+/mg, "")
+
+    const ast = parseAst(chunk)
+
+    expect(() => parseLocaleModuleChunk(ast)).toThrowError(
+      /Multiple Object.assign\(\) calls found/,
+    )
   })
 })

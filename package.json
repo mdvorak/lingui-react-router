@@ -75,6 +75,9 @@
     "start": "pnpm run test && pnpm -F ./test start",
     "prepare": "husky"
   },
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
     "cldr-core": "^48.0.0",
     "fast-glob": "^3.3.3",
