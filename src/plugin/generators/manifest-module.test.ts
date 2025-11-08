@@ -7,7 +7,6 @@ import {
   generateBundleClient,
   generateEmptyManifestModule,
   generateManifestModule,
-  stringifyJsonToString,
 } from "./manifest-module"
 
 vi.mock("node:fs/promises")
@@ -198,19 +197,5 @@ describe("manifest-module", () => {
 
       expect(fs.writeFile).toHaveBeenCalledWith(expect.any(String), "{}", expect.any(Object))
     })
-  })
-})
-
-describe("stringifyJsonToString", () => {
-  it("should stringify empty JSON object", () => {
-    const result = stringifyJsonToString({})
-    expect(result).toBe(`"{}"`)
-  })
-
-  it("should stringify JSON object to escaped string", () => {
-    const manifestJson = { key: "value`$\"", nested: { a: 3 } }
-    const result = stringifyJsonToString(manifestJson)
-
-    expect(result).toBe(`"{\\"key\\":\\"value\`$\\\\\\"\\",\\"nested\\":{\\"a\\":3}}"`)
   })
 })

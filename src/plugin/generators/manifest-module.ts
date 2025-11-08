@@ -4,6 +4,7 @@ import type { OutputBundle } from "rollup"
 import type { ConfigPluginContext, ResolvedConfig } from "vite"
 import { VIRTUAL_LOCALE_PREFIX } from "../plugin-config"
 import { resolveImportPath } from "./import-path"
+import { stringifyJsonToString } from "./json-helper"
 
 const LOCALE_MANIFEST_FILENAME = ".client-locale-manifest.json"
 const EMPTY_DEFAULT_EXPORT = "export default {}"
@@ -67,17 +68,4 @@ export async function generateBundleClient(
 function resolveManifestPath(config: ResolvedConfig): string {
   // outDir always consists of buildDirectory/consumer
   return resolveImportPath(config.root, config.build.outDir, "..", LOCALE_MANIFEST_FILENAME)
-}
-
-/**
- * Stringify a JSON object to an escaped string.
- *
- * For example `{"key": "value"}` will be converted to `"{\"key\": \"value\"}"`
- *
- * @param manifestJson - The JSON object to stringify
- * @returns The escaped string representation of the JSON object
- */
-export function stringifyJsonToString(manifestJson: object): string {
-  // Use double stringify - the outer one will escape the inner JSON string properly
-  return JSON.stringify(JSON.stringify(manifestJson))
 }

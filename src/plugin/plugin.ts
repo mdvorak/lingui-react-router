@@ -10,6 +10,7 @@ import {
   generateLocaleMapping,
 } from "./generators/loader-module"
 import { generateLocaleModule } from "./generators/locale-module"
+import { parseLocaleModuleChunk, replaceCatalogVariables } from "./generators/locale-module-parser"
 import {
   generateBundleClient,
   generateEmptyManifestModule,
@@ -145,6 +146,24 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
           )
         }
         return module
+      }
+    },
+
+    async renderChunk(code, chunk) {
+      if (chunk.facadeModuleId?.startsWith("\0" + VIRTUAL_LOCALE_PREFIX)
+        && code.includes("Object.assign({},")) {
+        try {
+          const ast = this.parse(code)
+          const result = parseLocaleModuleChunk(ast)
+
+          if (result) {
+            return replaceCatalogVariables(code, result)
+          }
+
+        } catch (error) {
+          // If parsing fails, just return the original code
+          this.warn(`Failed to optimize locale chunk ${chunk.facadeModuleId}: ${error}`)
+        }
       }
     },
 
