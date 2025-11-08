@@ -1,4 +1,4 @@
-import fg from "fast-glob"
+import { glob } from "node:fs/promises"
 import { normalizeLocaleKey } from "../../config"
 import type { LinguiRouterPluginConfigFull } from "../plugin-config"
 import { resolveImportPath } from "./import-path"
@@ -34,11 +34,7 @@ export async function generateLocaleModule(
     // Add catalog extension for the glob pattern
     const globPattern = `${catalogPath}.${catalogExtension}`
 
-    const catalogFiles = await fg(globPattern, {
-      cwd: rootDir,
-    })
-
-    for (const catalogFile of catalogFiles) {
+    for await (const catalogFile of glob(globPattern, { cwd: rootDir })) {
       const varName = `catalog${importIndex++}`
       // Resolve to an absolute path for import
       const absolutePath = resolveImportPath(rootDir, catalogFile)

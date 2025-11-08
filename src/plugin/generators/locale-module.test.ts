@@ -1,11 +1,22 @@
+﻿import { glob } from "node:fs/promises"
 import path from "node:path"
 import type { LinguiConfigNormalized } from "@lingui/conf"
-import fg from "fast-glob"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import type { LinguiRouterPluginConfigFull } from "../plugin-config"
 import { generateLocaleModule } from "./locale-module"
 
-vi.mock("fast-glob")
+// Mock glob function
+vi.mock("node:fs/promises", async () => {
+  const actual = await vi.importActual<typeof import("node:fs/promises")>("node:fs/promises")
+  return {
+    ...actual,
+    glob: vi.fn(),
+  }
+})
+
+async function* asyncIterator(arr: string[]): AsyncIterableIterator<string> {
+  for (const item of arr) yield item
+}
 
 function normalizePath(p: string) {
   p = path.resolve(p)
@@ -50,12 +61,12 @@ describe("locale-module", () => {
 
   describe("generateLocaleModule", () => {
     it("should generate module with single catalog", async () => {
-      vi.mocked(fg).mockResolvedValue(["locales/en.po"])
+      vi.mocked(glob).mockReturnValueOnce(asyncIterator(["locales/en.po"]))
 
       const result = await generateLocaleModule("en", mockPluginConfig)
 
       expect(result).toContain(`export * from '${normalizePath("/project/locales/en.po")}'`)
-      expect(fg).toHaveBeenCalledWith(
+      expect(glob).toHaveBeenCalledWith(
         "/project/locales/en.po",
         expect.objectContaining({ cwd: "/project" }),
       )
@@ -73,8 +84,8 @@ describe("locale-module", () => {
         },
       ]
 
-      vi.mocked(fg).mockResolvedValueOnce(["locales/en.po"])
-      vi.mocked(fg).mockResolvedValueOnce(["components/Button/en.po", "components/Modal/en.po"])
+      vi.mocked(glob).mockReturnValueOnce(asyncIterator(["locales/en.po"]))
+      vi.mocked(glob).mockReturnValueOnce(asyncIterator(["components/Button/en.po", "components/Modal/en.po"]))
 
       const result = await generateLocaleModule("en", mockPluginConfig)
 
@@ -88,23 +99,23 @@ export const messages = Object.assign({}, catalog0, catalog1, catalog2)`)
     it("should handle locale with hyphen", async () => {
       mockLinguiConfig.locales = ["en-US", "en-GB"]
       mockPluginConfig.locales = ["en-us", "en-gb"]
-      vi.mocked(fg).mockResolvedValue(["locales/en-US.po"])
+      vi.mocked(glob).mockReturnValueOnce(asyncIterator(["locales/en-US.po"]))
 
       const result = await generateLocaleModule("en-us", mockPluginConfig)
 
       expect(result).toContain(`export * from '${normalizePath("/project/locales/en-US.po")}'`)
-      expect(fg).toHaveBeenCalledWith("/project/locales/en-US.po", expect.any(Object))
+      expect(glob).toHaveBeenCalledWith("/project/locales/en-US.po", expect.any(Object))
     })
 
     it("should handle locale with underscore in lingui config", async () => {
       mockLinguiConfig.locales = ["en_US"]
       mockPluginConfig.locales = ["en-us"]
-      vi.mocked(fg).mockResolvedValue(["locales/en_US.po"])
+      vi.mocked(glob).mockReturnValueOnce(asyncIterator(["locales/en_US.po"]))
 
       const result = await generateLocaleModule("en-us", mockPluginConfig)
 
       expect(result).toBeTruthy()
-      expect(fg).toHaveBeenCalledWith("/project/locales/en_US.po", expect.any(Object))
+      expect(glob).toHaveBeenCalledWith("/project/locales/en_US.po", expect.any(Object))
     })
 
     it("should throw error when locale not found in lingui config", async () => {
@@ -121,11 +132,11 @@ export const messages = Object.assign({}, catalog0, catalog1, catalog2)`)
         },
       ]
 
-      vi.mocked(fg).mockResolvedValue(["components/Button/en.po", "components/Input/en.po"])
+      vi.mocked(glob).mockReturnValueOnce(asyncIterator(["components/Button/en.po", "components/Input/en.po"]))
 
       await generateLocaleModule("en", mockPluginConfig)
 
-      expect(fg).toHaveBeenCalledWith("/project/components/*/en.po", expect.any(Object))
+      expect(glob).toHaveBeenCalledWith("/project/components/*/en.po", expect.any(Object))
     })
 
     it("should replace <rootDir> placeholder in paths", async () => {
@@ -137,18 +148,18 @@ export const messages = Object.assign({}, catalog0, catalog1, catalog2)`)
       ]
       mockLinguiConfig.rootDir = "/custom/root"
 
-      vi.mocked(fg).mockResolvedValue(["custom/path/en.po"])
+      vi.mocked(glob).mockReturnValueOnce(asyncIterator(["custom/path/en.po"]))
 
       await generateLocaleModule("en", mockPluginConfig)
 
-      expect(fg).toHaveBeenCalledWith(
+      expect(glob).toHaveBeenCalledWith(
         "/custom/root/custom/path/en.po",
         expect.objectContaining({ cwd: "/custom/root" }),
       )
     })
 
     it("should handle empty catalog results", async () => {
-      vi.mocked(fg).mockResolvedValue([])
+      vi.mocked(glob).mockReturnValueOnce(asyncIterator([]))
 
       const result = await generateLocaleModule("en", mockPluginConfig)
 
@@ -163,11 +174,11 @@ export const messages = Object.assign({}, catalog0, catalog1, catalog2)`)
         },
       ]
 
-      vi.mocked(fg).mockResolvedValue([
+      vi.mocked(glob).mockReturnValueOnce(asyncIterator([
         "locales/messages/en.po",
         "locales/ui/en.po",
         "locales/errors/en.po",
-      ])
+      ]))
 
       const result = await generateLocaleModule("en", mockPluginConfig)
 
@@ -179,7 +190,7 @@ export const messages = Object.assign({}, catalog0, catalog1, catalog2)`)
 
     it("should use absolute paths for imports", async () => {
       mockLinguiConfig.rootDir = "/absolute/project/path"
-      vi.mocked(fg).mockResolvedValue(["locales/en.po"])
+      vi.mocked(glob).mockReturnValueOnce(asyncIterator(["locales/en.po"]))
 
       const result = await generateLocaleModule("en", mockPluginConfig)
 
@@ -198,9 +209,9 @@ export const messages = Object.assign({}, catalog0, catalog1, catalog2)`)
         },
       ]
 
-      vi.mocked(fg)
-        .mockResolvedValueOnce(["app/auth/en.po", "app/profile/en.po"])
-        .mockResolvedValueOnce(["lib/utils/en.po"])
+      vi.mocked(glob)
+        .mockReturnValueOnce(asyncIterator(["app/auth/en.po", "app/profile/en.po"]))
+        .mockReturnValueOnce(asyncIterator(["lib/utils/en.po"]))
 
       const result = await generateLocaleModule("en", mockPluginConfig)
 
@@ -218,7 +229,7 @@ export const messages = Object.assign({}, catalog0, catalog1, catalog2)`)
         },
       ]
 
-      vi.mocked(fg).mockResolvedValue(["i18n/en/messages.po"])
+      vi.mocked(glob).mockReturnValueOnce(asyncIterator(["i18n/en/messages.po"]))
 
       const result = await generateLocaleModule("en", mockPluginConfig)
 
@@ -237,7 +248,8 @@ export const messages = Object.assign({}, catalog0, catalog1, catalog2)`)
         },
       ]
 
-      vi.mocked(fg).mockResolvedValueOnce(["base/en.po"]).mockResolvedValueOnce(["override/en.po"])
+      vi.mocked(glob).mockReturnValueOnce(asyncIterator(["base/en.po"]))
+      vi.mocked(glob).mockReturnValueOnce(asyncIterator(["override/en.po"]))
 
       const result = await generateLocaleModule("en", mockPluginConfig)
 
@@ -252,12 +264,12 @@ export const messages = Object.assign({}, catalog0, catalog1, catalog2)`)
         catalogExtension: "json",
       } as any
 
-      vi.mocked(fg).mockResolvedValue(["locales/en.json"])
+      vi.mocked(glob).mockReturnValueOnce(asyncIterator(["locales/en.json"]))
 
       const result = await generateLocaleModule("en", mockPluginConfig)
 
       expect(result).toContain(`export * from '${normalizePath("/project/locales/en.json")}'`)
-      expect(fg).toHaveBeenCalledWith(
+      expect(glob).toHaveBeenCalledWith(
         "/project/locales/en.json",
         expect.objectContaining({ cwd: "/project" }),
       )
@@ -266,12 +278,12 @@ export const messages = Object.assign({}, catalog0, catalog1, catalog2)`)
     it("should default to .po extension when format is a string", async () => {
       mockLinguiConfig.format = "po" as any
 
-      vi.mocked(fg).mockResolvedValue(["locales/en.po"])
+      vi.mocked(glob).mockReturnValueOnce(asyncIterator(["locales/en.po"]))
 
       const result = await generateLocaleModule("en", mockPluginConfig)
 
       expect(result).toContain(`export * from '${normalizePath("/project/locales/en.po")}'`)
-      expect(fg).toHaveBeenCalledWith(
+      expect(glob).toHaveBeenCalledWith(
         "/project/locales/en.po",
         expect.objectContaining({ cwd: "/project" }),
       )
@@ -282,12 +294,12 @@ export const messages = Object.assign({}, catalog0, catalog1, catalog2)`)
         // catalogExtension not specified
       } as any
 
-      vi.mocked(fg).mockResolvedValue(["locales/en.po"])
+      vi.mocked(glob).mockReturnValueOnce(asyncIterator(["locales/en.po"]))
 
       const result = await generateLocaleModule("en", mockPluginConfig)
 
       expect(result).toContain(`export * from '${normalizePath("/project/locales/en.po")}'`)
-      expect(fg).toHaveBeenCalledWith(
+      expect(glob).toHaveBeenCalledWith(
         "/project/locales/en.po",
         expect.objectContaining({ cwd: "/project" }),
       )

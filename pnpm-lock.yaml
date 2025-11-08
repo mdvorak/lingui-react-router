@@ -26,9 +26,6 @@ importers:
       cldr-core:
         specifier: ^48.0.0
         version: 48.0.0
-      fast-glob:
-        specifier: ^3.3.3
-        version: 3.3.3
       negotiator:
         specifier: ^1.0.0
         version: 1.0.0
