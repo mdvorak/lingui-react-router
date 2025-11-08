@@ -75,6 +75,9 @@
     "start": "pnpm run test && pnpm -F ./test start",
     "prepare": "husky"
   },
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
     "cldr-core": "^48.0.0",
     "fast-glob": "^3.3.3",
@@ -84,8 +87,9 @@
     "@eslint/js": "^9.39.1",
     "@stylistic/eslint-plugin": "^5.5.0",
     "@testing-library/react": "^16.3.0",
+    "@types/estree": "^1.0.8",
     "@types/negotiator": "^0.6.4",
-    "@types/node": "^22.19.0",
+    "@types/node": "^20.19.24",
     "@types/react": "^19.2.2",
     "@typescript-eslint/eslint-plugin": "^8.46.3",
     "@typescript-eslint/parser": "^8.46.3",
