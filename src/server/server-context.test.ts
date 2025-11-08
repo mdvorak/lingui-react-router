@@ -1,6 +1,6 @@
 import { i18n, type I18n } from "@lingui/core"
 import { describe, expect, it, vi } from "vitest"
-import { changeLocaleRedirect, createRequestContext } from "./server-context"
+import { changeLocaleRedirect, createRequestContext, useLinguiServer } from "./server-context"
 
 describe("changeLocaleRedirect", () => {
   it("should redirect to target locale with request pathname", () => {
@@ -371,5 +371,29 @@ describe("context properties", () => {
     expect(typeof context._).toBe("function")
     expect(typeof context.redirect).toBe("function")
     expect(typeof context.changeLocale).toBe("function")
+  })
+})
+
+describe("useLinguiServer", () => {
+  it("should throw helpful error when used outside localeMiddleware", () => {
+    const mockContext = {
+      get: vi.fn(() => {
+        throw new Error("No value found for context")
+      }),
+    }
+
+    expect(() => useLinguiServer(mockContext as any)).toThrow(
+      "useLinguiServer must be used within a localeMiddleware",
+    )
+  })
+
+  it("should re-throw other errors", () => {
+    const mockContext = {
+      get: vi.fn(() => {
+        throw new Error("Some other error")
+      }),
+    }
+
+    expect(() => useLinguiServer(mockContext as any)).toThrow("Some other error")
   })
 })
