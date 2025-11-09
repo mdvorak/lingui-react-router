@@ -394,12 +394,26 @@ options are optional and have sensible defaults.
 
 ### Options
 
+#### `defaultLocale`
+
+- **Type:** `string`
+- **Default:** First locale from `locales`
+- **Description:** Default locale to use when no locale can be detected. Must be included in
+  `locales`. By default, the first locale from the Lingui config is used.
+
 #### `exclude`
 
 - **Type:** `string | string[]`
 - **Default:** `[]`
 - **Description:** One or more root-level path prefixes that should NOT be treated as locales. This
   is useful for API routes, health check endpoints, or other non-localized paths.
+
+#### `localeParamName`
+
+- **Type:** `string`
+- **Default:** `"locale"`
+- **Description:** Name of the URL parameter used to specify the locale. Defaults to "locale", e.g.
+  `"/:locale?/*"`. Change this if you need a different parameter name in your routes.
 
 #### `detectLocale`
 
@@ -440,12 +454,9 @@ options are optional and have sensible defaults.
   false, only identity mappings and custom `localeMapping` entries will be included, without
   automatic CLDR fallbacks. For example, mapping "en-GB" to "en", "pt-BR" to "pt", etc.
 
-#### `localeParamName`
+### Advanced Options
 
-- **Type:** `string`
-- **Default:** `"locale"`
-- **Description:** Name of the URL parameter used to specify the locale. Defaults to "locale", e.g.
-  `"/:locale?/*"`. Change this if you need a different parameter name in your routes.
+Normally you don't need to set these options unless you have a specific use case.
 
 #### `linguiConfig`
 
@@ -453,13 +464,6 @@ options are optional and have sensible defaults.
 - **Default:** Auto-loaded from project root
 - **Description:** Explicit Lingui configuration to use. If not provided, the plugin will attempt to
   load the Lingui config from the project root.
-
-#### `defaultLocale`
-
-- **Type:** `string`
-- **Default:** First locale from `locales`
-- **Description:** Default locale to use when no locale can be detected. Must be included in
-  `locales`. By default, the first locale from the Lingui config is used.
 
 #### `locales`
 
@@ -474,6 +478,13 @@ options are optional and have sensible defaults.
 - **Default:** From Lingui config
 - **Description:** Overrides the pseudo-locale defined in Lingui config. Normally, you should not
   need to set this.
+
+#### `optimizeLocaleBundles`
+
+- **Type:** `boolean`
+- **Default:** `true`
+- **Description:** Whether to optimize client locale bundle chunks by removing unused catalog
+  variables. This can reduce bundle size and improve performance.
 
 ### Complete Example
 
@@ -492,12 +503,11 @@ export default defineConfig({
     macrosPlugin(),
     lingui(),
     linguiRouterPlugin({
+      defaultLocale: "en-US",
       // Exclude API and health check paths from locale handling
       exclude: ["api", "health"],
-      // Detect locale from Accept-Language header
-      detectLocale: true,
       // Only redirect non-default locales
-      redirect: "auto",
+      redirect: "always",
     }),
     tsconfigPaths(),
   ],

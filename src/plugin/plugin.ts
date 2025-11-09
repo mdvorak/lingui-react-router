@@ -86,6 +86,7 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
         },
         build: {
           rollupOptions: {
+            // Conditional only for client builds
             output: isClientBuild ? {
               manualChunks(id) {
                 if (id.startsWith("\0" + VIRTUAL_LOCALE_PREFIX)) {
@@ -97,7 +98,7 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
           },
         },
         ssr: {
-          // This library must be included, otherwise virtual imports won't work
+          // This library must be inlined, otherwise virtual imports won't work
           noExternal: config.ssr?.noExternal === true || [PLUGIN_NAME],
           optimizeDeps: {
             include: ["negotiator"],
@@ -123,7 +124,6 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
     async load(id) {
       const server = this.environment.name === SERVER_ENVIRONMENT_NAME
       const { linguiRouterConfig } = this.environment.config
-      if (!linguiRouterConfig) throw new Error("linguiRouterConfig not loaded")
 
       if (id === "\0" + VIRTUAL_MANIFEST) {
         if (server && this.environment.mode !== "dev") {
@@ -150,7 +150,10 @@ export function linguiRouterPlugin(pluginConfig: LinguiRouterPluginConfig = {}):
     },
 
     async renderChunk(code, chunk) {
-      if (chunk.facadeModuleId?.startsWith("\0" + VIRTUAL_LOCALE_PREFIX)
+      const { linguiRouterConfig } = this.environment.config
+
+      if (linguiRouterConfig.optimizeLocaleBundles
+        && chunk.facadeModuleId?.startsWith("\0" + VIRTUAL_LOCALE_PREFIX)
         && code.includes("Object.assign({},")) {
         try {
           const ast = this.parse(code)
