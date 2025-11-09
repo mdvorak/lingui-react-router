@@ -9,18 +9,18 @@
     "build"
   ],
   "compilerOptions": {
+    "target": "ES2021",
+    "module": "ES2020",
+    "moduleResolution": "bundler",
     "lib": [
       "DOM",
       "DOM.Iterable",
-      "ES2022"
+      "ES2021"
     ],
     "types": [
       "node",
       "vite/client"
     ],
-    "target": "ES2022",
-    "module": "ES2022",
-    "moduleResolution": "bundler",
     "jsx": "react-jsx",
     "rootDirs": [
       ".",
