@@ -39,6 +39,7 @@ describe("locale-module", () => {
       defaultLocaleMapping: true,
       localeParamName: "locale",
       linguiConfig: mockLinguiConfig,
+      optimizeLocaleBundles: false,
     }
 
     vi.clearAllMocks()

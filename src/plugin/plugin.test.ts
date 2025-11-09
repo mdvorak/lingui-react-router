@@ -6,6 +6,10 @@ import {
   generateLoaderModuleServer,
   generateLocaleMapping,
 } from "./generators/loader-module"
+import {
+  parseLocaleModuleChunk,
+  replaceCatalogVariables,
+} from "./generators/locale-module-parser"
 import { generateBundleClient } from "./generators/manifest-module"
 import { linguiRouterPlugin } from "./plugin"
 import {
@@ -30,6 +34,12 @@ vi.mock("./generators/loader-module", () => ({
   generateDetectLocale: vi.fn().mockReturnValue(["DETECT_LOCALE_LINE"]),
   buildConfig: vi.fn().mockReturnValue({}),
   generateEmptyLocaleMapping: vi.fn().mockReturnValue(["EMPTY_LOCALE_MAPPING"]),
+}))
+
+// Mock locale-module-parser
+vi.mock("./generators/locale-module-parser", () => ({
+  parseLocaleModuleChunk: vi.fn(),
+  replaceCatalogVariables: vi.fn(),
 }))
 
 beforeEach(() => {
@@ -63,6 +73,7 @@ describe("linguiRouterPlugin - configResolved", () => {
       defaultLocale: "und",
       locales: [],
       pseudoLocale: undefined,
+      optimizeLocaleBundles: true,
     })
   })
 
@@ -78,6 +89,7 @@ describe("linguiRouterPlugin - configResolved", () => {
       defaultLocale: "fr",
       locales: ["en", "fr", "de"],
       pseudoLocale: "pseudo",
+      optimizeLocaleBundles: false,
     })
 
     const config = {
@@ -97,6 +109,7 @@ describe("linguiRouterPlugin - configResolved", () => {
       defaultLocale: "fr",
       locales: ["en", "fr", "de"],
       pseudoLocale: "pseudo",
+      optimizeLocaleBundles: false,
     })
   })
 
@@ -431,5 +444,226 @@ describe("linguiRouterPlugin - load", () => {
     expect(result).toContain("CLIENT_LOADER_LINE")
     expect(result).toContain("LOCALE_MAPPING_LINE")
     expect(result).toContain("DETECT_LOCALE_LINE")
+  })
+})
+
+describe("linguiRouterPlugin - renderChunk", () => {
+  it("should optimize locale bundle when optimizeLocaleBundles is true and chunk is a locale module", async () => {
+    const plugin = linguiRouterPlugin()
+    const mockConfig = {
+      linguiRouterConfig: {
+        optimizeLocaleBundles: true,
+      },
+    }
+
+    const mockContext: any = {
+      environment: {
+        config: mockConfig,
+      },
+      parse: vi.fn().mockReturnValue({ type: "Program", body: [] }),
+      warn: vi.fn(),
+    }
+
+    const code = "const catalog1 = JSON.parse(\"{}\"); const messages = Object.assign({}, catalog1);"
+    const chunk = {
+      facadeModuleId: "\0" + VIRTUAL_LOCALE_PREFIX + "en",
+    }
+
+    const mockParsedResult = {
+      catalogs: [{ name: "catalog1", messages: { hello: "Hello" }, start: 0, end: 30 }],
+      expressionRange: { start: 50, end: 80 },
+    }
+
+    vi.mocked(parseLocaleModuleChunk).mockReturnValue(mockParsedResult)
+    vi.mocked(replaceCatalogVariables).mockReturnValue("optimized code")
+
+    const result = await plugin.renderChunk.call(mockContext, code, chunk)
+
+    expect(mockContext.parse).toHaveBeenCalledWith(code)
+    expect(parseLocaleModuleChunk).toHaveBeenCalledWith({ type: "Program", body: [] })
+    expect(replaceCatalogVariables).toHaveBeenCalledWith(code, mockParsedResult)
+    expect(result).toBe("optimized code")
+  })
+
+  it("should not optimize when optimizeLocaleBundles is false", async () => {
+    const plugin = linguiRouterPlugin()
+    const mockConfig = {
+      linguiRouterConfig: {
+        optimizeLocaleBundles: false,
+      },
+    }
+
+    const mockContext: any = {
+      environment: {
+        config: mockConfig,
+      },
+      parse: vi.fn(),
+      warn: vi.fn(),
+    }
+
+    const code = "const catalog1 = JSON.parse(\"{}\"); const messages = Object.assign({}, catalog1);"
+    const chunk = {
+      facadeModuleId: "\0" + VIRTUAL_LOCALE_PREFIX + "en",
+    }
+
+    const result = await plugin.renderChunk.call(mockContext, code, chunk)
+
+    expect(mockContext.parse).not.toHaveBeenCalled()
+    expect(parseLocaleModuleChunk).not.toHaveBeenCalled()
+    expect(replaceCatalogVariables).not.toHaveBeenCalled()
+    expect(result).toBeUndefined()
+  })
+
+  it("should not optimize when chunk is not a locale module", async () => {
+    const plugin = linguiRouterPlugin()
+    const mockConfig = {
+      linguiRouterConfig: {
+        optimizeLocaleBundles: true,
+      },
+    }
+
+    const mockContext: any = {
+      environment: {
+        config: mockConfig,
+      },
+      parse: vi.fn(),
+      warn: vi.fn(),
+    }
+
+    const code = "const catalog1 = JSON.parse(\"{}\"); const messages = Object.assign({}, catalog1);"
+    const chunk = {
+      facadeModuleId: "some-other-module.js",
+    }
+
+    const result = await plugin.renderChunk.call(mockContext, code, chunk)
+
+    expect(mockContext.parse).not.toHaveBeenCalled()
+    expect(parseLocaleModuleChunk).not.toHaveBeenCalled()
+    expect(replaceCatalogVariables).not.toHaveBeenCalled()
+    expect(result).toBeUndefined()
+  })
+
+  it("should not optimize when code does not contain Object.assign", async () => {
+    const plugin = linguiRouterPlugin()
+    const mockConfig = {
+      linguiRouterConfig: {
+        optimizeLocaleBundles: true,
+      },
+    }
+
+    const mockContext: any = {
+      environment: {
+        config: mockConfig,
+      },
+      parse: vi.fn(),
+      warn: vi.fn(),
+    }
+
+    const code = "const catalog1 = JSON.parse(\"{}\"); export default catalog1;"
+    const chunk = {
+      facadeModuleId: "\0" + VIRTUAL_LOCALE_PREFIX + "en",
+    }
+
+    const result = await plugin.renderChunk.call(mockContext, code, chunk)
+
+    expect(mockContext.parse).not.toHaveBeenCalled()
+    expect(parseLocaleModuleChunk).not.toHaveBeenCalled()
+    expect(replaceCatalogVariables).not.toHaveBeenCalled()
+    expect(result).toBeUndefined()
+  })
+
+  it("should return undefined when parseLocaleModuleChunk returns undefined", async () => {
+    const plugin = linguiRouterPlugin()
+    const mockConfig = {
+      linguiRouterConfig: {
+        optimizeLocaleBundles: true,
+      },
+    }
+
+    const mockContext: any = {
+      environment: {
+        config: mockConfig,
+      },
+      parse: vi.fn().mockReturnValue({ type: "Program", body: [] }),
+      warn: vi.fn(),
+    }
+
+    const code = "const catalog1 = JSON.parse(\"{}\"); const messages = Object.assign({}, catalog1);"
+    const chunk = {
+      facadeModuleId: "\0" + VIRTUAL_LOCALE_PREFIX + "en",
+    }
+
+    vi.mocked(parseLocaleModuleChunk).mockReturnValue(undefined)
+
+    const result = await plugin.renderChunk.call(mockContext, code, chunk)
+
+    expect(mockContext.parse).toHaveBeenCalledWith(code)
+    expect(parseLocaleModuleChunk).toHaveBeenCalledWith({ type: "Program", body: [] })
+    expect(replaceCatalogVariables).not.toHaveBeenCalled()
+    expect(result).toBeUndefined()
+  })
+
+  it("should warn and return undefined when parsing fails", async () => {
+    const plugin = linguiRouterPlugin()
+    const mockConfig = {
+      linguiRouterConfig: {
+        optimizeLocaleBundles: true,
+      },
+    }
+
+    const mockContext: any = {
+      environment: {
+        config: mockConfig,
+      },
+      parse: vi.fn().mockImplementation(() => {
+        throw new Error("Parse error")
+      }),
+      warn: vi.fn(),
+    }
+
+    const code = "const catalog1 = JSON.parse(\"{}\"); const messages = Object.assign({}, catalog1);"
+    const chunk = {
+      facadeModuleId: "\0" + VIRTUAL_LOCALE_PREFIX + "en",
+    }
+
+    const result = await plugin.renderChunk.call(mockContext, code, chunk)
+
+    expect(mockContext.parse).toHaveBeenCalledWith(code)
+    expect(mockContext.warn).toHaveBeenCalledWith(
+      expect.stringContaining("Failed to optimize locale chunk"),
+    )
+    expect(mockContext.warn).toHaveBeenCalledWith(
+      expect.stringContaining("Parse error"),
+    )
+    expect(parseLocaleModuleChunk).not.toHaveBeenCalled()
+    expect(replaceCatalogVariables).not.toHaveBeenCalled()
+    expect(result).toBeUndefined()
+  })
+
+  it("should handle chunk without facadeModuleId", async () => {
+    const plugin = linguiRouterPlugin()
+    const mockConfig = {
+      linguiRouterConfig: {
+        optimizeLocaleBundles: true,
+      },
+    }
+
+    const mockContext: any = {
+      environment: {
+        config: mockConfig,
+      },
+      parse: vi.fn(),
+      warn: vi.fn(),
+    }
+
+    const code = "const catalog1 = JSON.parse(\"{}\"); const messages = Object.assign({}, catalog1);"
+    const chunk = {}
+
+    const result = await plugin.renderChunk.call(mockContext, code, chunk)
+
+    expect(mockContext.parse).not.toHaveBeenCalled()
+    expect(parseLocaleModuleChunk).not.toHaveBeenCalled()
+    expect(replaceCatalogVariables).not.toHaveBeenCalled()
+    expect(result).toBeUndefined()
   })
 })

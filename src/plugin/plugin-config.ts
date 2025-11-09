@@ -6,6 +6,9 @@ export const VIRTUAL_LOCALE_PREFIX = "virtual:lingui-router-locale-"
 export const VIRTUAL_MANIFEST = "virtual:lingui-router-manifest"
 export const VIRTUAL_LOADER = "virtual:lingui-router-loader"
 
+/**
+ * Full configuration for the Lingui React Router plugin.
+ */
 export type LinguiRouterPluginConfigFull = {
   /**
    * One or more root-level path prefixes that should NOT be treated as locales.
@@ -50,9 +53,10 @@ export type LinguiRouterPluginConfigFull = {
    */
   localeParamName: string
   /**
-   * Explicit Lingui configuration to use.
+   * Explicit Lingui configuration to use. When not set,
+   * the plugin will load the Lingui config itself.
    *
-   * If not provided, the plugin will attempt to load the Lingui config from the project root.
+   * Set this only if you want to override the Lingui config loaded by the plugin.
    */
   linguiConfig: Readonly<LinguiConfigNormalized>
   /**
@@ -73,6 +77,14 @@ export type LinguiRouterPluginConfigFull = {
    * Normally, you should not need to set this.
    */
   pseudoLocale?: string
+  /**
+   * Whether to optimize client-side locale bundles by replacing `Object.assign` calls
+   * with direct catalog objects in generated code. This reduces runtime overhead and
+   * bundle size by inlining catalog data instead of merging at runtime.
+   *
+   * This affects only client-side generated catalog files. Defaults to true.
+   */
+  optimizeLocaleBundles: boolean
 }
 
 /**
@@ -103,6 +115,11 @@ export function defineLinguiRouterConfig(
   return config
 }
 
+/**
+ * Default configuration for the Lingui React Router plugin.
+ *
+ * Missing `linguiConfig`. `locales` and `pseudoLocale` will be loaded from the Lingui config.
+ */
 export const pluginConfigDefaults = {
   defaultLocale: "und",
   exclude: [],
@@ -111,4 +128,5 @@ export const pluginConfigDefaults = {
   localeMapping: {} as Record<string, string>,
   defaultLocaleMapping: true,
   localeParamName: "locale",
+  optimizeLocaleBundles: true,
 }
