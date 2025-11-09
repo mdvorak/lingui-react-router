@@ -33,8 +33,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Lint package
+        run: pnpm lint
+
       - name: Test package
-        run: pnpm test:all
+        run: pnpm --recursive --stream test
 
       - name: Package
         if: matrix.node-version == 'lts/*' && matrix.os == 'ubuntu-latest'

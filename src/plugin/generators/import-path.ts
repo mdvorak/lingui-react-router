@@ -10,7 +10,7 @@ export function resolveImportPath(...paths: string[]): string {
   return normalizeImportPath(path.resolve(...paths))
 }
 
-function normalizeImportPath(modulePath: string): string {
+export function normalizeImportPath(modulePath: string): string {
   // Never use Windows backslashes in module paths
   return modulePath.replaceAll("\\", "/")
 }

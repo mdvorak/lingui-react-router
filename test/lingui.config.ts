@@ -1,5 +1,9 @@
+import { dirname } from "node:path"
+import { fileURLToPath } from "node:url"
 import { defineConfig } from "@lingui/cli"
 import { defineLinguiRouterConfig } from "lingui-react-router/plugin"
+
+const projectDir = dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
   locales: ["en", "en-GB", "cs", "it", "pseudo"],
@@ -14,14 +18,15 @@ export default defineConfig({
     },
     {
       name: "{locale}",
-      path: "app/components/{name}/{name}-{locale}",
-      include: ["app/components/{name}"],
+      path: "<rootDir>/app/components/{name}/{name}-{locale}",
+      include: ["<rootDir>/app/components/{name}"],
       exclude: ["**/*.test.*"],
     },
   ],
   formatOptions: {
     lineNumbers: false,
   },
+  rootDir: projectDir,
 })
 
 export const linguiRouterConfig = defineLinguiRouterConfig({
