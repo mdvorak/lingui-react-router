@@ -3,6 +3,7 @@ node_modules/
 .swc/
 dist/
 coverage/
+.vitest-reports/
 
 # React Router
 .react-router/

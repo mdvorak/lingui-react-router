@@ -1,7 +1,7 @@
 import fg from "fast-glob"
 import { normalizeLocaleKey } from "../../config"
 import type { LinguiRouterPluginConfigFull } from "../plugin-config"
-import { resolveImportPath } from "./import-path"
+import { normalizeImportPath, resolveImportPath } from "./import-path"
 
 /**
  * Generate the locale module code for a specific locale.
@@ -24,10 +24,10 @@ export async function generateLocaleModule(
 
   // Note: catalogs are never empty in the normalized parsed config
   for (const catalogConfig of linguiConfig.catalogs!) {
-    let catalogPath = catalogConfig.path
+    const catalogPath = normalizeImportPath(catalogConfig.path
       .replaceAll("<rootDir>", rootDir)
       .replaceAll("{locale}", linguiLocale)
-      .replaceAll("{name}", "*")
+      .replaceAll("{name}", "*"))
     const catalogExtension =
       (typeof linguiConfig.format === "object" && linguiConfig.format.catalogExtension) || "po"
 

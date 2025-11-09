@@ -5,3 +5,5 @@ onlyBuiltDependencies:
   - '@swc/core'
   - '@tailwindcss/oxide'
   - esbuild
+
+includeWorkspaceRoot: true

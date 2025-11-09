@@ -3,16 +3,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "clean:build": "node -e 'require(\"fs\").rmSync(\"build\", { recursive: true, force: true })'",
-    "clean:types": "node -e 'require(\"fs\").rmSync(\".react-router\", { recursive: true, force: true })'",
-    "clean": "pnpm run clean:build && pnpm run clean:types",
-    "extract": "lingui extract",
-    "prebuild": "react-router typegen && tsc --noEmit --strict && lingui extract --clean",
+    "extract": "lingui extract --clean",
     "build": "react-router build",
-    "postbuild": "vitest run",
+    "pretest": "lingui extract && react-router typegen",
+    "test": "tsc --noEmit --strict && vitest run --coverage",
+    "predev": "lingui extract",
     "dev": "react-router dev",
-    "start": "react-router-serve ./build/server/index.js",
-    "test": "vitest run"
+    "clean": "node -e '[\"build\", \".react-router\", \"coverage\"].forEach(d => fs.rmSync(d, { recursive: true, force: true }))'",
+    "start": "react-router-serve ./build/server/index.js"
   },
   "dependencies": {
     "@lingui/core": "^5.5.0",
@@ -35,6 +33,7 @@
     "@types/node": "^20.19.25",
     "@types/react": "^19.1.1",
     "@types/react-dom": "^19.1.1",
+    "@vitest/coverage-v8": "^4.0.10",
     "happy-dom": "^20.0.10",
     "lingui-react-router": "workspace:*",
     "tailwindcss": "^4.1.17",
