@@ -6,6 +6,12 @@ import { config, loadLocaleCatalog } from "../runtime"
 import "./assert-server"
 import { changeLocaleRedirect, createRequestContext, LocaleServerContext } from "./server-context"
 
+export type MiddlewareFunctionArgs = {
+  request: Request
+  context: Readonly<RouterContextProvider>
+  params: unknown
+}
+
 /**
  * Locale middleware implementation. Determines the locale from the URL or the
  * Accept-Language header, initializes i18n, and runs the request with a LocaleServerContext.
@@ -18,14 +24,10 @@ import { changeLocaleRedirect, createRequestContext, LocaleServerContext } from 
  * @param next The next middleware function
  * @returns The response from the next middleware or route handler
  */
-export async function localeMiddleware(
-  {
-    request,
-    context,
-    params,
-  }: { request: Request; context: Readonly<RouterContextProvider>; params: unknown },
-  next: () => Promise<Response>,
-): Promise<Response> {
+export async function localeMiddleware<T>(
+  { request, context, params }: MiddlewareFunctionArgs,
+  next: () => Promise<T>,
+): Promise<T> {
   const url = Object.freeze(new URL(request.url))
   const paramsMap = params as Record<string, string | undefined>
   const localeParam = paramsMap[config.localeParamName]
@@ -79,9 +81,12 @@ export async function localeMiddleware(
 
   // Run the next middleware / route handler
   const response = await next()
+  const headers = (response as any).headers
 
-  response.headers.set("Content-Language", resolvedLocale)
-  response.headers.append("Vary", "Accept-Language")
+  if (headers instanceof Headers) {
+    headers.set("Content-Language", resolvedLocale)
+    headers.append("Vary", "Accept-Language")
+  }
 
   return response
 }
