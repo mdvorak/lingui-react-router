@@ -1,22 +1,32 @@
+import { msg } from "@lingui/core/macro"
+import { useLingui } from "@lingui/react"
 import { render, screen, waitFor } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import { LocaleLink } from "lingui-react-router"
 import { loadInitialLocale } from "lingui-react-router/client"
-import { createLocaleRouteStub } from "lingui-react-router/test"
+import { createLocaleRouteStub, createLocaleRoutesStub } from "lingui-react-router/test"
 import { describe, expect, it } from "vitest"
 
 describe("LocaleLink", () => {
   describe("with string 'to' prop", () => {
     function createLocaleLinkStub(to = "/hello") {
-      const TestComponent = () => (
+      const TestPage = () => (
         <div>
           <LocaleLink to={to}>Test Link</LocaleLink>
         </div>
       )
 
-      return createLocaleRouteStub({
-        path: "test",
-        Component: TestComponent,
-      })
+      const HelloPage = () => {
+        const { _ } = useLingui()
+        return (
+          <div>{_(msg`Hello, World!`)}</div>
+        )
+      }
+
+      return createLocaleRoutesStub([
+        { path: "test", Component: TestPage },
+        { path: "hello", Component: HelloPage },
+      ])
     }
 
     it("renders a link without locale prefix when no locale is in the path", async () => {
@@ -113,6 +123,28 @@ describe("LocaleLink", () => {
       await waitFor(() => {
         expect(link.getAttribute("href")).toBe("/cs/path/to/page")
       })
+    })
+
+    it.each<[
+      locale: string,
+      expectedText: string,
+    ]>([
+      ["en", "Hello, World!"],
+      ["cs", "Ahoj světe!"],
+    ])("navigates to the linked page when clicked and retains locale (%s)", async (locale, expectedText) => {
+      const Stub = createLocaleLinkStub()
+
+      const url = `/${locale}/test`
+
+      await loadInitialLocale(url)
+      render(<Stub initialEntries={[url]} />)
+
+      const link = await screen.findByRole("link", { name: "Test Link" })
+      expect(link).toBeTruthy()
+
+      await userEvent.setup().click(link)
+
+      await screen.findByText(expectedText)
     })
   })
 
@@ -230,7 +262,6 @@ describe("LocaleLink", () => {
         path: "test",
         Component: TestComponent,
       })
-
 
       const url = "/it/test"
 

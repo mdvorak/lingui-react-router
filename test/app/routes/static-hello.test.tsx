@@ -12,6 +12,7 @@ describe("/static-hello", () => {
       Component: StaticHello,
       loader: loader,
       middleware: [localeMiddleware],
+      HydrateFallback: () => "Hydration failed",
     }])
     render(<Stub initialEntries={[url]} future={{ v8_middleware: true }} />)
     // Static heading

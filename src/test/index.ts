@@ -1,1 +1,3 @@
-export { createLocaleRouteStub, type StubRouteObject } from "./locale-route-stub"
+export {
+  createLocaleRouteStub, createLocaleRoutesStub, type StubRouteObject,
+} from "./locale-route-stub"

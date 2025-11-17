@@ -14,9 +14,13 @@ function StubComponent() {
   )
 }
 
+// Provide a default HydrateFallback to avoid React Router hydration warnings in tests
+function DummyHydrateFallback() {
+  return "Hydration failed"
+}
 
-export function createLocaleRouteStub(
-  route: StubRouteObject,
+export function createLocaleRoutesStub(
+  routes: StubRouteObject[],
   context: Readonly<RouterContextProvider> = new RouterContextProvider(),
   config: Readonly<{ localeParamName: string }> = loader.config,
 ): ReturnType<typeof createRoutesStub> {
@@ -25,14 +29,23 @@ export function createLocaleRouteStub(
       {
         path: `:${config.localeParamName}?`,
         Component: StubComponent,
-        children: [route],
+        children: routes,
         middleware: [localeMiddleware],
+        HydrateFallback: DummyHydrateFallback,
       },
     ],
     context,
   )
 
   return (props: React.ComponentProps<typeof StubRoot>) => (
-    <StubRoot {...props} future={{ v8_middleware: true }} />
+    <StubRoot {...props} future={{ v8_middleware: true, ...props.future }} />
   )
+}
+
+export function createLocaleRouteStub(
+  route: StubRouteObject,
+  context: Readonly<RouterContextProvider> = new RouterContextProvider(),
+  config: Readonly<{ localeParamName: string }> = loader.config,
+): ReturnType<typeof createRoutesStub> {
+  return createLocaleRoutesStub([route], context, config)
 }
