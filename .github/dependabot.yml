@@ -8,32 +8,9 @@ updates:
       interval: "weekly"
     versioning-strategy: increase-if-necessary
     groups:
-      react-router:
-        patterns:
-          - "react-router"
-          - "@react-router/*"
-      react:
-        patterns:
-          - "react"
-          - "react-dom"
-          - "@types/react"
-          - "@types/react-dom"
-      lingui:
-        patterns:
-          - "@lingui/*"
-      prod-deps:
+      deps:
         patterns:
           - "*"
-        exclude-patterns:
-          - "@types/*"
-          - "*eslint*"
-          - "*prettier*"
-          - "*jest*"
-          - "*vitest*"
-          - "*playwright*"
-      dev-types:
-        patterns:
-          - "@types/*"
 
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -42,3 +19,7 @@ updates:
     commit-message:
       prefix: "ci"
       include: "scope"
+    groups:
+      actions:
+        patterns:
+          - "*"
