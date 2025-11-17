@@ -21,7 +21,7 @@ importers:
         specifier: ^5.5.0
         version: 5.6.0(@lingui/babel-plugin-lingui-macro@5.6.0(babel-plugin-macros@3.1.0)(typescript@5.9.3))(babel-plugin-macros@3.1.0)(react@19.2.0)
       '@react-router/dev':
-        specifier: ^7.9.0
+        specifier: ^7.9.3
         version: 7.9.6(@react-router/serve@7.9.6(react-router@7.9.6(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(typescript@5.9.3))(@types/node@20.19.25)(babel-plugin-macros@3.1.0)(jiti@2.6.1)(lightningcss@1.30.2)(react-router@7.9.6(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(tsx@4.20.6)(typescript@5.9.3)(vite@7.2.2(@types/node@20.19.25)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.20.6))
       cldr-core:
         specifier: ^48.0.0
@@ -36,7 +36,7 @@ importers:
         specifier: ^19.1.1
         version: 19.2.0
       react-router:
-        specifier: ^7.9.0
+        specifier: ^7.9.3
         version: 7.9.6(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
     devDependencies:
       '@eslint/js':
@@ -58,7 +58,7 @@ importers:
         specifier: ^20.19.25
         version: 20.19.25
       '@types/react':
-        specifier: ^19.2.5
+        specifier: ^19.1.1
         version: 19.2.5
       '@typescript-eslint/eslint-plugin':
         specifier: ^8.46.4
@@ -103,41 +103,41 @@ importers:
   test:
     dependencies:
       '@lingui/core':
-        specifier: ^5.6.0
+        specifier: ^5.5.0
         version: 5.6.0(@lingui/babel-plugin-lingui-macro@5.6.0(babel-plugin-macros@3.1.0)(typescript@5.9.3))(babel-plugin-macros@3.1.0)
       '@lingui/react':
-        specifier: ^5.6.0
+        specifier: ^5.5.0
         version: 5.6.0(@lingui/babel-plugin-lingui-macro@5.6.0(babel-plugin-macros@3.1.0)(typescript@5.9.3))(babel-plugin-macros@3.1.0)(react@19.2.0)
       '@react-router/dev':
-        specifier: ^7.9.6
+        specifier: ^7.9.3
         version: 7.9.6(@react-router/serve@7.9.6(react-router@7.9.6(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(typescript@5.9.3))(@types/node@20.19.25)(babel-plugin-macros@3.1.0)(jiti@2.6.1)(lightningcss@1.30.2)(react-router@7.9.6(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(tsx@4.20.6)(typescript@5.9.3)(vite@7.2.2(@types/node@20.19.25)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.20.6))
       '@react-router/node':
-        specifier: ^7.9.6
+        specifier: ^7.9.3
         version: 7.9.6(react-router@7.9.6(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(typescript@5.9.3)
       '@react-router/serve':
-        specifier: ^7.9.6
+        specifier: ^7.9.3
         version: 7.9.6(react-router@7.9.6(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(typescript@5.9.3)
       isbot:
         specifier: ^5.1.32
         version: 5.1.32
       react:
-        specifier: ^19.2.0
+        specifier: ^19.1.1
         version: 19.2.0
       react-dom:
-        specifier: ^19.2.0
+        specifier: ^19.1.1
         version: 19.2.0(react@19.2.0)
       react-router:
-        specifier: ^7.9.6
+        specifier: ^7.9.3
         version: 7.9.6(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
     devDependencies:
       '@lingui/cli':
-        specifier: ^5.6.0
+        specifier: ^5.5.0
         version: 5.6.0(babel-plugin-macros@3.1.0)(typescript@5.9.3)
       '@lingui/conf':
-        specifier: ^5.6.0
+        specifier: ^5.5.0
         version: 5.6.0(typescript@5.9.3)
       '@lingui/vite-plugin':
-        specifier: ^5.6.0
+        specifier: ^5.5.0
         version: 5.6.0(babel-plugin-macros@3.1.0)(typescript@5.9.3)(vite@7.2.2(@types/node@20.19.25)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.20.6))
       '@tailwindcss/vite':
         specifier: ^4.1.17
@@ -152,10 +152,10 @@ importers:
         specifier: ^20.19.25
         version: 20.19.25
       '@types/react':
-        specifier: ^19.2.5
+        specifier: ^19.1.1
         version: 19.2.5
       '@types/react-dom':
-        specifier: ^19.2.3
+        specifier: ^19.1.1
         version: 19.2.3(@types/react@19.2.5)
       happy-dom:
         specifier: ^20.0.10

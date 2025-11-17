@@ -48,12 +48,63 @@ jobs:
           path: lingui-react-router*.tgz
           retention-days: 7
 
+  build-min-supported:
+    name: Build (Minimal Supported)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js 20.x
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20.x
+          cache: 'pnpm'
+
+      - name: Override versions
+        uses: actions/github-script@v7
+        with:
+          #language=js
+          script: |
+            const fs = require("fs")
+            const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"))
+            const linguiVersion = pkg.peerDependencies["@lingui/core"].replace("^", "")
+            const reactVersion = pkg.peerDependencies["react"].replace("^", "")
+            const reactRouterVersion = pkg.peerDependencies["react-router"].replace("^", "")
+
+            pkg.pnpm.overrides = {
+              ...(pkg.pnpm.overrides || {}),
+              "@lingui/cli": linguiVersion,
+              "@lingui/conf": linguiVersion,
+              "@lingui/core": linguiVersion,
+              "@lingui/react": linguiVersion,
+              "@lingui/vite-plugin": linguiVersion,
+              "@react-router/dev": reactRouterVersion,
+              "@react-router/node": reactRouterVersion,
+              "@react-router/serve": reactRouterVersion,
+              "@react-router/express": reactRouterVersion,
+              "react-router": reactRouterVersion,
+              "react": reactVersion,
+              "react-dom": reactVersion,
+            }
+            fs.writeFileSync("package.json", JSON.stringify(pkg, null, 2) + "\n")
+            fs.rmSync("pnpm-lock.yaml", { force: true })
+
+      - name: Install dependencies with minimal versions
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Test with minimal versions
+        run: pnpm test:all
+
   build-all:
     name: Build
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    needs: [ build ]
+    needs: [ build, build-min-supported ]
     steps:
       - run: echo OK
 
