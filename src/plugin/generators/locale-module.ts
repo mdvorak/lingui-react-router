@@ -31,8 +31,8 @@ export async function generateLocaleModule(
     const catalogExtension =
       (typeof linguiConfig.format === "object" && linguiConfig.format.catalogExtension) || "po"
 
-    // Add catalog extension for the glob pattern
-    const globPattern = `${catalogPath}.${catalogExtension}`
+    // Add catalog extension for the glob pattern (fast-glob does not support Windows backslashes)
+    const globPattern = `${catalogPath}.${catalogExtension}`.replaceAll("\\", "/")
 
     const catalogFiles = await fg(globPattern, {
       cwd: rootDir,
