@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react"
+import { localeMiddleware } from "lingui-react-router/server"
 import { createRoutesStub } from "react-router"
 import { describe, expect, it } from "vitest"
-import { localeMiddleware } from "../../../src/server"
 import StaticHello, { loader } from "./static-hello"
 
 describe("/static-hello", () => {

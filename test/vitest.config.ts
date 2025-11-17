@@ -18,6 +18,6 @@ export default defineConfig({
     globals: true,
     environment: "happy-dom",
     exclude: ["**/node_modules/**", "build/**", ".react-router/**"],
-    reporters: ["tree", "github-actions"],
+    reporters: ["default", "github-actions"],
   },
 })
