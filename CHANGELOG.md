@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.1.2](https://github.com/mdvorak/lingui-react-router/compare/v1.1.1...v1.1.2) (2025-11-17)
+
+
+### Bug Fixes
+
+* add optimizeLocaleBundles option to plugin configuration ([a5a8de5](https://github.com/mdvorak/lingui-react-router/commit/a5a8de5f505e6ab83418fa1181a48c86171d8d8a))
+* **server:** make localeMiddleware generic to support all call signatures ([46b90e7](https://github.com/mdvorak/lingui-react-router/commit/46b90e7f73bdadcbe02312f27c1feff5e4f1adfa))
+* support `<rootDir>` in lingui config under windows ([afa4076](https://github.com/mdvorak/lingui-react-router/commit/afa4076be5c33904dec99ac813e618f027e089c2))
+* **test:** add createLocaleRoutesStub for handling multiple test routes ([65b4ecd](https://github.com/mdvorak/lingui-react-router/commit/65b4ecd7625627d1c596416592f38206ba530c7c))
+* **test:** use localeMiddleware in createLocaleRouteStub ([6c03cf6](https://github.com/mdvorak/lingui-react-router/commit/6c03cf61b0d31bf9e95923a3a6dfa56cf6c98203))
+
 ## [1.1.1](https://github.com/mdvorak/lingui-react-router/compare/v1.1.0...v1.1.1) (2025-11-08)
 
 
