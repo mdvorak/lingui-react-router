@@ -90,7 +90,7 @@
     "@types/estree": "^1.0.8",
     "@types/negotiator": "^0.6.4",
     "@types/node": "^20.19.25",
-    "@types/react": "^19.2.5",
+    "@types/react": "^19.1.1",
     "@typescript-eslint/eslint-plugin": "^8.46.4",
     "@typescript-eslint/parser": "^8.46.4",
     "@vitest/coverage-v8": "^4.0.10",
@@ -109,9 +109,9 @@
     "@lingui/conf": "^5.5.0",
     "@lingui/core": "^5.5.0",
     "@lingui/react": "^5.5.0",
-    "@react-router/dev": "^7.9.0",
+    "@react-router/dev": "^7.9.3",
     "react": "^19.1.1",
-    "react-router": "^7.9.0"
+    "react-router": "^7.9.3"
   },
   "pnpm": {
     "overrides": {
