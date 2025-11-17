@@ -8,9 +8,9 @@ export default defineConfig({
   catalogs: [
     {
       name: "{locale}",
-      path: "app/locales/{locale}",
-      include: ["app"],
-      exclude: ["app/components/**", "**/*.test.*", "**/__tests__/**"],
+      path: "<rootDir>/app/locales/{locale}",
+      include: ["<rootDir>/app"],
+      exclude: ["<rootDir>/app/components/**", "**/*.test.*", "**/__tests__/**"],
     },
     {
       name: "{locale}",
