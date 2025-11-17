@@ -15,35 +15,35 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@lingui/core": "^5.5.2",
-    "@lingui/react": "^5.5.2",
-    "@react-router/dev": "^7.9.5",
-    "@react-router/node": "^7.9.5",
-    "@react-router/serve": "^7.9.5",
-    "isbot": "^5.1.31",
+    "@lingui/core": "^5.6.0",
+    "@lingui/react": "^5.6.0",
+    "@react-router/dev": "^7.9.6",
+    "@react-router/node": "^7.9.6",
+    "@react-router/serve": "^7.9.6",
+    "isbot": "^5.1.32",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "react-router": "^7.9.5"
+    "react-router": "^7.9.6"
   },
   "devDependencies": {
-    "@lingui/cli": "^5.5.2",
-    "@lingui/conf": "^5.5.2",
-    "@lingui/vite-plugin": "^5.5.2",
-    "@tailwindcss/vite": "^4.1.16",
+    "@lingui/cli": "^5.6.0",
+    "@lingui/conf": "^5.6.0",
+    "@lingui/vite-plugin": "^5.6.0",
+    "@tailwindcss/vite": "^4.1.17",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
-    "@types/node": "^20.19.24",
-    "@types/react": "^19.2.2",
-    "@types/react-dom": "^19.2.2",
+    "@types/node": "^20.19.25",
+    "@types/react": "^19.2.5",
+    "@types/react-dom": "^19.2.3",
     "happy-dom": "^20.0.10",
     "lingui-react-router": "workspace:*",
-    "tailwindcss": "^4.1.16",
+    "tailwindcss": "^4.1.17",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
-    "vite": "^7.1.12",
+    "vite": "^7.2.2",
     "vite-plugin-babel-macros": "^1.0.6",
     "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^4.0.6"
+    "vitest": "^4.0.10"
   },
   "devDependenciesMeta": {
     "lingui-react-router": {
