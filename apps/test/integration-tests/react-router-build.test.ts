@@ -122,7 +122,7 @@ describe("react-router build", () => {
   })
 
   describe("locale-module-parser should merge catalog variables", async () => {
-    it("should have only one JSON.parse() call in %s", async () => {
+    it("should have only one JSON.parse() call in each locale file", async () => {
       // Starting at cwd
       const catalogFiles: string[] = await fg("build/client/assets/locale-*.js", {
         cwd: projectDir,
