@@ -35,9 +35,9 @@
       "require": "./dist/server/index.cjs"
     },
     "./negotiate": {
-      "types": "./dist/server/negotiate.d.ts",
-      "import": "./dist/server/negotiate.mjs",
-      "require": "./dist/server/negotiate.cjs"
+      "types": "./dist/negotiate/index.d.ts",
+      "import": "./dist/negotiate/index.mjs",
+      "require": "./dist/negotiate/index.cjs"
     },
     "./routes": {
       "types": "./dist/plugin/routes.d.ts",

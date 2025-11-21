@@ -1,5 +1,5 @@
 import Negotiator from "negotiator"
-import "./assert-server"
+import "../server/assert-server"
 
 /**
  * Parse the Accept-Language header and return the best language match.

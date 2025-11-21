@@ -6,7 +6,7 @@ export default defineBuildConfig({
     "src/index",
     "src/client/index",
     "src/server/index",
-    "src/server/negotiate",
+    "src/negotiate/index",
     "src/plugin/routes",
     "src/plugin/index",
     "src/test/index",
@@ -17,6 +17,7 @@ export default defineBuildConfig({
     /^virtual:lingui-router-locale-.*/,
   ],
   declaration: true,
+  sourcemap: true,
   rollup: {
     emitCJS: true,
   },
