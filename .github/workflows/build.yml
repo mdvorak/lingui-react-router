@@ -34,7 +34,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Lint package
-        run: pnpm lint
+        run: pnpm --recursive --stream lint
 
       - name: Test package
         run: pnpm --recursive --stream test

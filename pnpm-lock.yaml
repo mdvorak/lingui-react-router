@@ -100,7 +100,7 @@ importers:
         specifier: ^4.0.10
         version: 4.0.10(@types/node@20.19.25)(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@27.1.0)(lightningcss@1.30.2)(tsx@4.20.6)
 
-  test:
+  apps/test:
     dependencies:
       '@lingui/core':
         specifier: ^5.5.0
@@ -165,7 +165,7 @@ importers:
         version: 20.0.10
       lingui-react-router:
         specifier: workspace:*
-        version: link:..
+        version: link:../..
       tailwindcss:
         specifier: ^4.1.17
         version: 4.1.17
