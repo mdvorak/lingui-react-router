@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.3](https://github.com/mdvorak/lingui-react-router/compare/v1.1.2...v1.1.3) (2025-11-21)
+
+
+### Bug Fixes
+
+* replace %s placeholder with descriptive test name ([a517aab](https://github.com/mdvorak/lingui-react-router/commit/a517aab286715538db007b5681e5c441ef0b0663))
+
 ## [1.1.2](https://github.com/mdvorak/lingui-react-router/compare/v1.1.1...v1.1.2) (2025-11-17)
 
 
