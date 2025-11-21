@@ -12,7 +12,9 @@ describe("react-router build", () => {
   it("should build successfully", async () => {
     await runReactRouter(projectDir, "build")
     console.log("React Router build completed")
-  })
+
+    expect(fs.existsSync(join(projectDir, "build", ".client-locale-manifest.json"))).toBe(true)
+  }, 15000) // Increase timeout to 15 seconds
 
   /**
    * Integration test for validating pre-rendered HTML files

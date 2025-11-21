@@ -1,5 +1,6 @@
 import { dirname, join } from "node:path"
 import process from "node:process"
+import { fileURLToPath } from "node:url"
 import { vi } from "vitest"
 
 /**
@@ -10,7 +11,7 @@ import { vi } from "vitest"
  */
 export async function runReactRouter(projectDir: string, command: string) {
   const packageJson = await import("@react-router/dev/package.json")
-  const reactRouterDevPath = dirname(import.meta.resolve("@react-router/dev/package.json"))
+  const reactRouterDevPath = dirname(fileURLToPath(import.meta.resolve("@react-router/dev/package.json")))
   const reactRouterDevBinPath = join(reactRouterDevPath, packageJson.bin["react-router"])
   const testCwd = process.cwd()
 
