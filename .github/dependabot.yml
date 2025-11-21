@@ -3,7 +3,7 @@ updates:
   - package-ecosystem: "npm"
     directories:
       - "/"
-      - "/test/"
+      - "/apps/test/"
     schedule:
       interval: "weekly"
     versioning-strategy: increase-if-necessary

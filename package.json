@@ -73,7 +73,7 @@
     "dev": "pnpm run format && pnpm run typecheck && unbuild --watch",
     "prepack": "pnpm run build",
     "clean": "node -e '[\"dist\", \"coverage\"].forEach(d => fs.rmSync(d, { recursive: true, force: true }))'",
-    "start": "pnpm -r build && pnpm -F ./test start"
+    "start": "pnpm -r build && pnpm -F ./apps/test start"
   },
   "engines": {
     "node": ">=20"

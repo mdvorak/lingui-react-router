@@ -10,8 +10,8 @@ export default [
   {
     ignores: [
       "dist/**",
-      "test/build/**",
-      "test/.react-router/**",
+      "apps/*/build/**",
+      "apps/*/.react-router/**",
       "node_modules/**",
       "coverage/**",
       "*.min.js",

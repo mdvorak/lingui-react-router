@@ -9,7 +9,7 @@ export default defineConfig({
     include: ["src/**/*.test.ts"],
     coverage: {
       reporter: ["text"],
-      exclude: ["test/build/**", "test/.react-router/**", "test/integration-tests/**", "**/*.po"],
+      exclude: ["apps/*/build/**", "apps/*/.react-router/**", "apps/*/integration-tests/**", "**/*.po"],
     },
   },
 })
