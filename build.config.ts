@@ -17,7 +17,6 @@ export default defineBuildConfig({
     /^virtual:lingui-router-locale-.*/,
   ],
   declaration: true,
-  sourcemap: true,
   rollup: {
     emitCJS: true,
   },
