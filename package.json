@@ -68,7 +68,7 @@
     "format": "eslint . --fix",
     "build": "unbuild",
     "pretest": "pnpm typecheck && pnpm build --sourcemap",
-    "test": "vitest --coverage",
+    "test": "vitest run --coverage",
     "test:all": "pnpm -r --stream test",
     "dev": "pnpm format && pnpm typecheck && pnpm build --sourcemap --watch",
     "prepack": "pnpm build",
