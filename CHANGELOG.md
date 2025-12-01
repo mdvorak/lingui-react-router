@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.2.0](https://github.com/mdvorak/lingui-react-router/compare/v1.1.2...v1.2.0) (2025-12-01)
+
+
+### Features
+
+* add ErrorBoundary to locale route stubs in tests ([a3ae2ce](https://github.com/mdvorak/lingui-react-router/commit/a3ae2ce00ad902a42582c09b1a6f8f3b1937e56c))
+
+
+### Bug Fixes
+
+* update SelectLanguage component and improve layout in root.tsx ([fc30b71](https://github.com/mdvorak/lingui-react-router/commit/fc30b71cabd64397debc8f021de3605c4eadf77b))
+
 ## [1.1.2](https://github.com/mdvorak/lingui-react-router/compare/v1.1.1...v1.1.2) (2025-11-17)
 
 
