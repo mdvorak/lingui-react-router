@@ -5,10 +5,23 @@ import { createLocaleRouteStub } from "lingui-react-router/test"
 import { describe, expect, it } from "vitest"
 import SelectLanguage from "./SelectLanguage"
 
+function TestComponent() {
+  return <SelectLanguage id="language-selector" />
+}
+
+function assertErrorBoundary() {
+  expect(screen.queryByTestId("error")).toBeNull()
+}
+
+function TestErrorBoundary({ error }: { error: any }) {
+  return <span data-testid="error">{error?.message}</span>
+}
+
 describe("SelectLanguage", () => {
   const Stub = createLocaleRouteStub({
     path: "test",
-    Component: SelectLanguage,
+    Component: TestComponent,
+    ErrorBoundary: TestErrorBoundary,
   })
 
   it("renders the language selector with the default locale", async () => {
@@ -16,6 +29,7 @@ describe("SelectLanguage", () => {
 
     await loadInitialLocale(url)
     render(<Stub initialEntries={[url]} />)
+    assertErrorBoundary()
 
     // Check that the label is rendered
     await expect(screen.findByText("Language")).resolves.toBeTruthy()
@@ -35,6 +49,7 @@ describe("SelectLanguage", () => {
 
     await loadInitialLocale(url)
     render(<Stub initialEntries={[url]} />)
+    assertErrorBoundary()
 
     // Get all options
     const options = await screen.findAllByRole("option")
@@ -70,6 +85,7 @@ describe("SelectLanguage", () => {
 
     await loadInitialLocale(url)
     render(<Stub initialEntries={[url]} />)
+    assertErrorBoundary()
 
     // In Italian, "Language" should be translated to "Lingua"
     await expect(screen.findByText("Lingua")).resolves.toBeTruthy()
@@ -81,6 +97,7 @@ describe("SelectLanguage", () => {
 
     await loadInitialLocale(url)
     render(<Stub initialEntries={[url]} />)
+    assertErrorBoundary()
 
     const select = await screen.findByRole("combobox")
     await waitFor(() => {
@@ -104,6 +121,7 @@ describe("SelectLanguage", () => {
 
     await loadInitialLocale(url)
     render(<Stub initialEntries={[url]} />)
+    assertErrorBoundary()
 
     const select = await screen.findByRole("combobox")
 
@@ -124,6 +142,7 @@ describe("SelectLanguage", () => {
 
     await loadInitialLocale(url)
     render(<Stub initialEntries={[url]} />)
+    assertErrorBoundary()
 
     const select = await screen.findByRole("combobox")
     await waitFor(() => {
@@ -145,6 +164,7 @@ describe("SelectLanguage", () => {
 
     await loadInitialLocale(url)
     render(<Stub initialEntries={[url]} />)
+    assertErrorBoundary()
 
     const select = await screen.findByRole("combobox")
     await waitFor(() => {
@@ -158,6 +178,7 @@ describe("SelectLanguage", () => {
 
     await loadInitialLocale(url)
     render(<Stub initialEntries={[url]} />)
+    assertErrorBoundary()
 
     // Check that label and select are properly associated
     const label = await screen.findByText("Language")

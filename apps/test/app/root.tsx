@@ -43,12 +43,12 @@ function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
         <LocalePreload />
       </head>
       <body>
-        <div className="w-full flex items-center p-4 border-b-1 border-foreground mb-2">
+      <div className="w-full flex items-center p-4 border-b border-foreground mb-2">
           <LocaleLink to="/">
             <Trans context="nav">Home</Trans>
           </LocaleLink>
           <span className="ml-auto">
-            <SelectLanguage />
+            <SelectLanguage id="language-selector" />
           </span>
         </div>
         <div className="p-4">{children}</div>
