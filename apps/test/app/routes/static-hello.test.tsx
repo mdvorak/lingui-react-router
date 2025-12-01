@@ -12,6 +12,8 @@ describe("/static-hello", () => {
       Component: StaticHello,
       loader: loader,
       middleware: [localeMiddleware],
+      ErrorBoundary: ({ error }: { error: any }) => <span
+        data-testid="error">{error?.message}</span>,
       HydrateFallback: () => "Hydration failed",
     }])
     render(<Stub initialEntries={[url]} future={{ v8_middleware: true }} />)

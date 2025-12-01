@@ -43,7 +43,7 @@ function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
         <LocalePreload />
       </head>
       <body>
-      <div className="w-full flex items-center p-4 border-b border-foreground mb-2">
+        <div className="w-full flex items-center p-4 border-b border-foreground mb-2">
           <LocaleLink to="/">
             <Trans context="nav">Home</Trans>
           </LocaleLink>

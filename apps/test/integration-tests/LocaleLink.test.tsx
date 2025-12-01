@@ -4,10 +4,18 @@ import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { LocaleLink } from "lingui-react-router"
 import { loadInitialLocale } from "lingui-react-router/client"
-import { createLocaleRouteStub, createLocaleRoutesStub } from "lingui-react-router/test"
+import { createLocaleRoutesStub, createLocaleRouteStub } from "lingui-react-router/test"
 import { describe, expect, it } from "vitest"
 
 describe("LocaleLink", () => {
+  function assertErrorBoundary() {
+    expect(screen.queryByTestId("error")).toBeNull()
+  }
+
+  function TestErrorBoundary({ error }: { error: any }) {
+    return <span data-testid="error">{error?.message}</span>
+  }
+
   describe("with string 'to' prop", () => {
     function createLocaleLinkStub(to = "/hello") {
       const TestPage = () => (
@@ -24,8 +32,8 @@ describe("LocaleLink", () => {
       }
 
       return createLocaleRoutesStub([
-        { path: "test", Component: TestPage },
-        { path: "hello", Component: HelloPage },
+        { path: "test", Component: TestPage, ErrorBoundary: TestErrorBoundary },
+        { path: "hello", Component: HelloPage, ErrorBoundary: TestErrorBoundary },
       ])
     }
 
@@ -36,6 +44,7 @@ describe("LocaleLink", () => {
 
       await loadInitialLocale(url)
       render(<Stub initialEntries={[url]} />)
+      assertErrorBoundary()
 
       const link = await screen.findByRole("link", { name: "Test Link" })
       expect(link).toBeTruthy()
@@ -52,6 +61,7 @@ describe("LocaleLink", () => {
 
       await loadInitialLocale(url)
       render(<Stub initialEntries={[url]} />)
+      assertErrorBoundary()
 
       const link = await screen.findByRole("link", { name: "Test Link" })
       expect(link).toBeTruthy()
@@ -68,6 +78,7 @@ describe("LocaleLink", () => {
 
       await loadInitialLocale(url)
       render(<Stub initialEntries={[url]} />)
+      assertErrorBoundary()
 
       const link = await screen.findByRole("link", { name: "Test Link" })
       expect(link).toBeTruthy()
@@ -84,6 +95,7 @@ describe("LocaleLink", () => {
 
       await loadInitialLocale(url)
       render(<Stub initialEntries={[url]} />)
+      assertErrorBoundary()
 
       const link = await screen.findByRole("link", { name: "Test Link" })
       expect(link).toBeTruthy()
@@ -100,6 +112,7 @@ describe("LocaleLink", () => {
 
       await loadInitialLocale(url)
       render(<Stub initialEntries={[url]} />)
+      assertErrorBoundary()
 
       const link = await screen.findByRole("link", { name: "Test Link" })
       expect(link).toBeTruthy()
@@ -116,6 +129,7 @@ describe("LocaleLink", () => {
 
       await loadInitialLocale(url)
       render(<Stub initialEntries={[url]} />)
+      assertErrorBoundary()
 
       const link = await screen.findByRole("link", { name: "Test Link" })
       expect(link).toBeTruthy()
@@ -138,6 +152,7 @@ describe("LocaleLink", () => {
 
       await loadInitialLocale(url)
       render(<Stub initialEntries={[url]} />)
+      assertErrorBoundary()
 
       const link = await screen.findByRole("link", { name: "Test Link" })
       expect(link).toBeTruthy()
@@ -159,12 +174,14 @@ describe("LocaleLink", () => {
       const Stub = createLocaleRouteStub({
         path: "test",
         Component: TestComponent,
+        ErrorBoundary: TestErrorBoundary,
       })
 
       const url = "/test"
 
       await loadInitialLocale(url)
       render(<Stub initialEntries={[url]} />)
+      assertErrorBoundary()
 
       const link = await screen.findByRole("link", { name: "Test Link" })
       expect(link).toBeTruthy()
@@ -184,12 +201,14 @@ describe("LocaleLink", () => {
       const Stub = createLocaleRouteStub({
         path: "test",
         Component: TestComponent,
+        ErrorBoundary: TestErrorBoundary,
       })
 
       const url = "/en/test"
 
       await loadInitialLocale(url)
       render(<Stub initialEntries={[url]} />)
+      assertErrorBoundary()
 
       const link = await screen.findByRole("link", { name: "Test Link" })
       expect(link).toBeTruthy()
@@ -209,12 +228,14 @@ describe("LocaleLink", () => {
       const Stub = createLocaleRouteStub({
         path: "test",
         Component: TestComponent,
+        ErrorBoundary: TestErrorBoundary,
       })
 
       const url = "/en/test"
 
       await loadInitialLocale(url)
       render(<Stub initialEntries={[url]} />)
+      assertErrorBoundary()
 
       const link = await screen.findByRole("link", { name: "Test Link" })
       expect(link).toBeTruthy()
@@ -234,12 +255,14 @@ describe("LocaleLink", () => {
       const Stub = createLocaleRouteStub({
         path: "test",
         Component: TestComponent,
+        ErrorBoundary: TestErrorBoundary,
       })
 
       const url = "/en/test"
 
       await loadInitialLocale(url)
       render(<Stub initialEntries={[url]} />)
+      assertErrorBoundary()
 
       const link = await screen.findByRole("link", { name: "Test Link" })
       expect(link).toBeTruthy()
@@ -261,12 +284,14 @@ describe("LocaleLink", () => {
       const Stub = createLocaleRouteStub({
         path: "test",
         Component: TestComponent,
+        ErrorBoundary: TestErrorBoundary,
       })
 
       const url = "/it/test"
 
       await loadInitialLocale(url)
       render(<Stub initialEntries={[url]} />)
+      assertErrorBoundary()
 
       const link = await screen.findByRole("link", { name: "Test Link" })
       expect(link).toBeTruthy()
@@ -286,12 +311,14 @@ describe("LocaleLink", () => {
       const Stub = createLocaleRouteStub({
         path: "test",
         Component: TestComponent,
+        ErrorBoundary: TestErrorBoundary,
       })
 
       const url = "/cs/test"
 
       await loadInitialLocale(url)
       render(<Stub initialEntries={[url]} />)
+      assertErrorBoundary()
 
       const link = await screen.findByRole("link", { name: "Test Link" })
       expect(link).toBeTruthy()
@@ -313,12 +340,14 @@ describe("LocaleLink", () => {
       const Stub = createLocaleRouteStub({
         path: "test",
         Component: TestComponent,
+        ErrorBoundary: TestErrorBoundary,
       })
 
       const url = "/en/test"
 
       await loadInitialLocale(url)
       render(<Stub initialEntries={[url]} />)
+      assertErrorBoundary()
 
       const link = await screen.findByRole("link", { name: "Test Link" })
       expect(link).toBeTruthy()
@@ -338,12 +367,14 @@ describe("LocaleLink", () => {
       const Stub = createLocaleRouteStub({
         path: "test",
         Component: TestComponent,
+        ErrorBoundary: TestErrorBoundary,
       })
 
       const url = "/en/test"
 
       await loadInitialLocale(url)
       render(<Stub initialEntries={[url]} />)
+      assertErrorBoundary()
 
       const link = await screen.findByRole("link", { name: "Test Link" })
       expect(link).toBeTruthy()

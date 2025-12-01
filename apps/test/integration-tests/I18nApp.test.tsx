@@ -51,6 +51,14 @@ function LocaleDisplayWithLinks() {
   )
 }
 
+function TestErrorBoundary({ error }: { error: any }) {
+  return (<span data-testid="error">{error?.message}</span>)
+}
+
+function assertErrorBoundary() {
+  expect(screen.queryByTestId("error")).toBeNull()
+}
+
 describe("I18nApp", () => {
   afterEach(() => {
     cleanup()
@@ -62,11 +70,13 @@ describe("I18nApp", () => {
       const Stub = createLocaleRouteStub({
         path: "test",
         Component: LocaleDisplay,
+        ErrorBoundary: TestErrorBoundary,
       })
 
       const url = "/test"
       await loadInitialLocale(url)
       render(<Stub initialEntries={[url]} />)
+      assertErrorBoundary()
 
       await waitFor(() => {
         const localeElement = screen.getByTestId("current-locale")
@@ -76,17 +86,19 @@ describe("I18nApp", () => {
   })
 
   describe("locale change handling via navigation", () => {
+    const Stub = createLocaleRouteStub({
+      path: "test",
+      Component: LocaleDisplayWithLinks,
+      ErrorBoundary: TestErrorBoundary,
+    })
+
     it("activates new locale when navigating to a different locale", async () => {
       const user = userEvent.setup()
-
-      const Stub = createLocaleRouteStub({
-        path: "test",
-        Component: LocaleDisplayWithLinks,
-      })
 
       const url = "/en/test"
       await loadInitialLocale(url)
       render(<Stub initialEntries={[url]} />)
+      assertErrorBoundary()
 
       // Verify initial locale
       await waitFor(() => {
@@ -104,18 +116,12 @@ describe("I18nApp", () => {
         expect(localeElement.textContent).toBe("it")
       })
     })
-  })
 
-  describe("locale switching between different locales", () => {
     it("switches between multiple locales correctly via navigation", async () => {
-      const Stub = createLocaleRouteStub({
-        path: "test",
-        Component: LocaleDisplayWithLinks,
-      })
-
       const url = "/en/test"
       await loadInitialLocale(url)
       render(<Stub initialEntries={[url]} />)
+      assertErrorBoundary()
 
       // Start with English
       await waitFor(() => {
@@ -173,11 +179,13 @@ describe("I18nApp", () => {
       const Stub = createLocaleRouteStub({
         path: "test",
         Component: TestComponent,
+        ErrorBoundary: TestErrorBoundary,
       })
 
       const url = "/it/test"
       await loadInitialLocale(url)
       render(<Stub initialEntries={[url]} />)
+      assertErrorBoundary()
 
       await waitFor(() => {
         const i18nAvailable = screen.getByTestId("i18n-available")
@@ -190,15 +198,17 @@ describe("I18nApp", () => {
   })
 
   describe("LocalePathContext with useRouteLocale", () => {
-    it("provides correct context when locale is in URL path", async () => {
-      const Stub = createLocaleRouteStub({
-        path: "test",
-        Component: RouteLocaleDisplay,
-      })
+    const Stub = createLocaleRouteStub({
+      path: "test",
+      Component: RouteLocaleDisplay,
+      ErrorBoundary: TestErrorBoundary,
+    })
 
+    it("provides correct context when locale is in URL path", async () => {
       const url = "/it/test"
       await loadInitialLocale(url)
       render(<Stub initialEntries={[url]} />)
+      assertErrorBoundary()
 
       await waitFor(() => {
         const routeLocale = screen.getByTestId("locale-route")
@@ -212,14 +222,10 @@ describe("I18nApp", () => {
     })
 
     it("provides correct context when using default locale without locale in URL", async () => {
-      const Stub = createLocaleRouteStub({
-        path: "test",
-        Component: RouteLocaleDisplay,
-      })
-
       const url = "/test"
       await loadInitialLocale(url)
       render(<Stub initialEntries={[url]} />)
+      assertErrorBoundary()
 
       await waitFor(() => {
         const routeLocale = screen.getByTestId("locale-route")
@@ -253,11 +259,13 @@ describe("I18nApp", () => {
       const Stub = createLocaleRouteStub({
         path: "about",
         Component: RouteLocaleDisplayWithLinks,
+        ErrorBoundary: TestErrorBoundary,
       })
 
       const url = "/en/about"
       await loadInitialLocale(url)
       render(<Stub initialEntries={[url]} />)
+      assertErrorBoundary()
 
       // Verify initial state
       await waitFor(() => {
@@ -282,11 +290,13 @@ describe("I18nApp", () => {
       const Stub = createLocaleRouteStub({
         path: "nested/deep/path",
         Component: RouteLocaleDisplay,
+        ErrorBoundary: TestErrorBoundary,
       })
 
       const url = "/en-GB/nested/deep/path"
       await loadInitialLocale(url)
       render(<Stub initialEntries={[url]} />)
+      assertErrorBoundary()
 
       await waitFor(() => {
         const routeLocale = screen.getByTestId("locale-route")
@@ -315,11 +325,13 @@ describe("I18nApp", () => {
       const Stub = createLocaleRouteStub({
         path: "page",
         Component: RouteLocaleDisplayWithQuery,
+        ErrorBoundary: TestErrorBoundary,
       })
 
       const url = "/en/page"
       await loadInitialLocale(url)
       render(<Stub initialEntries={[url]} />)
+      assertErrorBoundary()
 
       // Navigate to link with query and hash
       const link = screen.getByTestId("link-with-query")
