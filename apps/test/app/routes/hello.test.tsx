@@ -8,6 +8,7 @@ describe("/:locale?/hello", () => {
     path: "hello",
     Component: Hello,
     loader: helloLoader,
+    ErrorBoundary: ({ error }: { error: any }) => <span data-testid="error">{error?.message}</span>,
   })
 
   it("navigates to /hello and shows Hello and loader text", async () => {
