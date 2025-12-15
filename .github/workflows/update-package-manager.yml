@@ -45,7 +45,7 @@ jobs:
 
       - name: Create Pull Request
         if: steps.latest-version.outputs.version != steps.current-version.outputs.version
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           commit-message: "chore(deps): update packageManager to latest stable version"
           title: "chore(deps): update packageManager to latest stable version"
