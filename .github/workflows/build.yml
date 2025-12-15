@@ -44,7 +44,7 @@ jobs:
         run: pnpm pack
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         if: matrix.node-version == 'lts/*' && matrix.os == 'ubuntu-latest'
         with:
           name: lingui-react-router
@@ -131,7 +131,7 @@ jobs:
         run: npm install -g npm
 
       - name: Download build artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: lingui-react-router
 
